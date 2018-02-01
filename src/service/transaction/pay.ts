@@ -201,6 +201,7 @@ export function exportTasks(status: factory.transactionStatusType) {
 
         const transaction = await transactionRepo.transactionModel.findOneAndUpdate(
             {
+                typeOf: factory.transactionType.Pay,
                 status: status,
                 tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
             },

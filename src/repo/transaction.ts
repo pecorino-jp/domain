@@ -93,6 +93,20 @@ export class MongoRepository {
     }
 
     /**
+     * find transaction by id
+     * @param {string} transactionId transaction id
+     */
+    public async findById(transactionId: string): Promise<factory.transaction.ITransaction> {
+        const doc = await this.transactionModel.findById(transactionId).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('transaction');
+        }
+
+        return <factory.transaction.ITransaction>doc.toObject();
+    }
+
+    /**
      * タスクエクスポートリトライ
      * todo updatedAtを基準にしているが、タスクエクスポートトライ日時を持たせた方が安全か？
      * @param {number} intervalInMinutes

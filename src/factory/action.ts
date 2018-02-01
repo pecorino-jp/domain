@@ -29,7 +29,8 @@ export interface IParticipant {
  * @memberof action
  */
 export enum ActionType {
-    PayAction = 'PayAction'
+    PayAction = 'PayAction',
+    TakeAction = 'TakeAction'
 }
 
 /**

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 - 口座サービスを追加。
 - 支払取引サービスを追加。
+- 入金取引サービスを追加。
 
 ### Changed
 

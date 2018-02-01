@@ -7,6 +7,8 @@ import * as AccountFactory from './factory/account';
 import * as ActionFactory from './factory/action';
 import * as TradeActionFactory from './factory/action/trade';
 import * as PayActionFactory from './factory/action/trade/pay';
+import * as TransferActionFactory from './factory/action/transfer';
+import * as TakeActionFactory from './factory/action/transfer/take';
 import * as ClientUserFactory from './factory/clientUser';
 import * as EmailMessageFactory from './factory/creativeWork/message/email';
 import CreativeWorkType from './factory/creativeWorkType';
@@ -16,10 +18,14 @@ import PersonType from './factory/personType';
 import PriceCurrency from './factory/priceCurrency';
 import * as TaskFactory from './factory/task';
 import * as CancelPayActionTaskFactory from './factory/task/cancelPayAction';
+import * as CancelTakeActionTaskFactory from './factory/task/cancelTakeAction';
 import * as ExecutePayActionTaskFactory from './factory/task/executePayAction';
+import * as ExecuteTakeActionTaskFactory from './factory/task/executeTakeAction';
 import * as TaskExecutionResultFactory from './factory/taskExecutionResult';
 import TaskName from './factory/taskName';
 import TaskStatus from './factory/taskStatus';
+import * as TransactionFactory from './factory/transaction';
+import * as DepositTransactionFactory from './factory/transaction/deposit';
 import * as PayTransactionFactory from './factory/transaction/pay';
 import TransactionStatusType from './factory/transactionStatusType';
 import TransactionTasksExportationStatus from './factory/transactionTasksExportationStatus';
@@ -41,6 +47,11 @@ export namespace action {
         export import IAttributes = TradeActionFactory.IAttributes;
         export import pay = PayActionFactory;
     }
+    export namespace transfer {
+        export import IAction = TransferActionFactory.IAction;
+        export import IAttributes = TransferActionFactory.IAttributes;
+        export import take = TakeActionFactory;
+    }
 }
 export import account = AccountFactory;
 export import clientUser = ClientUserFactory;
@@ -59,12 +70,16 @@ export namespace task {
     export import ITask = TaskFactory.ITask;
     export import cancelPayAction = CancelPayActionTaskFactory;
     export import executePayAction = ExecutePayActionTaskFactory;
+    export import cancelTakeAction = CancelTakeActionTaskFactory;
+    export import executeTakeAction = ExecuteTakeActionTaskFactory;
 }
 export import taskExecutionResult = TaskExecutionResultFactory;
 export import taskName = TaskName;
 export import taskStatus = TaskStatus;
 export namespace transaction {
+    export import ITransaction = TransactionFactory.ITransaction;
     export import pay = PayTransactionFactory;
+    export import deposit = DepositTransactionFactory;
 }
 export import transactionStatusType = TransactionStatusType;
 export import transactionTasksExportationStatus = TransactionTasksExportationStatus;

@@ -12,6 +12,7 @@ import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as ActionRepo } from '../repo/action';
 
 import * as PayActionService from './account/action/pay';
+import * as TakeActionService from './account/action/take';
 
 const debug = createDebug('pecorino-domain:service:account');
 
@@ -47,6 +48,7 @@ export function close() {
 
 export namespace action {
     export import pay = PayActionService;
+    export import take = TakeActionService;
 }
 
 export interface ISearchConditions {

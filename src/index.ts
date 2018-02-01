@@ -13,6 +13,7 @@ import * as repository from './repository';
 import * as AccountService from './service/account';
 import * as NotificationService from './service/notification';
 import * as TaskService from './service/task';
+import * as DepositTransactionService from './service/transaction/deposit';
 import * as PayTransactionService from './service/transaction/pay';
 
 /**
@@ -30,6 +31,7 @@ export namespace service {
     export import notification = NotificationService;
     export import task = TaskService;
     export namespace transaction {
+        export import deposit = DepositTransactionService;
         export import pay = PayTransactionService;
     }
 }

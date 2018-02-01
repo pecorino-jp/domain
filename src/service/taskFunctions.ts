@@ -36,3 +36,24 @@ export function executePayAction(
         await AccountService.action.pay.execute(data.transactionId)(actionRepo, accountRepo, transactionRepo);
     };
 }
+
+export function cancelTakeAction(
+    data: factory.task.cancelTakeAction.IData
+): IOperation<void> {
+    return async (connection: mongoose.Connection) => {
+        const accountRepo = new AccountRepo(connection);
+        const transactionRepo = new TransactionRepo(connection);
+        await AccountService.action.take.cancel(data.transactionId, data.accountId)(accountRepo, transactionRepo);
+    };
+}
+
+export function executeTakeAction(
+    data: factory.task.executeTakeAction.IData
+): IOperation<void> {
+    return async (connection: mongoose.Connection) => {
+        const accountRepo = new AccountRepo(connection);
+        const actionRepo = new PayActionRepo(connection);
+        const transactionRepo = new TransactionRepo(connection);
+        await AccountService.action.take.execute(data.transactionId, data.accountId)(actionRepo, accountRepo, transactionRepo);
+    };
+}
