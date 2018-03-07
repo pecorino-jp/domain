@@ -1,6 +1,5 @@
 /**
  * 取引タイプ
- * @namespace transactionType
  */
 
 enum TransactionType {

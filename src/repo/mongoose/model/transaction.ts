@@ -47,6 +47,15 @@ const errorSchema = new mongoose.Schema(
     }
 );
 
+const potentialActionsSchema = new mongoose.Schema(
+    {},
+    {
+        id: false,
+        _id: false,
+        strict: false
+    }
+);
+
 /**
  * 取引スキーマ
  * @ignore
@@ -64,7 +73,8 @@ const schema = new mongoose.Schema(
         startDate: Date,
         endDate: Date,
         tasksExportedAt: Date,
-        tasksExportationStatus: String
+        tasksExportationStatus: String,
+        potentialActions: potentialActionsSchema
     },
     {
         collection: 'transactions',

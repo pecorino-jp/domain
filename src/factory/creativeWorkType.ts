@@ -1,6 +1,5 @@
 /**
  * 作品タイプ
- * @namespace creativeWorkType
  */
 
 enum CreativeWorkType {

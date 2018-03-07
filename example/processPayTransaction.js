@@ -6,15 +6,16 @@
 const moment = require('moment');
 const pecorino = require('../');
 
-pecorino.mongoose.connect(process.env.MONGOLAB_URI);
-
 async function main() {
+    await pecorino.mongoose.connect(process.env.MONGOLAB_URI);
+
     const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
     const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
     const transaction = await pecorino.service.transaction.pay.start({
         object: {
             clientUser: {},
-            accountId: 'accountId',
+            fromAccountId: 'accountId',
+            toAccountId: 'sskts-ilovegadd',
             price: 100,
             notes: 'agentId'
         },
@@ -27,12 +28,12 @@ async function main() {
             id: 'recipientId',
             name: 'recipientName'
         }
-    })(accountRepo, transactionRepo);
+    })({ account: accountRepo, transaction: transactionRepo });
     console.log('transaction started.', transaction.id);
 
     // await pecorino.service.transaction.pay.cancel('agentId', transaction.id)(accountRepo, transactionRepo);
 
-    await pecorino.service.transaction.pay.confirm(transaction.id)(transactionRepo);
+    await pecorino.service.transaction.pay.confirm(transaction.id)({ transaction: transactionRepo });
 
     // await pecorino.service.transaction.pay.execute(transaction.id)(accountRepo, transactionRepo);
 }
@@ -42,6 +43,6 @@ main()
         console.log('success!');
     })
     .catch(console.error)
-    .then(() => {
-        pecorino.mongoose.disconnect();
+    .then(async () => {
+        await pecorino.mongoose.disconnect();
     });

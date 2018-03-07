@@ -12,9 +12,17 @@ import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
 const debug = createDebug('pecorino-domain:service:transaction:pay');
 
-export type IStartOperation<T> = (accountRepo: AccountRepo, transactionRepo: TransactionRepo) => Promise<T>;
-export type ITaskAndTransactionOperation<T> = (taskRepository: TaskRepository, transactionRepo: TransactionRepo) => Promise<T>;
-export type ITransactionOperation<T> = (transactionRepo: TransactionRepo) => Promise<T>;
+export type IStartOperation<T> = (repos: {
+    account: AccountRepo;
+    transaction: TransactionRepo;
+}) => Promise<T>;
+export type ITaskAndTransactionOperation<T> = (repos: {
+    task: TaskRepository;
+    transaction: TransactionRepo;
+}) => Promise<T>;
+export type ITransactionOperation<T> = (repos: {
+    transaction: TransactionRepo;
+}) => Promise<T>;
 
 export interface IStartParams {
     /**
@@ -36,16 +44,23 @@ export interface IStartParams {
  * 取引開始
  */
 export function start(params: IStartParams): IStartOperation<factory.transaction.pay.ITransaction> {
-    return async (accountRepo: AccountRepo, transactionRepo: TransactionRepo) => {
+    return async (repos: {
+        account: AccountRepo;
+        transaction: TransactionRepo;
+    }) => {
         debug(`${params.agent.name} is starting pay transaction... amount:${params.object.price}`);
 
         // 口座存在確認
-        await accountRepo.accountModel.findById(params.object.accountId).exec()
-            .then((doc) => {
-                if (doc === null) {
-                    throw new factory.errors.NotFound('Account');
-                }
-            });
+        await repos.account.accountModel.findById(params.object.fromAccountId).exec().then((doc) => {
+            if (doc === null) {
+                throw new factory.errors.NotFound('fromAccount');
+            }
+        });
+        await repos.account.accountModel.findById(params.object.toAccountId).exec().then((doc) => {
+            if (doc === null) {
+                throw new factory.errors.NotFound('toAccount');
+            }
+        });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const transactionAttributes = factory.transaction.pay.createAttributes({
@@ -55,7 +70,8 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
             object: {
                 clientUser: params.object.clientUser,
                 price: params.object.price,
-                accountId: params.object.accountId,
+                fromAccountId: params.object.fromAccountId,
+                toAccountId: params.object.toAccountId,
                 notes: params.object.notes
             },
             expires: params.expires,
@@ -66,7 +82,7 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
         // 取引作成
         let transaction: factory.transaction.pay.ITransaction;
         try {
-            transaction = await transactionRepo.startPay(transactionAttributes);
+            transaction = await repos.transaction.start<factory.transaction.pay.ITransaction>(transactionAttributes);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -76,9 +92,9 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
         }
 
         // 残高確認
-        const account = await accountRepo.accountModel.findOneAndUpdate(
+        const fromAccount = await repos.account.accountModel.findOneAndUpdate(
             {
-                _id: params.object.accountId,
+                _id: params.object.fromAccountId,
                 safeBalance: { $gte: params.object.price }
             },
             {
@@ -91,9 +107,21 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
             }
         ).exec();
 
-        if (account === null) {
+        if (fromAccount === null) {
             throw new Error('Insufficient balance.');
         }
+
+        // 入金先口座に進行中取引を追加
+        await repos.account.accountModel.findOneAndUpdate(
+            {
+                _id: params.object.toAccountId
+            },
+            {
+                $push: {
+                    pendingTransactions: transaction // 進行中取引追加
+                }
+            }
+        ).exec();
 
         // 結果返却
         return transaction;
@@ -101,61 +129,19 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
 }
 
 /**
- * 取引中止
- */
-export function cancel(agentId: string, transactionId: string) {
-    return async (accountRepo: AccountRepo, transactionRepo: TransactionRepo) => {
-        debug(`${agentId} is canceling pay transaction ${transactionId}...`);
-
-        // 取引存在確認
-        const transaction = await transactionRepo.findPayInProgressById(transactionId);
-
-        if (transaction.agent.id !== agentId) {
-            throw new factory.errors.Forbidden('A specified transaction is not yours.');
-        }
-
-        // 取引ステータス変更
-        await transactionRepo.transactionModel.findOneAndUpdate(
-            { _id: transaction.id, status: factory.transactionStatusType.InProgress },
-            { status: factory.transactionStatusType.Canceled }
-        ).exec();
-
-        // 残高調整
-        try {
-            await accountRepo.accountModel.findOneAndUpdate(
-                {
-                    _id: transaction.object.accountId,
-                    'pendingTransactions.id': transaction.id
-                },
-                {
-                    $inc: {
-                        safeBalance: transaction.object.price // 残高を元に戻す
-                    },
-                    $pull: {
-                        pendingTransactions: { id: transaction.id } // 進行中取引削除
-                    }
-                }
-            ).exec();
-        } catch (error) {
-            // no op
-            // 失敗したとしてもタスクにまかせる
-        }
-    };
-}
-
-/**
  * 取引確定
  */
 export function confirm(transactionId: string): ITransactionOperation<factory.transaction.pay.IResult> {
-    return async (transactionRepo: TransactionRepo) => {
+    return async (repos: {
+        transaction: TransactionRepo;
+    }) => {
         debug(`confirming pay transaction ${transactionId}...`);
 
         // 取引存在確認
-        const transaction = await transactionRepo.findPayInProgressById(transactionId);
+        const transaction = await repos.transaction.findPayInProgressById(transactionId);
 
-        // 結果作成
-        const payActionAttributes = factory.action.trade.pay.createAttributes({
-            actionStatus: factory.actionStatusType.CompletedActionStatus,
+        // 現金転送アクション属性作成
+        const moneyTransferActionAttributes = factory.action.transfer.moneyTransfer.createAttributes({
             result: {
                 price: transaction.object.price
             },
@@ -165,27 +151,28 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
             },
             agent: transaction.agent,
             recipient: transaction.recipient,
-            startDate: new Date()
-            // endDate?: Date;
-        });
-        const result = {
-            history: {
-                name: 'PayTransaction', price: transaction.object.price
+            amount: transaction.object.price,
+            fromLocation: {
+                typeOf: transaction.agent.typeOf,
+                accountId: transaction.object.fromAccountId,
+                name: transaction.agent.name
             },
-            payAction: { id: `${transaction.agent.id}-${transactionId}`, ...payActionAttributes }
+            toLocation: {
+                typeOf: transaction.recipient.typeOf,
+                accountId: transaction.object.toAccountId,
+                name: transaction.recipient.name
+            },
+            purpose: {
+                typeOf: transaction.typeOf,
+                id: transaction.id
+            }
+        });
+        const potentialActions: factory.transaction.pay.IPotentialActions = {
+            moneyTransfer: moneyTransferActionAttributes
         };
 
-        // 取引ステータス変更
-        await transactionRepo.transactionModel.findOneAndUpdate(
-            { _id: transaction.id, status: factory.transactionStatusType.InProgress },
-            {
-                status: factory.transactionStatusType.Confirmed,
-                result: result
-            }
-        ).exec();
-
-        // 取引結果返却
-        return result;
+        // 取引確定
+        await repos.transaction.confirmPay(transaction.id, {}, potentialActions);
     };
 }
 
@@ -193,34 +180,24 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
  * ひとつの取引のタスクをエクスポートする
  */
 export function exportTasks(status: factory.transactionStatusType) {
-    return async (taskRepository: TaskRepository, transactionRepo: TransactionRepo) => {
+    return async (repos: {
+        task: TaskRepository;
+        transaction: TransactionRepo;
+    }) => {
         const statusesTasksExportable = [factory.transactionStatusType.Expired, factory.transactionStatusType.Confirmed];
         if (statusesTasksExportable.indexOf(status) < 0) {
             throw new factory.errors.Argument('status', `transaction status should be in [${statusesTasksExportable.join(',')}]`);
         }
 
-        const transaction = await transactionRepo.transactionModel.findOneAndUpdate(
-            {
-                typeOf: factory.transactionType.Pay,
-                status: status,
-                tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
-            },
-            { tasksExportationStatus: factory.transactionTasksExportationStatus.Exporting },
-            { new: true }
-        ).exec()
-            .then((doc) => (doc === null) ? null : <factory.transaction.pay.ITransaction>doc.toObject());
-
+        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Pay, status);
         if (transaction === null) {
             return;
         }
 
         // 失敗してもここでは戻さない(RUNNINGのまま待機)
-        await exportTasksById(transaction.id)(
-            taskRepository,
-            transactionRepo
-        );
+        await exportTasksById(transaction.id)(repos);
 
-        await transactionRepo.setTasksExportedById(transaction.id);
+        await repos.transaction.setTasksExportedById(transaction.id);
     };
 }
 
@@ -228,41 +205,49 @@ export function exportTasks(status: factory.transactionStatusType) {
  * ID指定で取引のタスク出力
  */
 export function exportTasksById(transactionId: string): ITaskAndTransactionOperation<factory.task.ITask[]> {
-    // tslint:disable-next-line:max-func-body-length
-    return async (taskRepository: TaskRepository, transactionRepo: TransactionRepo) => {
-        const transaction = await transactionRepo.findPayById(transactionId);
+    return async (repos: {
+        task: TaskRepository;
+        transaction: TransactionRepo;
+    }) => {
+        const transaction = await repos.transaction.findById(transactionId, factory.transactionType.Pay);
+        const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes[] = [];
         switch (transaction.status) {
             case factory.transactionStatusType.Confirmed:
-                taskAttributes.push(factory.task.executePayAction.createAttributes({
-                    status: factory.taskStatus.Ready,
-                    runsAt: new Date(), // なるはやで実行
-                    remainingNumberOfTries: 10,
-                    lastTriedAt: null,
-                    numberOfTried: 0,
-                    executionResults: [],
-                    data: {
-                        transactionId: transaction.id
+                if (potentialActions !== undefined) {
+                    if (potentialActions.moneyTransfer !== undefined) {
+                        taskAttributes.push(factory.task.moneyTransfer.createAttributes({
+                            status: factory.taskStatus.Ready,
+                            runsAt: new Date(), // なるはやで実行
+                            remainingNumberOfTries: 10,
+                            lastTriedAt: null,
+                            numberOfTried: 0,
+                            executionResults: [],
+                            data: {
+                                actionAttributes: potentialActions.moneyTransfer
+                            }
+                        }));
                     }
-                }));
+                }
 
                 break;
 
-            // 期限切れの場合は、タスクリストを作成する
+            // tslint:disable-next-line:no-suspicious-comment
+            // TODO 期限切れの場合は、タスクリストを作成する
             case factory.transactionStatusType.Canceled:
             case factory.transactionStatusType.Expired:
-                taskAttributes.push(factory.task.cancelPayAction.createAttributes({
-                    status: factory.taskStatus.Ready,
-                    runsAt: new Date(), // なるはやで実行
-                    remainingNumberOfTries: 10,
-                    lastTriedAt: null,
-                    numberOfTried: 0,
-                    executionResults: [],
-                    data: {
-                        transactionId: transaction.id
-                    }
-                }));
+                // taskAttributes.push(factory.task.cancelPayAction.createAttributes({
+                //     status: factory.taskStatus.Ready,
+                //     runsAt: new Date(), // なるはやで実行
+                //     remainingNumberOfTries: 10,
+                //     lastTriedAt: null,
+                //     numberOfTried: 0,
+                //     executionResults: [],
+                //     data: {
+                //         transactionId: transaction.id
+                //     }
+                // }));
 
                 break;
 
@@ -272,7 +257,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         debug('taskAttributes prepared', taskAttributes);
 
         return Promise.all(taskAttributes.map(async (taskAttribute) => {
-            return taskRepository.save(taskAttribute);
+            return repos.task.save(taskAttribute);
         }));
     };
 }

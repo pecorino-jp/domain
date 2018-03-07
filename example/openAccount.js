@@ -10,7 +10,7 @@ pecorino.mongoose.connect(process.env.MONGOLAB_URI);
 
 async function main() {
     const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-    const account = await pecorino.service.account.open()(accountRepo);
+    const account = await pecorino.service.account.open()({ account: accountRepo });
     console.log('account opend.', account);
 }
 

@@ -3,8 +3,6 @@ import { PECORINOError } from './pecorino';
 
 /**
  * UnauthorizedError
- *
- * @class UnauthorizedError
  * @extends {PECORINOError}
  */
 export default class UnauthorizedError extends PECORINOError {

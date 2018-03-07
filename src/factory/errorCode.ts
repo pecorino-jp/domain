@@ -1,6 +1,5 @@
 /**
  * エラーコード
- * @module errorCode
  */
 
 enum ErrorCode {

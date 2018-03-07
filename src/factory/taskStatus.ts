@@ -1,7 +1,5 @@
 /**
  * タスクステータス
- *
- * @namespace taskStatus
  */
 
 enum TaskStatus {

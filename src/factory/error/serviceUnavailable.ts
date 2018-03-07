@@ -3,8 +3,6 @@ import { PECORINOError } from './pecorino';
 
 /**
  * ServiceUnavailableError
- *
- * @class ServiceUnavailableError
  * @extends {PECORINOError}
  */
 export default class ServiceUnavailableError extends PECORINOError {

@@ -56,6 +56,24 @@ const purposeSchema = new mongoose.Schema(
     }
 );
 
+const locationSchema = new mongoose.Schema(
+    {},
+    {
+        id: false,
+        _id: false,
+        strict: false
+    }
+);
+
+const potentialActionsSchema = new mongoose.Schema(
+    {},
+    {
+        id: false,
+        _id: false,
+        strict: false
+    }
+);
+
 /**
  * アクションスキーマ
  * @ignore
@@ -72,7 +90,11 @@ const schema = new mongoose.Schema(
         object: objectSchema,
         startDate: Date,
         endDate: Date,
-        purpose: purposeSchema
+        purpose: purposeSchema,
+        potentialActions: potentialActionsSchema,
+        amount: Number,
+        fromLocation: locationSchema,
+        toLocation: locationSchema
     },
     {
         collection: 'actions',

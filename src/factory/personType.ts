@@ -1,6 +1,5 @@
 /**
  * 人物タイプ
- * @namespace personType
  */
 
 enum PersonType {

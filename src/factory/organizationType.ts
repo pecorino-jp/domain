@@ -1,6 +1,5 @@
 /**
  * 組織タイプ
- * @namespace organizationType
  */
 
 enum OrganizationType {

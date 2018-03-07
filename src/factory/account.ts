@@ -1,6 +1,5 @@
 /**
  * 口座ファクトリー
- * @namespace account
  */
 
 export interface ITransaction {

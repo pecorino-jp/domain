@@ -1,14 +1,11 @@
 /**
  * アプリケーションクライアントユーザーファクトリー
  * クライアントサイドでapiを利用するユーザー
- * @namespace clientUser
  */
 
 /**
  * クライアントユーザーインターフェース
  * @export
- * @interface IClientUser
- * @memberof clientUser
  */
 export interface IClientUser {
     sub: string;

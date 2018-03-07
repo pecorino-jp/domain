@@ -11,8 +11,6 @@ import * as ProgramMembershipFactory from './programMembership';
  * contact interface
  * 連絡先インターフェース
  * @export
- * @interface {IPerson}
- * @memberof person
  */
 export interface IContact {
     /**
@@ -41,8 +39,6 @@ export interface IContact {
  * person interface
  * 人物インターフェース
  * @export
- * @interface {IPerson}
- * @memberof person
  */
 export interface IPerson {
     /**

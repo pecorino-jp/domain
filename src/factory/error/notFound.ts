@@ -3,8 +3,6 @@ import { PECORINOError } from './pecorino';
 
 /**
  * NotFoundError
- *
- * @class NotFoundError
  * @extends {PECORINOError}
  */
 export default class NotFoundError extends PECORINOError {

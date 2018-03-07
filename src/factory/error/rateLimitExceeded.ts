@@ -3,7 +3,6 @@ import { PECORINOError } from './pecorino';
 
 /**
  * RateLimitExceededError
- * @class RateLimitExceededError
  * @extends {PECORINOError}
  */
 export default class RateLimitExceededError extends PECORINOError {

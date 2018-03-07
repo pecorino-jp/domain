@@ -1,6 +1,5 @@
 /**
  * 取引ステータス
- * @namespace transactionStatusType
  */
 
 enum TransactionStatusType {

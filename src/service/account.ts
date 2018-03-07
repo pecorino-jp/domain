@@ -10,31 +10,36 @@ import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as ActionRepo } from '../repo/action';
-
-import * as PayActionService from './account/action/pay';
-import * as TakeActionService from './account/action/take';
+import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
 const debug = createDebug('pecorino-domain:service:account');
 
-export type IAccountOperation<T> = (accountRepo: AccountRepo) => Promise<T>;
-export type IActionRepo<T> = (actionRepo: ActionRepo) => Promise<T>;
-export type ITradeAction = factory.action.trade.IAction;
+export type IAccountOperation<T> = (repos: { account: AccountRepo }) => Promise<T>;
+export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
 
-export function open() {
-    return async (accountRepo: AccountRepo) => {
+/**
+ * 口座を開設する
+ * @param params 口座開設初期設定
+ */
+export function open(params: {
+    id: string;
+    name: string;
+    initialBalance: number;
+}): IAccountOperation<factory.account.IAccount> {
+    return async (repos: { account: AccountRepo }) => {
         debug('opening account...');
         const account: factory.account.IAccount = {
-            id: 'accountId',
-            name: 'accountName',
-            balance: 999999,
-            safeBalance: 999999,
+            id: params.id,
+            name: params.name,
+            balance: params.initialBalance,
+            safeBalance: params.initialBalance,
             pendingTransactions: [],
             openDate: new Date(),
             status: 'status'
         };
 
         // no op
-        await accountRepo.accountModel.create({ ...account, _id: account.id });
+        await repos.account.accountModel.create({ ...account, _id: account.id });
 
         return account;
     };
@@ -46,11 +51,6 @@ export function close() {
     };
 }
 
-export namespace action {
-    export import pay = PayActionService;
-    export import take = TakeActionService;
-}
-
 export interface ISearchConditions {
     accountId: string;
 }
@@ -59,11 +59,94 @@ export interface ISearchConditions {
  * 取引履歴を検索する
  * @param searchConditions 検索条件
  */
-export function searchTradeActionsById(searchConditions: ISearchConditions): IActionRepo<ITradeAction[]> {
-    return async (actionRepo: ActionRepo) => {
-        return actionRepo.actionModel.find({
-            // typeOf: '',
-            'object.accountId': searchConditions.accountId
-        }).sort({ endDate: 1 }).exec().then((docs) => docs.map((doc) => <ITradeAction>doc.toObject()));
+export function searchTransferActions(searchConditions: ISearchConditions): IActionRepo<factory.action.transfer.moneyTransfer.IAction[]> {
+    return async (repos: { action: ActionRepo }) => {
+        const LIMIT = 100;
+
+        return repos.action.actionModel.find({
+            $or: [
+                {
+                    typeOf: factory.actionType.MoneyTransfer,
+                    'fromLocation.accountId': searchConditions.accountId
+                },
+                {
+                    typeOf: factory.actionType.MoneyTransfer,
+                    'toLocation.accountId': searchConditions.accountId
+                }
+            ]
+        }).sort({ endDate: 1 }).limit(LIMIT)
+            .exec().then((docs) => docs.map((doc) => <factory.action.transfer.moneyTransfer.IAction>doc.toObject()));
+    };
+}
+
+/**
+ * 現金転送
+ */
+export function transferMoney(actionAttributes: factory.action.transfer.moneyTransfer.IAttributes) {
+    return async (repos: {
+        action: ActionRepo;
+        account: AccountRepo;
+        transaction: TransactionRepo;
+    }) => {
+        debug(`transfering money... ${actionAttributes.purpose.typeOf} ${actionAttributes.purpose.id}`);
+
+        type IMoneyTransferAction = factory.action.transfer.moneyTransfer.IAction;
+
+        // アクション開始
+        const action = await repos.action.start<IMoneyTransferAction>(actionAttributes);
+
+        try {
+            // 取引存在確認
+            const transaction = await repos.transaction.findById(actionAttributes.purpose.id, actionAttributes.purpose.typeOf);
+
+            // 転送元を残高調整
+            await repos.account.accountModel.findOneAndUpdate(
+                {
+                    _id: actionAttributes.fromLocation.accountId,
+                    'pendingTransactions.id': transaction.id
+                },
+                {
+                    $inc: {
+                        balance: -actionAttributes.amount // 残高調整
+                    },
+                    $pull: {
+                        pendingTransactions: { id: transaction.id } // 進行中取引削除
+                    }
+                }
+            ).exec();
+
+            // 転送先へ入金
+            await repos.account.accountModel.findOneAndUpdate(
+                {
+                    _id: actionAttributes.toLocation.accountId,
+                    'pendingTransactions.id': transaction.id
+                },
+                {
+                    $inc: {
+                        balance: actionAttributes.amount,
+                        safeBalance: actionAttributes.amount
+                    },
+                    $pull: {
+                        pendingTransactions: { id: transaction.id } // 進行中取引削除
+                    }
+                }
+            ).exec();
+        } catch (error) {
+            // actionにエラー結果を追加
+            try {
+                // tslint:disable-next-line:max-line-length no-single-line-block-comment
+                const actionError = (error instanceof Error) ? { ...error, ...{ message: error.message } } : /* istanbul ignore next */ error;
+                await repos.action.giveUp(action.typeOf, action.id, actionError);
+            } catch (__) {
+                // 失敗したら仕方ない
+            }
+
+            throw new Error(error);
+        }
+
+        // アクション完了
+        debug('ending action...');
+        const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
+        await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }

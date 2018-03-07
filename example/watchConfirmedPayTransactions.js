@@ -27,7 +27,7 @@ setInterval(
             console.log('exporting tasks...');
             await pecorino.service.transaction.pay.exportTasks(
                 pecorino.factory.transactionStatusType.Confirmed
-            )(taskRepository, transactionRepository);
+            )({ task: taskRepository, transaction: transactionRepository });
         } catch (error) {
             console.error(error.message);
         }

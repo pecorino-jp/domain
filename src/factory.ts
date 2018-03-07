@@ -4,11 +4,13 @@
  */
 
 import * as AccountFactory from './factory/account';
+
 import * as ActionFactory from './factory/action';
-import * as TradeActionFactory from './factory/action/trade';
-import * as PayActionFactory from './factory/action/trade/pay';
-import * as TransferActionFactory from './factory/action/transfer';
-import * as TakeActionFactory from './factory/action/transfer/take';
+import * as MoneyTransferActionFactory from './factory/action/transfer/moneyTransfer';
+import * as SendEmailMessageActionFactory from './factory/action/transfer/send/message/email';
+import ActionStatusType from './factory/actionStatusType';
+import ActionType from './factory/actionType';
+
 import * as ClientUserFactory from './factory/clientUser';
 import * as EmailMessageFactory from './factory/creativeWork/message/email';
 import CreativeWorkType from './factory/creativeWorkType';
@@ -17,10 +19,8 @@ import OrganizationType from './factory/organizationType';
 import PersonType from './factory/personType';
 import PriceCurrency from './factory/priceCurrency';
 import * as TaskFactory from './factory/task';
-import * as CancelPayActionTaskFactory from './factory/task/cancelPayAction';
-import * as CancelTakeActionTaskFactory from './factory/task/cancelTakeAction';
-import * as ExecutePayActionTaskFactory from './factory/task/executePayAction';
-import * as ExecuteTakeActionTaskFactory from './factory/task/executeTakeAction';
+import * as CancelMoneyTransferTaskFactory from './factory/task/cancelMoneyTransfer';
+import * as MoneyTransferTaskFactory from './factory/task/moneyTransfer';
 import * as TaskExecutionResultFactory from './factory/taskExecutionResult';
 import TaskName from './factory/taskName';
 import TaskStatus from './factory/taskStatus';
@@ -38,19 +38,22 @@ import * as errors from './factory/errors';
 export import errors = errors;
 export import errorCode = ErrorCode;
 
-export import actionStatusType = ActionFactory.ActionStatusType;
-export import actionType = ActionFactory.ActionType;
+export import actionStatusType = ActionStatusType;
+export import actionType = ActionType;
 export namespace action {
+    export import IAction = ActionFactory.IAction;
+    export import IAttributes = ActionFactory.IAttributes;
     export import IParticipant = ActionFactory.IParticipant;
-    export namespace trade {
-        export import IAction = TradeActionFactory.IAction;
-        export import IAttributes = TradeActionFactory.IAttributes;
-        export import pay = PayActionFactory;
-    }
+    export import IPurpose = ActionFactory.IPurpose;
+
     export namespace transfer {
-        export import IAction = TransferActionFactory.IAction;
-        export import IAttributes = TransferActionFactory.IAttributes;
-        export import take = TakeActionFactory;
+        export import moneyTransfer = MoneyTransferActionFactory;
+
+        export namespace send {
+            export namespace message {
+                export import email = SendEmailMessageActionFactory;
+            }
+        }
     }
 }
 export import account = AccountFactory;
@@ -68,10 +71,8 @@ export import priceCurrency = PriceCurrency;
 export namespace task {
     export import IAttributes = TaskFactory.IAttributes;
     export import ITask = TaskFactory.ITask;
-    export import cancelPayAction = CancelPayActionTaskFactory;
-    export import executePayAction = ExecutePayActionTaskFactory;
-    export import cancelTakeAction = CancelTakeActionTaskFactory;
-    export import executeTakeAction = ExecuteTakeActionTaskFactory;
+    export import cancelMoneyTransfer = CancelMoneyTransferTaskFactory;
+    export import moneyTransfer = MoneyTransferTaskFactory;
 }
 export import taskExecutionResult = TaskExecutionResultFactory;
 export import taskName = TaskName;

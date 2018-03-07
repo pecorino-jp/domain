@@ -5,9 +5,16 @@ import TransactionModel from './mongoose/model/transaction';
 
 import * as factory from '../factory';
 
+export type ITransactionAttributes =
+    factory.transaction.pay.IAttributes |
+    factory.transaction.deposit.IAttributes;
+
+export type ITransaction =
+    factory.transaction.pay.ITransaction |
+    factory.transaction.deposit.ITransaction;
+
 /**
  * transaction repository
- * @class
  */
 export class MongoRepository {
     public readonly transactionModel: typeof TransactionModel;
@@ -16,29 +23,36 @@ export class MongoRepository {
         this.transactionModel = connection.model(TransactionModel.modelName);
     }
 
-    public async startPay(
-        transactionAttributes: factory.transaction.pay.IAttributes
-    ): Promise<factory.transaction.pay.ITransaction> {
+    /**
+     * 取引を開始する
+     * @param transactionAttributes 取引属性
+     */
+    public async start<T extends ITransaction>(
+        transactionAttributes: ITransactionAttributes
+    ): Promise<T> {
         return this.transactionModel.create(transactionAttributes).then(
-            (doc) => <factory.transaction.pay.ITransaction>doc.toObject()
+            (doc) => <T>doc.toObject()
         );
     }
 
     /**
-     * find pay transaction by id
-     * @param {string} transactionId transaction id
+     * IDで取引を取得する
+     * @param transactionId 取引ID
      */
-    public async findPayById(transactionId: string): Promise<factory.transaction.pay.ITransaction> {
+    public async findById<T extends ITransaction>(
+        transactionId: string,
+        typeOf: factory.transactionType
+    ): Promise<T> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
-            typeOf: factory.transactionType.Pay
+            typeOf: typeOf
         }).exec();
 
         if (doc === null) {
             throw new factory.errors.NotFound('transaction');
         }
 
-        return <factory.transaction.pay.ITransaction>doc.toObject();
+        return <T>doc.toObject();
     }
 
     /**
@@ -59,17 +73,29 @@ export class MongoRepository {
     }
 
     /**
-     * confirm a pay
-     * 注文取引を確定する
-     * @param {string} transactionId transaction id
-     * @param {Date} endDate end date
-     * @param {factory.action.authorize.IAction[]} authorizeActions authorize actions
-     * @param {factory.transaction.pay.IResult} result transaction result
+     * 進行中の入金取引を取得する
+     */
+    public async findDepositInProgressById(transactionId: string): Promise<factory.transaction.pay.ITransaction> {
+        const doc = await this.transactionModel.findOne({
+            _id: transactionId,
+            typeOf: factory.transactionType.Deposit,
+            status: factory.transactionStatusType.InProgress
+        }).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('transaction in progress');
+        }
+
+        return <factory.transaction.pay.ITransaction>doc.toObject();
+    }
+
+    /**
+     * 支払取引を確定する
      */
     public async confirmPay(
         transactionId: string,
-        endDate: Date,
-        result: factory.transaction.pay.IResult
+        result: factory.transaction.pay.IResult,
+        potentialActions: factory.transaction.pay.IPotentialActions
     ): Promise<factory.transaction.pay.ITransaction> {
         const doc = await this.transactionModel.findOneAndUpdate(
             {
@@ -79,8 +105,9 @@ export class MongoRepository {
             },
             {
                 status: factory.transactionStatusType.Confirmed, // ステータス変更
-                endDate: endDate,
-                result: result // resultを更新
+                endDate: new Date(),
+                result: result, // resultを更新
+                potentialActions: potentialActions
             },
             { new: true }
         ).exec();
@@ -93,23 +120,56 @@ export class MongoRepository {
     }
 
     /**
-     * find transaction by id
-     * @param {string} transactionId transaction id
+     * 入金取引を確定する
      */
-    public async findById(transactionId: string): Promise<factory.transaction.ITransaction> {
-        const doc = await this.transactionModel.findById(transactionId).exec();
+    public async confirmDeposit(
+        transactionId: string,
+        result: factory.transaction.deposit.IResult,
+        potentialActions: factory.transaction.deposit.IPotentialActions
+    ): Promise<factory.transaction.deposit.ITransaction> {
+        const doc = await this.transactionModel.findOneAndUpdate(
+            {
+                _id: transactionId,
+                typeOf: factory.transactionType.Deposit,
+                status: factory.transactionStatusType.InProgress
+            },
+            {
+                status: factory.transactionStatusType.Confirmed, // ステータス変更
+                endDate: new Date(),
+                result: result,
+                potentialActions: potentialActions
+            },
+            { new: true }
+        ).exec();
 
         if (doc === null) {
-            throw new factory.errors.NotFound('transaction');
+            throw new factory.errors.NotFound('transaction in progress');
         }
 
-        return <factory.transaction.ITransaction>doc.toObject();
+        return <factory.transaction.pay.ITransaction>doc.toObject();
+    }
+
+    /**
+     * タスク未エクスポートの取引をひとつ取得してエクスポートを開始する
+     * @param typeOf 取引タイプ
+     * @param status 取引ステータス
+     */
+    public async startExportTasks(typeOf: factory.transactionType, status: factory.transactionStatusType):
+        Promise<ITransaction | null> {
+        return this.transactionModel.findOneAndUpdate(
+            {
+                typeOf: typeOf,
+                status: status,
+                tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
+            },
+            { tasksExportationStatus: factory.transactionTasksExportationStatus.Exporting },
+            { new: true }
+        ).exec().then((doc) => (doc === null) ? null : <ITransaction>doc.toObject());
     }
 
     /**
      * タスクエクスポートリトライ
      * todo updatedAtを基準にしているが、タスクエクスポートトライ日時を持たせた方が安全か？
-     * @param {number} intervalInMinutes
      */
     public async reexportTasks(intervalInMinutes: number): Promise<void> {
         await this.transactionModel.findOneAndUpdate(

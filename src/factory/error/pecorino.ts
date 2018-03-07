@@ -2,8 +2,6 @@ import ErrorCode from '../errorCode';
 
 /**
  * PECORINOError
- *
- * @class PECORINOError
  * @extends {Error}
  */
 export class PECORINOError extends Error {

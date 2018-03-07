@@ -4,7 +4,6 @@ import AccountModel from './mongoose/model/account';
 
 /**
  * 口座リポジトリー
- * @class
  */
 export class MongoRepository {
     public readonly accountModel: typeof AccountModel;

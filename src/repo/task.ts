@@ -15,8 +15,6 @@ const sortOrder4executionOfTasks = {
 
 /**
  * タスクレポジトリー
- *
- * @class TaskRepository
  */
 export class MongoRepository {
     public readonly taskModel: typeof taskModel;

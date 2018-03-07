@@ -9,51 +9,43 @@ import * as mongoose from 'mongoose';
 import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
-import { MongoRepository as PayActionRepo } from '../repo/action/trade/pay';
+import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
 import * as AccountService from '../service/account';
 
-export type IOperation<T> = (connection: mongoose.Connection) => Promise<T>;
+export type IOperation<T> = (settings: {
+    connection: mongoose.Connection;
+}) => Promise<T>;
 
-export function cancelPayAction(
-    data: factory.task.cancelPayAction.IData
+export function cancelMoneyTransfer(
+    __: factory.task.cancelMoneyTransfer.IData
 ): IOperation<void> {
-    return async (connection: mongoose.Connection) => {
-        const accountRepo = new AccountRepo(connection);
-        const transactionRepo = new TransactionRepo(connection);
-        await AccountService.action.pay.cancel(data.transactionId)(accountRepo, transactionRepo);
+    return async (__2: {
+        connection: mongoose.Connection;
+    }) => {
+        // const accountRepo = new AccountRepo(settings.connection);
+        // const transactionRepo = new TransactionRepo(settings.connection);
+        // await AccountService.action.pay.cancel(data.transactionId)({
+        //     account: accountRepo,
+        //     transaction: transactionRepo
+        // });
     };
 }
 
-export function executePayAction(
-    data: factory.task.executePayAction.IData
+export function moneyTransfer(
+    data: factory.task.moneyTransfer.IData
 ): IOperation<void> {
-    return async (connection: mongoose.Connection) => {
-        const accountRepo = new AccountRepo(connection);
-        const actionRepo = new PayActionRepo(connection);
-        const transactionRepo = new TransactionRepo(connection);
-        await AccountService.action.pay.execute(data.transactionId)(actionRepo, accountRepo, transactionRepo);
-    };
-}
-
-export function cancelTakeAction(
-    data: factory.task.cancelTakeAction.IData
-): IOperation<void> {
-    return async (connection: mongoose.Connection) => {
-        const accountRepo = new AccountRepo(connection);
-        const transactionRepo = new TransactionRepo(connection);
-        await AccountService.action.take.cancel(data.transactionId, data.accountId)(accountRepo, transactionRepo);
-    };
-}
-
-export function executeTakeAction(
-    data: factory.task.executeTakeAction.IData
-): IOperation<void> {
-    return async (connection: mongoose.Connection) => {
-        const accountRepo = new AccountRepo(connection);
-        const actionRepo = new PayActionRepo(connection);
-        const transactionRepo = new TransactionRepo(connection);
-        await AccountService.action.take.execute(data.transactionId, data.accountId)(actionRepo, accountRepo, transactionRepo);
+    return async (settings: {
+        connection: mongoose.Connection;
+    }) => {
+        const accountRepo = new AccountRepo(settings.connection);
+        const actionRepo = new ActionRepo(settings.connection);
+        const transactionRepo = new TransactionRepo(settings.connection);
+        await AccountService.transferMoney(data.actionAttributes)({
+            action: actionRepo,
+            account: accountRepo,
+            transaction: transactionRepo
+        });
     };
 }

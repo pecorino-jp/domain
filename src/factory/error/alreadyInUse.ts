@@ -3,8 +3,6 @@ import { PECORINOError } from './pecorino';
 
 /**
  * AlreadyInUseError
- *
- * @class AlreadyInUseError
  * @extends {PECORINOError}
  */
 export default class AlreadyInUseError extends PECORINOError {

@@ -27,8 +27,6 @@ export interface IAttributes {
 /**
  * email message creativeWork interface
  * @export
- * @interface
- * @memberof creativeWork.message.email
  */
 export type ICreativeWork = IAttributes & CreativeWorkFactory.ICreativeWork;
 
@@ -36,8 +34,6 @@ export type ICreativeWork = IAttributes & CreativeWorkFactory.ICreativeWork;
  * create email message object
  * Eメール通知オブジェクトを作成する
  * @export
- * @function
- * @memberof creativeWork.message.email
  */
 export function create(params: {
     identifier: string;
