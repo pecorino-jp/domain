@@ -24,6 +24,9 @@ export class MongoRepository {
         object: any;
         recipient?: factory.action.IParticipant;
         purpose?: any;
+        amount?: number;
+        fromLocation?: any;
+        toLocation?: any;
     }): Promise<T> {
         const actionAttributes = {
             actionStatus: factory.actionStatusType.ActiveActionStatus,
@@ -32,7 +35,10 @@ export class MongoRepository {
             recipient: params.recipient,
             object: params.object,
             startDate: new Date(),
-            purpose: params.purpose
+            purpose: params.purpose,
+            amount: params.amount,
+            fromLocation: params.fromLocation,
+            toLocation: params.toLocation
         };
 
         return this.actionModel.create(actionAttributes).then(

@@ -80,7 +80,6 @@ const potentialActionsSchema = new mongoose.Schema(
  */
 const schema = new mongoose.Schema(
     {
-        _id: String,
         actionStatus: String,
         typeOf: String,
         agent: agentSchema,

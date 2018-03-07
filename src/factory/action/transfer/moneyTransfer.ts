@@ -44,7 +44,7 @@ export function createAttributes<TObject, TResult>(params: {
     toLocation: ILocation;
 }): IAttributes {
     return {
-        typeOf: ActionType.SendAction,
+        typeOf: ActionType.MoneyTransfer,
         result: params.result,
         object: params.object,
         agent: params.agent,

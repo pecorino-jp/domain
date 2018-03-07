@@ -77,7 +77,7 @@ export function execute(task: factory.task.ITask): TaskAndConnectionOperation<vo
             // 実行結果追加
             const result = {
                 executedAt: now,
-                error: error.stack
+                error: { ...error, message: error.message }
             };
             // 失敗してもここではステータスを戻さない(Runningのまま待機)
             await settings.taskRepo.pushExecutionResultById(task.id, task.status, result);
