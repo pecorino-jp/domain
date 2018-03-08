@@ -24,12 +24,15 @@ import * as MoneyTransferTaskFactory from './factory/task/moneyTransfer';
 import * as TaskExecutionResultFactory from './factory/taskExecutionResult';
 import TaskName from './factory/taskName';
 import TaskStatus from './factory/taskStatus';
+
 import * as TransactionFactory from './factory/transaction';
 import * as DepositTransactionFactory from './factory/transaction/deposit';
 import * as PayTransactionFactory from './factory/transaction/pay';
+import * as TransferTransactionFactory from './factory/transaction/transfer';
 import TransactionStatusType from './factory/transactionStatusType';
 import TransactionTasksExportationStatus from './factory/transactionTasksExportationStatus';
 import TransactionType from './factory/transactionType';
+
 import * as URLFactory from './factory/url';
 
 import ErrorCode from './factory/errorCode';
@@ -81,6 +84,7 @@ export namespace transaction {
     export import ITransaction = TransactionFactory.ITransaction;
     export import pay = PayTransactionFactory;
     export import deposit = DepositTransactionFactory;
+    export import transfer = TransferTransactionFactory;
 }
 export import transactionStatusType = TransactionStatusType;
 export import transactionTasksExportationStatus = TransactionTasksExportationStatus;

@@ -30,7 +30,7 @@
     "@types/sinon-mongoose": "^1.3.4",
     "ink-docstrap": "^1.3.2",
     "jsdoc": "^3.5.5",
-    "mocha": "^5.0.2",
+    "mocha": "^5.0.4",
     "nock": "^9.2.3",
     "nsp": "^3.2.1",
     "nyc": "^11.5.0",

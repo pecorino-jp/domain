@@ -30,7 +30,13 @@ export class MongoRepository {
     public async start<T extends ITransaction>(
         transactionAttributes: ITransactionAttributes
     ): Promise<T> {
-        return this.transactionModel.create(transactionAttributes).then(
+        return this.transactionModel.create({
+            ...transactionAttributes,
+            status: factory.transactionStatusType.InProgress,
+            startDate: new Date(),
+            endDate: undefined,
+            tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
+        }).then(
             (doc) => <T>doc.toObject()
         );
     }
@@ -50,6 +56,25 @@ export class MongoRepository {
 
         if (doc === null) {
             throw new factory.errors.NotFound('transaction');
+        }
+
+        return <T>doc.toObject();
+    }
+
+    /**
+     * 進行中の取引を取得する
+     */
+    public async findInProgressById<T extends ITransaction>(
+        typeOf: factory.transactionType, transactionId: string
+    ): Promise<T> {
+        const doc = await this.transactionModel.findOne({
+            _id: transactionId,
+            typeOf: typeOf,
+            status: factory.transactionStatusType.InProgress
+        }).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('transaction in progress');
         }
 
         return <T>doc.toObject();
@@ -147,6 +172,36 @@ export class MongoRepository {
         }
 
         return <factory.transaction.pay.ITransaction>doc.toObject();
+    }
+
+    /**
+     * 転送取引を確定する
+     */
+    public async confirmTransfer(
+        transactionId: string,
+        result: factory.transaction.transfer.IResult,
+        potentialActions: factory.transaction.transfer.IPotentialActions
+    ): Promise<factory.transaction.transfer.ITransaction> {
+        const doc = await this.transactionModel.findOneAndUpdate(
+            {
+                _id: transactionId,
+                typeOf: factory.transactionType.Transfer,
+                status: factory.transactionStatusType.InProgress
+            },
+            {
+                status: factory.transactionStatusType.Confirmed, // ステータス変更
+                endDate: new Date(),
+                result: result, // resultを更新
+                potentialActions: potentialActions
+            },
+            { new: true }
+        ).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('transaction in progress');
+        }
+
+        return <factory.transaction.transfer.ITransaction>doc.toObject();
     }
 
     /**

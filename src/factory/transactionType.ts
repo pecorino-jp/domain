@@ -10,7 +10,11 @@ enum TransactionType {
     /**
      * 入金取引
      */
-    Deposit = 'Deposit'
+    Deposit = 'Deposit',
+    /**
+     * 転送取引
+     */
+    Transfer = 'Transfer'
 }
 
 export default TransactionType;

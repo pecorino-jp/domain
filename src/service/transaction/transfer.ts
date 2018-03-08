@@ -1,6 +1,6 @@
 /**
- * 支払取引サービス
- * @namespace transaction.pay
+ * 転送取引サービス
+ * @namespace transaction.transfer
  */
 
 import * as createDebug from 'debug';
@@ -10,8 +10,9 @@ import { MongoRepository as AccountRepo } from '../../repo/account';
 import { MongoRepository as TaskRepository } from '../../repo/task';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
-const debug = createDebug('pecorino-domain:service:transaction:pay');
+const debug = createDebug('pecorino-domain:service:transaction:transfer');
 
+export type ITransaction = factory.transaction.transfer.ITransaction;
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
     transaction: TransactionRepo;
@@ -28,12 +29,12 @@ export interface IStartParams {
     /**
      * 取引主体ID
      */
-    agent: factory.transaction.pay.IAgent;
+    agent: factory.transaction.transfer.IAgent;
     /**
-     * 支払先
+     * 転送先
      */
-    recipient: factory.transaction.pay.IRecipient;
-    object: factory.transaction.pay.IObject;
+    recipient: factory.transaction.transfer.IRecipient;
+    object: factory.transaction.transfer.IObject;
     /**
      * 取引期限
      */
@@ -43,12 +44,12 @@ export interface IStartParams {
 /**
  * 取引開始
  */
-export function start(params: IStartParams): IStartOperation<factory.transaction.pay.ITransaction> {
+export function start(params: IStartParams): IStartOperation<ITransaction> {
     return async (repos: {
         account: AccountRepo;
         transaction: TransactionRepo;
     }) => {
-        debug(`${params.agent.name} is starting pay transaction... amount:${params.object.price}`);
+        debug(`${params.agent.name} is starting transfer transaction... amount:${params.object.price}`);
 
         // 口座存在確認
         await repos.account.accountModel.findById(params.object.fromAccountId).exec().then((doc) => {
@@ -63,7 +64,7 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
         });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const transactionAttributes = factory.transaction.pay.createAttributes({
+        const transactionAttributes = factory.transaction.transfer.createAttributes({
             status: factory.transactionStatusType.InProgress,
             agent: params.agent,
             recipient: params.recipient,
@@ -75,14 +76,13 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
                 notes: params.object.notes
             },
             expires: params.expires,
-            startDate: new Date(),
             tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
         });
 
         // 取引作成
-        let transaction: factory.transaction.pay.ITransaction;
+        let transaction: ITransaction;
         try {
-            transaction = await repos.transaction.start<factory.transaction.pay.ITransaction>(transactionAttributes);
+            transaction = await repos.transaction.start<ITransaction>(transactionAttributes);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -90,6 +90,8 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
 
             throw error;
         }
+
+        const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
 
         // 残高確認
         const fromAccount = await repos.account.accountModel.findOneAndUpdate(
@@ -102,7 +104,7 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
                     safeBalance: -params.object.price // 残高を減らす
                 },
                 $push: {
-                    pendingTransactions: transaction // 進行中取引追加
+                    pendingTransactions: pendingTransaction // 進行中取引追加
                 }
             }
         ).exec();
@@ -111,14 +113,14 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
             throw new Error('Insufficient balance.');
         }
 
-        // 入金先口座に進行中取引を追加
+        // 転送先口座に進行中取引を追加
         await repos.account.accountModel.findOneAndUpdate(
             {
                 _id: params.object.toAccountId
             },
             {
                 $push: {
-                    pendingTransactions: transaction // 進行中取引追加
+                    pendingTransactions: pendingTransaction // 進行中取引追加
                 }
             }
         ).exec();
@@ -131,14 +133,14 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
 /**
  * 取引確定
  */
-export function confirm(transactionId: string): ITransactionOperation<factory.transaction.pay.IResult> {
+export function confirm(transactionId: string): ITransactionOperation<void> {
     return async (repos: {
         transaction: TransactionRepo;
     }) => {
-        debug(`confirming pay transaction ${transactionId}...`);
+        debug(`confirming transfer transaction ${transactionId}...`);
 
         // 取引存在確認
-        const transaction = await repos.transaction.findPayInProgressById(transactionId);
+        const transaction = await repos.transaction.findInProgressById<ITransaction>(factory.transactionType.Transfer, transactionId);
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes = factory.action.transfer.moneyTransfer.createAttributes({
@@ -170,7 +172,7 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
         };
 
         // 取引確定
-        await repos.transaction.confirmPay(transaction.id, {}, potentialActions);
+        await repos.transaction.confirmTransfer(transaction.id, {}, potentialActions);
     };
 }
 
@@ -187,7 +189,7 @@ export function exportTasks(status: factory.transactionStatusType) {
             throw new factory.errors.Argument('status', `transaction status should be in [${statusesTasksExportable.join(',')}]`);
         }
 
-        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Pay, status);
+        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Transfer, status);
         if (transaction === null) {
             return;
         }
@@ -207,7 +209,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById(transactionId, factory.transactionType.Pay);
+        const transaction = await repos.transaction.findById(transactionId, factory.transactionType.Transfer);
         const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes[] = [];

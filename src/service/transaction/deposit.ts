@@ -152,8 +152,6 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
                 price: transaction.object.price
             },
             object: {
-                transactionId: transaction.id,
-                ...transaction.object
             },
             agent: transaction.agent,
             recipient: transaction.recipient,
