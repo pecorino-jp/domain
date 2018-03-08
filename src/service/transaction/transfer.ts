@@ -167,7 +167,7 @@ export function confirm(transactionId: string): ITransactionOperation<void> {
                 id: transaction.id
             }
         });
-        const potentialActions: factory.transaction.pay.IPotentialActions = {
+        const potentialActions: factory.transaction.transfer.IPotentialActions = {
             moneyTransfer: moneyTransferActionAttributes
         };
 

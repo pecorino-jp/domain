@@ -86,6 +86,8 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
             throw error;
         }
 
+        const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
+
         // 入金先口座に進行中取引を追加
         await repos.account.accountModel.findOneAndUpdate(
             {
@@ -94,7 +96,7 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
             },
             {
                 $push: {
-                    pendingTransactions: transaction // 進行中取引追加
+                    pendingTransactions: pendingTransaction // 進行中取引追加
                 }
             }
         ).exec();
@@ -140,7 +142,7 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
                 id: transaction.id
             }
         });
-        const potentialActions: factory.transaction.pay.IPotentialActions = {
+        const potentialActions: factory.transaction.deposit.IPotentialActions = {
             moneyTransfer: moneyTransferActionAttributes
         };
 
@@ -162,7 +164,7 @@ export function exportTasks(status: factory.transactionStatusType) {
             throw new factory.errors.Argument('status', `transaction status should be in [${statusesTasksExportable.join(',')}]`);
         }
 
-        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Pay, status);
+        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Deposit, status);
         if (transaction === null) {
             return;
         }

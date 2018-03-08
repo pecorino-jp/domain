@@ -85,6 +85,8 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
             throw error;
         }
 
+        const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
+
         // 残高確認
         const fromAccount = await repos.account.accountModel.findOneAndUpdate(
             {
@@ -96,7 +98,7 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
                     safeBalance: -params.object.price // 残高を減らす
                 },
                 $push: {
-                    pendingTransactions: transaction // 進行中取引追加
+                    pendingTransactions: pendingTransaction // 進行中取引追加
                 }
             }
         ).exec();
