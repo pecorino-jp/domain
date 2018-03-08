@@ -4,6 +4,10 @@
 
 import TransactionType from './transactionType';
 
+export enum AccountType {
+    Account = 'Account'
+}
+
 export interface IPendingTransaction {
     typeOf: TransactionType;
     /**
@@ -18,6 +22,7 @@ export type AccountStatusType = any;
  * 口座インターフェース
  */
 export interface IAccount {
+    typeOf: AccountType;
     id: string;
     name: string;
     balance: number;

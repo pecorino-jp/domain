@@ -29,6 +29,7 @@ export function open(params: {
     return async (repos: { account: AccountRepo }) => {
         debug('opening account...');
         const account: factory.account.IAccount = {
+            typeOf: factory.account.AccountType.Account,
             id: params.id,
             name: params.name,
             balance: params.initialBalance,
@@ -99,38 +100,42 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
             // 取引存在確認
             const transaction = await repos.transaction.findById(actionAttributes.purpose.id, actionAttributes.purpose.typeOf);
 
-            // 転送元を残高調整
-            await repos.account.accountModel.findOneAndUpdate(
-                {
-                    _id: actionAttributes.fromLocation.accountId,
-                    'pendingTransactions.id': transaction.id
-                },
-                {
-                    $inc: {
-                        balance: -actionAttributes.amount // 残高調整
+            // 転送元があれば残高調整
+            if (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account) {
+                await repos.account.accountModel.findOneAndUpdate(
+                    {
+                        _id: (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).id,
+                        'pendingTransactions.id': transaction.id
                     },
-                    $pull: {
-                        pendingTransactions: { id: transaction.id } // 進行中取引削除
+                    {
+                        $inc: {
+                            balance: -actionAttributes.amount // 残高調整
+                        },
+                        $pull: {
+                            pendingTransactions: { id: transaction.id } // 進行中取引削除
+                        }
                     }
-                }
-            ).exec();
+                ).exec();
+            }
 
-            // 転送先へ入金
-            await repos.account.accountModel.findOneAndUpdate(
-                {
-                    _id: actionAttributes.toLocation.accountId,
-                    'pendingTransactions.id': transaction.id
-                },
-                {
-                    $inc: {
-                        balance: actionAttributes.amount,
-                        safeBalance: actionAttributes.amount
+            // 転送先へがあれば入金
+            if (actionAttributes.toLocation.typeOf === factory.account.AccountType.Account) {
+                await repos.account.accountModel.findOneAndUpdate(
+                    {
+                        _id: (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).id,
+                        'pendingTransactions.id': transaction.id
                     },
-                    $pull: {
-                        pendingTransactions: { id: transaction.id } // 進行中取引削除
+                    {
+                        $inc: {
+                            balance: actionAttributes.amount,
+                            safeBalance: actionAttributes.amount
+                        },
+                        $pull: {
+                            pendingTransactions: { id: transaction.id } // 進行中取引削除
+                        }
                     }
-                }
-            ).exec();
+                ).exec();
+            }
         } catch (error) {
             // actionにエラー結果を追加
             try {

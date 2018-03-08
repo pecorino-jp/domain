@@ -45,7 +45,6 @@ export interface IObject {
     clientUser: IClientUser;
     price: number;
     fromAccountId: string;
-    toAccountId: string;
     notes: string;
 }
 

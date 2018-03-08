@@ -56,11 +56,6 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
                 throw new factory.errors.NotFound('fromAccount');
             }
         });
-        await repos.account.accountModel.findById(params.object.toAccountId).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('toAccount');
-            }
-        });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const transactionAttributes = factory.transaction.pay.createAttributes({
@@ -71,7 +66,6 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
                 clientUser: params.object.clientUser,
                 price: params.object.price,
                 fromAccountId: params.object.fromAccountId,
-                toAccountId: params.object.toAccountId,
                 notes: params.object.notes
             },
             expires: params.expires,
@@ -111,18 +105,6 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
             throw new Error('Insufficient balance.');
         }
 
-        // 入金先口座に進行中取引を追加
-        await repos.account.accountModel.findOneAndUpdate(
-            {
-                _id: params.object.toAccountId
-            },
-            {
-                $push: {
-                    pendingTransactions: transaction // 進行中取引追加
-                }
-            }
-        ).exec();
-
         // 結果返却
         return transaction;
     };
@@ -151,13 +133,12 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
             recipient: transaction.recipient,
             amount: transaction.object.price,
             fromLocation: {
-                typeOf: transaction.agent.typeOf,
-                accountId: transaction.object.fromAccountId,
+                typeOf: factory.account.AccountType.Account,
+                id: transaction.object.fromAccountId,
                 name: transaction.agent.name
             },
             toLocation: {
                 typeOf: transaction.recipient.typeOf,
-                accountId: transaction.object.toAccountId,
                 name: transaction.recipient.name
             },
             purpose: {

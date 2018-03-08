@@ -100,7 +100,7 @@ export class MongoRepository {
     /**
      * 進行中の入金取引を取得する
      */
-    public async findDepositInProgressById(transactionId: string): Promise<factory.transaction.pay.ITransaction> {
+    public async findDepositInProgressById(transactionId: string): Promise<factory.transaction.deposit.ITransaction> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
             typeOf: factory.transactionType.Deposit,
@@ -111,7 +111,7 @@ export class MongoRepository {
             throw new factory.errors.NotFound('transaction in progress');
         }
 
-        return <factory.transaction.pay.ITransaction>doc.toObject();
+        return <factory.transaction.deposit.ITransaction>doc.toObject();
     }
 
     /**
@@ -171,7 +171,7 @@ export class MongoRepository {
             throw new factory.errors.NotFound('transaction in progress');
         }
 
-        return <factory.transaction.pay.ITransaction>doc.toObject();
+        return <factory.transaction.deposit.ITransaction>doc.toObject();
     }
 
     /**

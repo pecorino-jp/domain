@@ -57,13 +57,6 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
                 throw new factory.errors.NotFound('toAccountId');
             }
         });
-        if (params.object.fromAccountId !== undefined) {
-            await repos.account.accountModel.findById(params.object.fromAccountId).exec().then((doc) => {
-                if (doc === null) {
-                    throw new factory.errors.NotFound('fromAccountId');
-                }
-            });
-        }
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const transactionAttributes = factory.transaction.deposit.createAttributes({
@@ -73,7 +66,6 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
             object: {
                 clientUser: params.object.clientUser,
                 price: params.object.price,
-                fromAccountId: params.object.fromAccountId,
                 toAccountId: params.object.toAccountId,
                 notes: params.object.notes
             },
@@ -92,28 +84,6 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
             }
 
             throw error;
-        }
-
-        if (params.object.fromAccountId !== undefined) {
-            // 残高確認
-            const fromAccount = await repos.account.accountModel.findOneAndUpdate(
-                {
-                    _id: params.object.fromAccountId,
-                    safeBalance: { $gte: params.object.price }
-                },
-                {
-                    $inc: {
-                        safeBalance: -params.object.price // 残高を減らす
-                    },
-                    $push: {
-                        pendingTransactions: transaction // 進行中取引追加
-                    }
-                }
-            ).exec();
-
-            if (fromAccount === null) {
-                throw new Error('Insufficient balance in fromAccount.');
-            }
         }
 
         // 入金先口座に進行中取引を追加
@@ -158,12 +128,11 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
             amount: transaction.object.price,
             fromLocation: {
                 typeOf: transaction.agent.typeOf,
-                accountId: (transaction.object.fromAccountId !== undefined) ? transaction.object.fromAccountId : '',
                 name: transaction.agent.name
             },
             toLocation: {
                 typeOf: transaction.recipient.typeOf,
-                accountId: transaction.object.toAccountId,
+                id: transaction.object.toAccountId,
                 name: transaction.recipient.name
             },
             purpose: {

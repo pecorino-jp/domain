@@ -153,13 +153,13 @@ export function confirm(transactionId: string): ITransactionOperation<void> {
             recipient: transaction.recipient,
             amount: transaction.object.price,
             fromLocation: {
-                typeOf: transaction.agent.typeOf,
-                accountId: transaction.object.fromAccountId,
+                typeOf: factory.account.AccountType.Account,
+                id: transaction.object.fromAccountId,
                 name: transaction.agent.name
             },
             toLocation: {
-                typeOf: transaction.recipient.typeOf,
-                accountId: transaction.object.toAccountId,
+                typeOf: factory.account.AccountType.Account,
+                id: transaction.object.toAccountId,
                 name: transaction.recipient.name
             },
             purpose: {

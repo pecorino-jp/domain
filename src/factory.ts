@@ -14,7 +14,6 @@ import ActionType from './factory/actionType';
 import * as ClientUserFactory from './factory/clientUser';
 import * as EmailMessageFactory from './factory/creativeWork/message/email';
 import CreativeWorkType from './factory/creativeWorkType';
-import IMultilingualString from './factory/multilingualString';
 import OrganizationType from './factory/organizationType';
 import PersonType from './factory/personType';
 import PriceCurrency from './factory/priceCurrency';
@@ -67,7 +66,6 @@ export namespace creativeWork {
     }
 }
 export import creativeWorkType = CreativeWorkType;
-export type multilingualString = IMultilingualString;
 export import organizationType = OrganizationType;
 export import personType = PersonType;
 export import priceCurrency = PriceCurrency;

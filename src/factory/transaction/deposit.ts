@@ -44,7 +44,6 @@ export type IError = any;
 export interface IObject {
     clientUser: IClientUser;
     price: number;
-    fromAccountId?: string;
     /**
      * 入金先口座ID
      */
