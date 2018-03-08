@@ -68,11 +68,13 @@ export function searchTransferActions(searchConditions: ISearchConditions): IAct
             $or: [
                 {
                     typeOf: factory.actionType.MoneyTransfer,
-                    'fromLocation.accountId': searchConditions.accountId
+                    'fromLocation.typeOf': factory.account.AccountType.Account,
+                    'fromLocation.id': searchConditions.accountId
                 },
                 {
                     typeOf: factory.actionType.MoneyTransfer,
-                    'toLocation.accountId': searchConditions.accountId
+                    'toLocation.typeOf': factory.account.AccountType.Account,
+                    'toLocation.id': searchConditions.accountId
                 }
             ]
         }).sort({ endDate: 1 }).limit(LIMIT)
