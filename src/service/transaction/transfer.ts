@@ -52,16 +52,8 @@ export function start(params: IStartParams): IStartOperation<ITransaction> {
         debug(`${params.agent.name} is starting transfer transaction... amount:${params.object.price}`);
 
         // 口座存在確認
-        await repos.account.accountModel.findById(params.object.fromAccountId).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('fromAccount');
-            }
-        });
-        await repos.account.accountModel.findById(params.object.toAccountId).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('toAccount');
-            }
-        });
+        const fromAccount = await repos.account.findById(params.object.fromAccountId);
+        const toAccount = await repos.account.findById(params.object.toAccountId);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const transactionAttributes = factory.transaction.transfer.createAttributes({
@@ -71,8 +63,8 @@ export function start(params: IStartParams): IStartOperation<ITransaction> {
             object: {
                 clientUser: params.object.clientUser,
                 price: params.object.price,
-                fromAccountId: params.object.fromAccountId,
-                toAccountId: params.object.toAccountId,
+                fromAccountId: fromAccount.id,
+                toAccountId: toAccount.id,
                 notes: params.object.notes
             },
             expires: params.expires,
@@ -94,36 +86,17 @@ export function start(params: IStartParams): IStartOperation<ITransaction> {
         const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
 
         // 残高確認
-        const fromAccount = await repos.account.accountModel.findOneAndUpdate(
-            {
-                _id: params.object.fromAccountId,
-                safeBalance: { $gte: params.object.price }
-            },
-            {
-                $inc: {
-                    safeBalance: -params.object.price // 残高を減らす
-                },
-                $push: {
-                    pendingTransactions: pendingTransaction // 進行中取引追加
-                }
-            }
-        ).exec();
-
-        if (fromAccount === null) {
-            throw new Error('Insufficient balance.');
-        }
+        await repos.account.authorizeAmount({
+            id: params.object.fromAccountId,
+            amount: params.object.price,
+            transaction: pendingTransaction
+        });
 
         // 転送先口座に進行中取引を追加
-        await repos.account.accountModel.findOneAndUpdate(
-            {
-                _id: params.object.toAccountId
-            },
-            {
-                $push: {
-                    pendingTransactions: pendingTransaction // 進行中取引追加
-                }
-            }
-        ).exec();
+        await repos.account.startTransaction({
+            id: params.object.toAccountId,
+            transaction: pendingTransaction
+        });
 
         // 結果返却
         return transaction;

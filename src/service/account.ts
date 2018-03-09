@@ -102,42 +102,19 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
             // 取引存在確認
             const transaction = await repos.transaction.findById(actionAttributes.purpose.id, actionAttributes.purpose.typeOf);
 
-            // 転送元があれば残高調整
-            if (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account) {
-                await repos.account.accountModel.findOneAndUpdate(
-                    {
-                        _id: (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).id,
-                        'pendingTransactions.id': transaction.id
-                    },
-                    {
-                        $inc: {
-                            balance: -actionAttributes.amount // 残高調整
-                        },
-                        $pull: {
-                            pendingTransactions: { id: transaction.id } // 進行中取引削除
-                        }
-                    }
-                ).exec();
-            }
+            const fromAccountId = (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account)
+                ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).id
+                : undefined;
+            const toAccountId = (actionAttributes.toLocation.typeOf === factory.account.AccountType.Account)
+                ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).id
+                : undefined;
 
-            // 転送先へがあれば入金
-            if (actionAttributes.toLocation.typeOf === factory.account.AccountType.Account) {
-                await repos.account.accountModel.findOneAndUpdate(
-                    {
-                        _id: (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).id,
-                        'pendingTransactions.id': transaction.id
-                    },
-                    {
-                        $inc: {
-                            balance: actionAttributes.amount,
-                            safeBalance: actionAttributes.amount
-                        },
-                        $pull: {
-                            pendingTransactions: { id: transaction.id } // 進行中取引削除
-                        }
-                    }
-                ).exec();
-            }
+            await repos.account.settleTransaction({
+                fromAccountId: fromAccountId,
+                toAccountId: toAccountId,
+                amount: actionAttributes.amount,
+                transactionId: transaction.id
+            });
         } catch (error) {
             // actionにエラー結果を追加
             try {

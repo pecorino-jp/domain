@@ -52,11 +52,7 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
         debug(`${params.agent.name} is starting deposit transaction... amount:${params.object.price}`);
 
         // 口座存在確認
-        await repos.account.accountModel.findById(params.object.toAccountId).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('toAccountId');
-            }
-        });
+        const account = await repos.account.findById(params.object.toAccountId);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const transactionAttributes = factory.transaction.deposit.createAttributes({
@@ -66,7 +62,7 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
             object: {
                 clientUser: params.object.clientUser,
                 price: params.object.price,
-                toAccountId: params.object.toAccountId,
+                toAccountId: account.id,
                 notes: params.object.notes
             },
             expires: params.expires,
@@ -89,17 +85,10 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
         const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
 
         // 入金先口座に進行中取引を追加
-        await repos.account.accountModel.findOneAndUpdate(
-            {
-                // 入金なので、条件があるとすれば、口座max預金金額設定くらいか
-                _id: params.object.toAccountId
-            },
-            {
-                $push: {
-                    pendingTransactions: pendingTransaction // 進行中取引追加
-                }
-            }
-        ).exec();
+        await repos.account.startTransaction({
+            id: params.object.toAccountId,
+            transaction: pendingTransaction
+        });
 
         // 結果返却
         return transaction;

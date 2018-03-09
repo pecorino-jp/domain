@@ -51,11 +51,7 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
         debug(`${params.agent.name} is starting pay transaction... amount:${params.object.price}`);
 
         // 口座存在確認
-        await repos.account.accountModel.findById(params.object.fromAccountId).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('fromAccount');
-            }
-        });
+        const account = await repos.account.findById(params.object.fromAccountId);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const transactionAttributes = factory.transaction.pay.createAttributes({
@@ -65,7 +61,7 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
             object: {
                 clientUser: params.object.clientUser,
                 price: params.object.price,
-                fromAccountId: params.object.fromAccountId,
+                fromAccountId: account.id,
                 notes: params.object.notes
             },
             expires: params.expires,
@@ -88,24 +84,11 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
         const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
 
         // 残高確認
-        const fromAccount = await repos.account.accountModel.findOneAndUpdate(
-            {
-                _id: params.object.fromAccountId,
-                safeBalance: { $gte: params.object.price }
-            },
-            {
-                $inc: {
-                    safeBalance: -params.object.price // 残高を減らす
-                },
-                $push: {
-                    pendingTransactions: pendingTransaction // 進行中取引追加
-                }
-            }
-        ).exec();
-
-        if (fromAccount === null) {
-            throw new Error('Insufficient balance.');
-        }
+        await repos.account.authorizeAmount({
+            id: params.object.fromAccountId,
+            amount: params.object.price,
+            transaction: pendingTransaction
+        });
 
         // 結果返却
         return transaction;
