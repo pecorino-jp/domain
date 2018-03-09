@@ -122,7 +122,7 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
                 name: transaction.agent.name
             },
             toLocation: {
-                typeOf: transaction.recipient.typeOf,
+                typeOf: factory.account.AccountType.Account,
                 id: transaction.object.toAccountId,
                 name: transaction.recipient.name
             },
