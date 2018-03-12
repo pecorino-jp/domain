@@ -10,7 +10,7 @@ pecorino.mongoose.connect(process.env.MONGOLAB_URI);
 
 async function main() {
     const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-    const account = await pecorino.service.account.open({
+    const account = await pecorino.service.account.openIfNotExists({
         id: 'sskts-movieTheater-118',
         name: '[development]シネマサンシャイン姶良',
         initialBalance: 1000000000

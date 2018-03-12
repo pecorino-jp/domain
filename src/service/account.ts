@@ -18,10 +18,10 @@ export type IAccountOperation<T> = (repos: { account: AccountRepo }) => Promise<
 export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
 
 /**
- * 口座を開設する
+ * 未開設であれば口座を開設する
  * @param params 口座開設初期設定
  */
-export function open(params: {
+export function openIfNotExists(params: {
     id: string;
     name: string;
     initialBalance: number;
@@ -39,10 +39,17 @@ export function open(params: {
             status: 'status'
         };
 
-        // no op
-        await repos.account.accountModel.create({ ...account, _id: account.id });
+        const doc = await repos.account.accountModel.findOneAndUpdate(
+            { _id: account.id },
+            { $setOnInsert: account },
+            { upsert: true }
+        ).exec();
 
-        return account;
+        if (doc === null) {
+            throw new factory.errors.NotFound('Account');
+        }
+
+        return doc.toObject();
     };
 }
 
