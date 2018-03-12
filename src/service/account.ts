@@ -42,7 +42,10 @@ export function openIfNotExists(params: {
         const doc = await repos.account.accountModel.findOneAndUpdate(
             { _id: account.id },
             { $setOnInsert: account },
-            { upsert: true }
+            {
+                upsert: true,
+                new: true
+            }
         ).exec();
 
         if (doc === null) {
