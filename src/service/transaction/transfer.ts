@@ -208,19 +208,17 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
 
             case factory.transactionStatusType.Canceled:
             case factory.transactionStatusType.Expired:
-                if (potentialActions !== undefined) {
-                    taskAttributes.push(factory.task.cancelMoneyTransfer.createAttributes({
-                        status: factory.taskStatus.Ready,
-                        runsAt: new Date(), // なるはやで実行
-                        remainingNumberOfTries: 10,
-                        lastTriedAt: null,
-                        numberOfTried: 0,
-                        executionResults: [],
-                        data: {
-                            transaction: { typeOf: transaction.typeOf, id: transaction.id }
-                        }
-                    }));
-                }
+                taskAttributes.push(factory.task.cancelMoneyTransfer.createAttributes({
+                    status: factory.taskStatus.Ready,
+                    runsAt: new Date(), // なるはやで実行
+                    remainingNumberOfTries: 10,
+                    lastTriedAt: null,
+                    numberOfTried: 0,
+                    executionResults: [],
+                    data: {
+                        transaction: { typeOf: transaction.typeOf, id: transaction.id }
+                    }
+                }));
 
                 break;
 
