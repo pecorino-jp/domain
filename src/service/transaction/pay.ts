@@ -197,21 +197,21 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
 
                 break;
 
-            // tslint:disable-next-line:no-suspicious-comment
-            // TODO 期限切れの場合は、タスクリストを作成する
             case factory.transactionStatusType.Canceled:
             case factory.transactionStatusType.Expired:
-                // taskAttributes.push(factory.task.cancelPayAction.createAttributes({
-                //     status: factory.taskStatus.Ready,
-                //     runsAt: new Date(), // なるはやで実行
-                //     remainingNumberOfTries: 10,
-                //     lastTriedAt: null,
-                //     numberOfTried: 0,
-                //     executionResults: [],
-                //     data: {
-                //         transactionId: transaction.id
-                //     }
-                // }));
+                if (potentialActions !== undefined) {
+                    taskAttributes.push(factory.task.cancelMoneyTransfer.createAttributes({
+                        status: factory.taskStatus.Ready,
+                        runsAt: new Date(), // なるはやで実行
+                        remainingNumberOfTries: 10,
+                        lastTriedAt: null,
+                        numberOfTried: 0,
+                        executionResults: [],
+                        data: {
+                            transaction: { typeOf: transaction.typeOf, id: transaction.id }
+                        }
+                    }));
+                }
 
                 break;
 

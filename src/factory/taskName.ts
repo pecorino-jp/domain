@@ -4,11 +4,11 @@
 
 enum TaskName {
     /**
-     * 金額転送中止
+     * 現金転送取消
      */
     CancelMoneyTransfer = 'cancelMoneyTransfer',
     /**
-     * 金額転送
+     * 現金転送
      */
     MoneyTransfer = 'moneyTransfer'
 }

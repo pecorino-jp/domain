@@ -135,12 +135,46 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
                 // 失敗したら仕方ない
             }
 
-            throw new Error(error);
+            throw error;
         }
 
         // アクション完了
         debug('ending action...');
         const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
         await repos.action.complete(action.typeOf, action.id, actionResult);
+    };
+}
+
+/**
+ * 転送取消
+ */
+export function cancelMoneyTransfer(params: {
+    transaction: {
+        typeOf: factory.transactionType;
+        id: string;
+    };
+}) {
+    return async (repos: {
+        account: AccountRepo;
+        transaction: TransactionRepo;
+    }) => {
+        debug(`canceling money transfer... ${params.transaction.typeOf} ${params.transaction.id}`);
+
+        try {
+            // 取引存在確認
+            const transaction = await repos.transaction.findById(params.transaction.id, params.transaction.typeOf);
+
+            const fromAccountId = (<any>transaction.object).fromAccountId;
+            const toAccountId = (<any>transaction.object).toAccountId;
+
+            await repos.account.voidTransaction({
+                fromAccountId: fromAccountId,
+                toAccountId: toAccountId,
+                amount: transaction.object.price,
+                transactionId: transaction.id
+            });
+        } catch (error) {
+            throw error;
+        }
     };
 }

@@ -29,6 +29,7 @@ export class MongoRepository {
      * @param params.id 口座ID
      * @param params.amount 金額
      * @param params.transaction 進行取引
+     * @see https://en.wikipedia.org/wiki/Authorization_hold
      */
     public async authorizeAmount(params: {
         id: string;
@@ -107,6 +108,46 @@ export class MongoRepository {
                         balance: params.amount,
                         safeBalance: params.amount
                     },
+                    $pull: { pendingTransactions: { id: params.transactionId } }
+                }
+            ).exec();
+        }
+    }
+
+    /**
+     * 取引を取り消す
+     * @see https://www.investopedia.com/terms/v/void-transaction.asp
+     */
+    public async voidTransaction(params: {
+        fromAccountId?: string;
+        toAccountId?: string;
+        amount: number;
+        transactionId: string;
+    }) {
+        // 転送元があればhold解除
+        if (params.fromAccountId !== undefined) {
+            await this.accountModel.findOneAndUpdate(
+                {
+                    _id: params.fromAccountId,
+                    'pendingTransactions.id': params.transactionId
+                },
+                {
+                    $inc: {
+                        safeBalance: params.amount // 残高調整
+                    },
+                    $pull: { pendingTransactions: { id: params.transactionId } }
+                }
+            ).exec();
+        }
+
+        // 転送先へがあれば進行中取引削除
+        if (params.toAccountId !== undefined) {
+            await this.accountModel.findOneAndUpdate(
+                {
+                    _id: params.toAccountId,
+                    'pendingTransactions.id': params.transactionId
+                },
+                {
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
             ).exec();

@@ -7,10 +7,12 @@ import * as factory from '../factory';
 
 export type ITransactionAttributes =
     factory.transaction.pay.IAttributes |
+    factory.transaction.transfer.IAttributes |
     factory.transaction.deposit.IAttributes;
 
 export type ITransaction =
     factory.transaction.pay.ITransaction |
+    factory.transaction.transfer.ITransaction |
     factory.transaction.deposit.ITransaction;
 
 /**

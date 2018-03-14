@@ -8,9 +8,13 @@ import * as TaskFactory from '../task';
 import * as TaskExecutionResult from '../taskExecutionResult';
 import TaskName from '../taskName';
 import TaskStatus from '../taskStatus';
+import TransactionType from '../transactionType';
 
 export interface IData {
-    transactionId: string;
+    transaction: {
+        typeOf: TransactionType;
+        id: string;
+    };
 }
 
 export interface IAttributes extends TaskFactory.IAttributes {

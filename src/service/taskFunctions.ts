@@ -19,17 +19,17 @@ export type IOperation<T> = (settings: {
 }) => Promise<T>;
 
 export function cancelMoneyTransfer(
-    __: factory.task.cancelMoneyTransfer.IData
+    data: factory.task.cancelMoneyTransfer.IData
 ): IOperation<void> {
-    return async (__2: {
+    return async (settings: {
         connection: mongoose.Connection;
     }) => {
-        // const accountRepo = new AccountRepo(settings.connection);
-        // const transactionRepo = new TransactionRepo(settings.connection);
-        // await AccountService.action.pay.cancel(data.transactionId)({
-        //     account: accountRepo,
-        //     transaction: transactionRepo
-        // });
+        const accountRepo = new AccountRepo(settings.connection);
+        const transactionRepo = new TransactionRepo(settings.connection);
+        await AccountService.cancelMoneyTransfer({ transaction: data.transaction })({
+            account: accountRepo,
+            transaction: transactionRepo
+        });
     };
 }
 
