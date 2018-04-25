@@ -73,7 +73,7 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
         // 取引作成
         let transaction: IDepositTransaction;
         try {
-            transaction = await repos.transaction.start<IDepositTransaction>(transactionAttributes);
+            transaction = await repos.transaction.start<factory.transactionType.Deposit>(transactionAttributes);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -105,7 +105,7 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
         debug(`confirming deposit transaction ${transactionId}...`);
 
         // 取引存在確認
-        const transaction = await repos.transaction.findDepositInProgressById(transactionId);
+        const transaction = await repos.transaction.findInProgressById(factory.transactionType.Deposit, transactionId);
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes = factory.action.transfer.moneyTransfer.createAttributes({
@@ -136,7 +136,7 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
         };
 
         // 取引確定
-        await repos.transaction.confirmDeposit(transaction.id, {}, potentialActions);
+        await repos.transaction.confirm(factory.transactionType.Deposit, transaction.id, {}, potentialActions);
     };
 }
 
@@ -173,7 +173,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById<IDepositTransaction>(transactionId, factory.transactionType.Deposit);
+        const transaction = await repos.transaction.findById(transactionId, factory.transactionType.Deposit);
         const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes[] = [];

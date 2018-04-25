@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 
-const safe: any = { j: 1, w: 'majority', wtimeout: 10000 };
+const safe = { j: true, w: 'majority', wtimeout: 10000 };
 
 /**
  * 口座スキーマ

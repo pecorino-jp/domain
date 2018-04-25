@@ -74,7 +74,7 @@ export function start(params: IStartParams): IStartOperation<ITransaction> {
         // 取引作成
         let transaction: ITransaction;
         try {
-            transaction = await repos.transaction.start<ITransaction>(transactionAttributes);
+            transaction = await repos.transaction.start<factory.transactionType.Transfer>(transactionAttributes);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -113,7 +113,7 @@ export function confirm(transactionId: string): ITransactionOperation<void> {
         debug(`confirming transfer transaction ${transactionId}...`);
 
         // 取引存在確認
-        const transaction = await repos.transaction.findInProgressById<ITransaction>(factory.transactionType.Transfer, transactionId);
+        const transaction = await repos.transaction.findInProgressById(factory.transactionType.Transfer, transactionId);
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes = factory.action.transfer.moneyTransfer.createAttributes({
@@ -145,7 +145,7 @@ export function confirm(transactionId: string): ITransactionOperation<void> {
         };
 
         // 取引確定
-        await repos.transaction.confirmTransfer(transaction.id, {}, potentialActions);
+        await repos.transaction.confirm(factory.transactionType.Transfer, transaction.id, {}, potentialActions);
     };
 }
 

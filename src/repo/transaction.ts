@@ -5,18 +5,8 @@ import TransactionModel from './mongoose/model/transaction';
 
 import * as factory from '../factory';
 
-export type ITransactionAttributes =
-    factory.transaction.pay.IAttributes |
-    factory.transaction.transfer.IAttributes |
-    factory.transaction.deposit.IAttributes;
-
-export type ITransaction =
-    factory.transaction.pay.ITransaction |
-    factory.transaction.transfer.ITransaction |
-    factory.transaction.deposit.ITransaction;
-
 /**
- * transaction repository
+ * 取引Mongoリポジトリー
  */
 export class MongoRepository {
     public readonly transactionModel: typeof TransactionModel;
@@ -27,30 +17,28 @@ export class MongoRepository {
 
     /**
      * 取引を開始する
-     * @param transactionAttributes 取引属性
+     * @param attributes 取引属性
      */
-    public async start<T extends ITransaction>(
-        transactionAttributes: ITransactionAttributes
-    ): Promise<T> {
+    public async start<T extends factory.transactionType>(
+        attributes: factory.transaction.IAttributes<T>
+    ): Promise<factory.transaction.ITransaction<T>> {
         return this.transactionModel.create({
-            ...transactionAttributes,
+            ...<Object>attributes,
             status: factory.transactionStatusType.InProgress,
             startDate: new Date(),
             endDate: undefined,
             tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
-        }).then(
-            (doc) => <T>doc.toObject()
-        );
+        }).then((doc) => doc.toObject());
     }
 
     /**
      * IDで取引を取得する
      * @param transactionId 取引ID
      */
-    public async findById<T extends ITransaction>(
+    public async findById<T extends factory.transactionType>(
         transactionId: string,
-        typeOf: factory.transactionType
-    ): Promise<T> {
+        typeOf: T
+    ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
             typeOf: typeOf
@@ -60,15 +48,16 @@ export class MongoRepository {
             throw new factory.errors.NotFound('transaction');
         }
 
-        return <T>doc.toObject();
+        return doc.toObject();
     }
 
     /**
      * 進行中の取引を取得する
      */
-    public async findInProgressById<T extends ITransaction>(
-        typeOf: factory.transactionType, transactionId: string
-    ): Promise<T> {
+    public async findInProgressById<T extends factory.transactionType>(
+        typeOf: T,
+        transactionId: string
+    ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
             typeOf: typeOf,
@@ -79,55 +68,22 @@ export class MongoRepository {
             throw new factory.errors.NotFound('transaction in progress');
         }
 
-        return <T>doc.toObject();
+        return doc.toObject();
     }
 
     /**
-     * 進行中の取引を取得する
+     * 取引を確定する
      */
-    public async findPayInProgressById(transactionId: string): Promise<factory.transaction.pay.ITransaction> {
-        const doc = await this.transactionModel.findOne({
-            _id: transactionId,
-            typeOf: factory.transactionType.Pay,
-            status: factory.transactionStatusType.InProgress
-        }).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
-        }
-
-        return <factory.transaction.pay.ITransaction>doc.toObject();
-    }
-
-    /**
-     * 進行中の入金取引を取得する
-     */
-    public async findDepositInProgressById(transactionId: string): Promise<factory.transaction.deposit.ITransaction> {
-        const doc = await this.transactionModel.findOne({
-            _id: transactionId,
-            typeOf: factory.transactionType.Deposit,
-            status: factory.transactionStatusType.InProgress
-        }).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
-        }
-
-        return <factory.transaction.deposit.ITransaction>doc.toObject();
-    }
-
-    /**
-     * 支払取引を確定する
-     */
-    public async confirmPay(
+    public async confirm<T extends factory.transactionType>(
+        typeOf: T,
         transactionId: string,
-        result: factory.transaction.pay.IResult,
-        potentialActions: factory.transaction.pay.IPotentialActions
-    ): Promise<factory.transaction.pay.ITransaction> {
+        result: factory.transaction.IResult<T>,
+        potentialActions: factory.transaction.IPotentialActions<T>
+    ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOneAndUpdate(
             {
                 _id: transactionId,
-                typeOf: factory.transactionType.Pay,
+                typeOf: typeOf,
                 status: factory.transactionStatusType.InProgress
             },
             {
@@ -143,67 +99,7 @@ export class MongoRepository {
             throw new factory.errors.NotFound('transaction in progress');
         }
 
-        return <factory.transaction.pay.ITransaction>doc.toObject();
-    }
-
-    /**
-     * 入金取引を確定する
-     */
-    public async confirmDeposit(
-        transactionId: string,
-        result: factory.transaction.deposit.IResult,
-        potentialActions: factory.transaction.deposit.IPotentialActions
-    ): Promise<factory.transaction.deposit.ITransaction> {
-        const doc = await this.transactionModel.findOneAndUpdate(
-            {
-                _id: transactionId,
-                typeOf: factory.transactionType.Deposit,
-                status: factory.transactionStatusType.InProgress
-            },
-            {
-                status: factory.transactionStatusType.Confirmed, // ステータス変更
-                endDate: new Date(),
-                result: result,
-                potentialActions: potentialActions
-            },
-            { new: true }
-        ).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
-        }
-
-        return <factory.transaction.deposit.ITransaction>doc.toObject();
-    }
-
-    /**
-     * 転送取引を確定する
-     */
-    public async confirmTransfer(
-        transactionId: string,
-        result: factory.transaction.transfer.IResult,
-        potentialActions: factory.transaction.transfer.IPotentialActions
-    ): Promise<factory.transaction.transfer.ITransaction> {
-        const doc = await this.transactionModel.findOneAndUpdate(
-            {
-                _id: transactionId,
-                typeOf: factory.transactionType.Transfer,
-                status: factory.transactionStatusType.InProgress
-            },
-            {
-                status: factory.transactionStatusType.Confirmed, // ステータス変更
-                endDate: new Date(),
-                result: result, // resultを更新
-                potentialActions: potentialActions
-            },
-            { new: true }
-        ).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
-        }
-
-        return <factory.transaction.transfer.ITransaction>doc.toObject();
+        return doc.toObject();
     }
 
     /**
@@ -211,8 +107,9 @@ export class MongoRepository {
      * @param typeOf 取引タイプ
      * @param status 取引ステータス
      */
-    public async startExportTasks(typeOf: factory.transactionType, status: factory.transactionStatusType):
-        Promise<ITransaction | null> {
+    public async startExportTasks<T extends factory.transactionType>(
+        typeOf: T, status: factory.transactionStatusType
+    ): Promise<factory.transaction.ITransaction<T> | null> {
         return this.transactionModel.findOneAndUpdate(
             {
                 typeOf: typeOf,
@@ -221,7 +118,7 @@ export class MongoRepository {
             },
             { tasksExportationStatus: factory.transactionTasksExportationStatus.Exporting },
             { new: true }
-        ).exec().then((doc) => (doc === null) ? null : <ITransaction>doc.toObject());
+        ).exec().then((doc) => (doc === null) ? null : doc.toObject());
     }
 
     /**
@@ -279,21 +176,21 @@ export class MongoRepository {
      * 注文取引を検索する
      * @param conditions 検索条件
      */
-    public async searchPay(
-        conditions: {
-            startFrom: Date;
-            startThrough: Date;
-        }
-    ): Promise<factory.transaction.pay.ITransaction[]> {
-        return this.transactionModel.find(
-            {
-                typeOf: factory.transactionType.Pay,
-                startDate: {
-                    $gte: conditions.startFrom,
-                    $lte: conditions.startThrough
-                }
-            }
-        ).exec()
-            .then((docs) => docs.map((doc) => <factory.transaction.pay.ITransaction>doc.toObject()));
-    }
+    // public async searchPay(
+    //     conditions: {
+    //         startFrom: Date;
+    //         startThrough: Date;
+    //     }
+    // ): Promise<factory.transaction.pay.ITransaction[]> {
+    //     return this.transactionModel.find(
+    //         {
+    //             typeOf: factory.transactionType.Pay,
+    //             startDate: {
+    //                 $gte: conditions.startFrom,
+    //                 $lte: conditions.startThrough
+    //             }
+    //         }
+    //     ).exec()
+    //         .then((docs) => docs.map((doc) => <factory.transaction.pay.ITransaction>doc.toObject()));
+    // }
 }

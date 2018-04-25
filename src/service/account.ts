@@ -1,7 +1,6 @@
 /**
  * 口座サービス
  * 開設、閉鎖等、口座に対するアクションを定義します。
- * @namespace account
  */
 
 import * as createDebug from 'debug';
@@ -36,7 +35,7 @@ export function openIfNotExists(params: {
             safeBalance: params.initialBalance,
             pendingTransactions: [],
             openDate: new Date(),
-            status: 'status'
+            status: factory.accountStatusType.Opened
         };
 
         const doc = await repos.account.accountModel.findOneAndUpdate(
@@ -52,27 +51,60 @@ export function openIfNotExists(params: {
             throw new factory.errors.NotFound('Account');
         }
 
-        return doc.toObject();
+        return <factory.account.IAccount>doc.toObject();
     };
-}
-
-export function close() {
-    return () => {
-        // no op
-    };
-}
-
-export interface ISearchConditions {
-    accountId: string;
 }
 
 /**
- * 取引履歴を検索する
+ * 口座を閉鎖する
+ * @param params.id 口座ID
+ */
+export function close(params: {
+    id: string;
+}) {
+    return async (repos: { account: AccountRepo }) => {
+        debug('closing account...');
+
+        const doc = await repos.account.accountModel.findOneAndUpdate(
+            {
+                _id: params.id,
+                pendingTransactions: { $size: 0 },
+                status: factory.accountStatusType.Opened
+            },
+            {
+                closeDate: new Date(),
+                status: factory.accountStatusType.Closed
+            },
+            {
+                upsert: true,
+                new: true
+            }
+        ).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('Account');
+        }
+    };
+}
+
+/**
+ * 転送アクション検索条件インターフェース
+ */
+export interface ISearchTransferActionsConditions {
+    accountId: string;
+    limit?: number;
+}
+
+/**
+ * 転送アクションを検索する
  * @param searchConditions 検索条件
  */
-export function searchTransferActions(searchConditions: ISearchConditions): IActionRepo<factory.action.transfer.moneyTransfer.IAction[]> {
+export function searchTransferActions(
+    searchConditions: ISearchTransferActionsConditions
+): IActionRepo<factory.action.transfer.moneyTransfer.IAction[]> {
     return async (repos: { action: ActionRepo }) => {
-        const LIMIT = 100;
+        // tslint:disable-next-line:no-magic-numbers
+        const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : 100;
 
         return repos.action.actionModel.find({
             $or: [
@@ -87,13 +119,13 @@ export function searchTransferActions(searchConditions: ISearchConditions): IAct
                     'toLocation.id': searchConditions.accountId
                 }
             ]
-        }).sort({ endDate: 1 }).limit(LIMIT)
+        }).sort({ endDate: 1 }).limit(limit)
             .exec().then((docs) => docs.map((doc) => <factory.action.transfer.moneyTransfer.IAction>doc.toObject()));
     };
 }
 
 /**
- * 現金転送
+ * 転送する
  */
 export function transferMoney(actionAttributes: factory.action.transfer.moneyTransfer.IAttributes) {
     return async (repos: {
@@ -162,10 +194,25 @@ export function cancelMoneyTransfer(params: {
 
         try {
             // 取引存在確認
+            let fromAccountId: string | undefined;
+            let toAccountId: string | undefined;
+
             const transaction = await repos.transaction.findById(params.transaction.id, params.transaction.typeOf);
 
-            const fromAccountId = (<any>transaction.object).fromAccountId;
-            const toAccountId = (<any>transaction.object).toAccountId;
+            switch (params.transaction.typeOf) {
+                case factory.transactionType.Deposit:
+                    toAccountId = (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toAccountId;
+                    break;
+                case factory.transactionType.Pay:
+                    fromAccountId = (<factory.transaction.ITransaction<factory.transactionType.Pay>>transaction).object.fromAccountId;
+                    break;
+                case factory.transactionType.Transfer:
+                    fromAccountId = (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromAccountId;
+                    toAccountId = (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.toAccountId;
+                    break;
+                default:
+                    throw new factory.errors.Argument('typeOf', `transaction type ${params.transaction.typeOf} unknown`);
+            }
 
             await repos.account.voidTransaction({
                 fromAccountId: fromAccountId,
