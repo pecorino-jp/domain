@@ -1,6 +1,5 @@
 /**
  * 支払取引サービス
- * @namespace transaction.pay
  */
 
 import * as createDebug from 'debug';
@@ -24,26 +23,12 @@ export type ITransactionOperation<T> = (repos: {
     transaction: TransactionRepo;
 }) => Promise<T>;
 
-export interface IStartParams {
-    /**
-     * 取引主体ID
-     */
-    agent: factory.transaction.pay.IAgent;
-    /**
-     * 支払先
-     */
-    recipient: factory.transaction.pay.IRecipient;
-    object: factory.transaction.pay.IObject;
-    /**
-     * 取引期限
-     */
-    expires: Date;
-}
-
 /**
  * 取引開始
  */
-export function start(params: IStartParams): IStartOperation<factory.transaction.pay.ITransaction> {
+export function start(
+    params: factory.transaction.IStartParams<factory.transactionType.Pay>
+): IStartOperation<factory.transaction.pay.ITransaction> {
     return async (repos: {
         account: AccountRepo;
         transaction: TransactionRepo;
@@ -54,8 +39,8 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
         const account = await repos.account.findById(params.object.fromAccountId);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const transactionAttributes = factory.transaction.pay.createAttributes({
-            status: factory.transactionStatusType.InProgress,
+        const startParams: factory.transaction.IStartParams<factory.transactionType.Pay> = {
+            typeOf: factory.transactionType.Pay,
             agent: params.agent,
             recipient: params.recipient,
             object: {
@@ -64,15 +49,13 @@ export function start(params: IStartParams): IStartOperation<factory.transaction
                 fromAccountId: account.id,
                 notes: params.object.notes
             },
-            expires: params.expires,
-            startDate: new Date(),
-            tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
-        });
+            expires: params.expires
+        };
 
         // 取引作成
         let transaction: factory.transaction.pay.ITransaction;
         try {
-            transaction = await repos.transaction.start<factory.transactionType.Pay>(transactionAttributes);
+            transaction = await repos.transaction.start(factory.transactionType.Pay, startParams);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -173,7 +156,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById(transactionId, factory.transactionType.Pay);
+        const transaction = await repos.transaction.findById(factory.transactionType.Pay, transactionId);
         const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes[] = [];

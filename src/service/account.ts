@@ -142,7 +142,7 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
 
         try {
             // 取引存在確認
-            const transaction = await repos.transaction.findById(actionAttributes.purpose.id, actionAttributes.purpose.typeOf);
+            const transaction = await repos.transaction.findById(actionAttributes.purpose.typeOf, actionAttributes.purpose.id);
 
             const fromAccountId = (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account)
                 ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).id
@@ -197,7 +197,7 @@ export function cancelMoneyTransfer(params: {
             let fromAccountId: string | undefined;
             let toAccountId: string | undefined;
 
-            const transaction = await repos.transaction.findById(params.transaction.id, params.transaction.typeOf);
+            const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
 
             switch (params.transaction.typeOf) {
                 case factory.transactionType.Deposit:

@@ -17,13 +17,14 @@ export class MongoRepository {
 
     /**
      * 取引を開始する
-     * @param attributes 取引属性
      */
     public async start<T extends factory.transactionType>(
-        attributes: factory.transaction.IAttributes<T>
+        typeOf: T,
+        params: factory.transaction.IStartParams<T>
     ): Promise<factory.transaction.ITransaction<T>> {
         return this.transactionModel.create({
-            ...<Object>attributes,
+            typeOf: typeOf,
+            ...<Object>params,
             status: factory.transactionStatusType.InProgress,
             startDate: new Date(),
             endDate: undefined,
@@ -36,8 +37,8 @@ export class MongoRepository {
      * @param transactionId 取引ID
      */
     public async findById<T extends factory.transactionType>(
-        transactionId: string,
-        typeOf: T
+        typeOf: T,
+        transactionId: string
     ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,

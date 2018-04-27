@@ -1,6 +1,5 @@
 /**
  * 入金取引サービス
- * @namespace transaction.deposit
  */
 
 import * as createDebug from 'debug';
@@ -12,7 +11,6 @@ import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
 const debug = createDebug('pecorino-domain:service:transaction:deposit');
 
-export type IDepositTransaction = factory.transaction.deposit.ITransaction;
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
     transaction: TransactionRepo;
@@ -25,26 +23,12 @@ export type ITransactionOperation<T> = (repos: {
     transaction: TransactionRepo;
 }) => Promise<T>;
 
-export interface IStartParams {
-    /**
-     * 取引主体ID
-     */
-    agent: factory.transaction.deposit.IAgent;
-    /**
-     * 支払先
-     */
-    recipient: factory.transaction.deposit.IRecipient;
-    object: factory.transaction.deposit.IObject;
-    /**
-     * 取引期限
-     */
-    expires: Date;
-}
-
 /**
  * 取引開始
  */
-export function start(params: IStartParams): IStartOperation<IDepositTransaction> {
+export function start(
+    params: factory.transaction.IStartParams<factory.transactionType.Deposit>
+): IStartOperation<factory.transaction.deposit.ITransaction> {
     return async (repos: {
         account: AccountRepo;
         transaction: TransactionRepo;
@@ -55,8 +39,8 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
         const account = await repos.account.findById(params.object.toAccountId);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const transactionAttributes = factory.transaction.deposit.createAttributes({
-            status: factory.transactionStatusType.InProgress,
+        const startParams: factory.transaction.IStartParams<factory.transactionType.Deposit> = {
+            typeOf: factory.transactionType.Deposit,
             agent: params.agent,
             recipient: params.recipient,
             object: {
@@ -65,15 +49,13 @@ export function start(params: IStartParams): IStartOperation<IDepositTransaction
                 toAccountId: account.id,
                 notes: params.object.notes
             },
-            expires: params.expires,
-            startDate: new Date(),
-            tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
-        });
+            expires: params.expires
+        };
 
         // 取引作成
-        let transaction: IDepositTransaction;
+        let transaction: factory.transaction.deposit.ITransaction;
         try {
-            transaction = await repos.transaction.start<factory.transactionType.Deposit>(transactionAttributes);
+            transaction = await repos.transaction.start(factory.transactionType.Deposit, startParams);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -173,7 +155,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById(transactionId, factory.transactionType.Deposit);
+        const transaction = await repos.transaction.findById(factory.transactionType.Deposit, transactionId);
         const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes[] = [];
