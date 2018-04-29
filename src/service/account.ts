@@ -20,6 +20,39 @@ export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
  * 未開設であれば口座を開設する
  * @param params 口座開設初期設定
  */
+export function open(params: {
+    name: string;
+    initialBalance: number;
+}): IAccountOperation<factory.account.IAccount> {
+    return async (repos: { account: AccountRepo }) => {
+        debug('opening account...');
+        const account: factory.account.IAccount = {
+            typeOf: factory.account.AccountType.Account,
+            id: '',
+            name: params.name,
+            balance: params.initialBalance,
+            availableBalance: params.initialBalance,
+            pendingTransactions: [],
+            openDate: new Date(),
+            status: factory.accountStatusType.Opened
+        };
+
+        const doc = await repos.account.accountModel.create(
+            account
+        );
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('Account');
+        }
+
+        return <factory.account.IAccount>doc.toObject();
+    };
+}
+
+/**
+ * 未開設であれば口座を開設する
+ * @param params 口座開設初期設定
+ */
 export function openIfNotExists(params: {
     id: string;
     name: string;
@@ -32,7 +65,7 @@ export function openIfNotExists(params: {
             id: params.id,
             name: params.name,
             balance: params.initialBalance,
-            safeBalance: params.initialBalance,
+            availableBalance: params.initialBalance,
             pendingTransactions: [],
             openDate: new Date(),
             status: factory.accountStatusType.Opened

@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "@motionpicture/pecorino-factory": "0.0.0-alpha.2",
+    "@motionpicture/pecorino-factory": "0.0.0-alpha.3",
     "@sendgrid/mail": "^6.2.1",
     "@types/mongoose": "^5.0.10",
     "debug": "^3.1.0",

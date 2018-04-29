@@ -39,10 +39,10 @@ export class MongoRepository {
         const fromAccount = await this.accountModel.findOneAndUpdate(
             {
                 _id: params.id,
-                safeBalance: { $gte: params.amount }
+                availableBalance: { $gte: params.amount }
             },
             {
-                $inc: { safeBalance: -params.amount }, // 残高を減らす
+                $inc: { availableBalance: -params.amount }, // 残高を減らす
                 $push: { pendingTransactions: params.transaction } // 進行中取引追加
             }
         ).exec();
@@ -106,7 +106,7 @@ export class MongoRepository {
                 {
                     $inc: {
                         balance: params.amount,
-                        safeBalance: params.amount
+                        availableBalance: params.amount
                     },
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
@@ -133,7 +133,7 @@ export class MongoRepository {
                 },
                 {
                     $inc: {
-                        safeBalance: params.amount // 残高調整
+                        availableBalance: params.amount // 残高調整
                     },
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
