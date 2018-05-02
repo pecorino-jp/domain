@@ -18,30 +18,12 @@ export class MongoRepository {
     /**
      * アクション開始
      */
-    public async start<T extends IAction>(params: {
-        typeOf: factory.actionType;
-        agent: factory.action.IParticipant;
-        object: any;
-        recipient?: factory.action.IParticipant;
-        purpose?: any;
-        amount?: number;
-        fromLocation?: any;
-        toLocation?: any;
-    }): Promise<T> {
-        const actionAttributes = {
+    public async start<T extends IAction>(params: factory.action.IAttributes<any, any>): Promise<T> {
+        return this.actionModel.create({
+            ...params,
             actionStatus: factory.actionStatusType.ActiveActionStatus,
-            typeOf: params.typeOf,
-            agent: params.agent,
-            recipient: params.recipient,
-            object: params.object,
-            startDate: new Date(),
-            purpose: params.purpose,
-            amount: params.amount,
-            fromLocation: params.fromLocation,
-            toLocation: params.toLocation
-        };
-
-        return this.actionModel.create(actionAttributes).then(
+            startDate: new Date()
+        }).then(
             (doc) => <T>doc.toObject()
         );
     }
