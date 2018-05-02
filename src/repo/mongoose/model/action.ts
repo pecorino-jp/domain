@@ -82,6 +82,7 @@ const schema = new mongoose.Schema(
     {
         actionStatus: String,
         typeOf: String,
+        description: String,
         agent: agentSchema,
         recipient: recipientSchema,
         result: resultSchema,

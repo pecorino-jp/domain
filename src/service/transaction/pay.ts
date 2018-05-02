@@ -91,7 +91,9 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
         const transaction = await repos.transaction.findInProgressById(factory.transactionType.Pay, transactionId);
 
         // 現金転送アクション属性作成
-        const moneyTransferActionAttributes = factory.action.transfer.moneyTransfer.createAttributes({
+        const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
+            typeOf: factory.actionType.MoneyTransfer,
+            description: transaction.object.notes,
             result: {
                 price: transaction.object.price
             },
@@ -113,7 +115,7 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
                 typeOf: transaction.typeOf,
                 id: transaction.id
             }
-        });
+        };
         const potentialActions: factory.transaction.pay.IPotentialActions = {
             moneyTransfer: moneyTransferActionAttributes
         };
