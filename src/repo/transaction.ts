@@ -174,6 +174,36 @@ export class MongoRepository {
     }
 
     /**
+     * 取引を中止する
+     */
+    public async cancel<T extends factory.transactionType>(
+        typeOf: T,
+        transactionId: string
+    ): Promise<factory.transaction.ITransaction<T>> {
+        const endDate = moment().toDate();
+
+        // 進行中ステータスの取引を中止する
+        const doc = await this.transactionModel.findOneAndUpdate(
+            {
+                typeOf: typeOf,
+                _id: transactionId,
+                status: factory.transactionStatusType.InProgress
+            },
+            {
+                status: factory.transactionStatusType.Canceled,
+                endDate: endDate
+            },
+            { new: true }
+        ).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('transaction in progress');
+        }
+
+        return doc.toObject();
+    }
+
+    /**
      * 注文取引を検索する
      * @param conditions 検索条件
      */
