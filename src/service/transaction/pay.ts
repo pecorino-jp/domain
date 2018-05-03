@@ -133,11 +133,6 @@ export function exportTasks(status: factory.transactionStatusType) {
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const statusesTasksExportable = [factory.transactionStatusType.Expired, factory.transactionStatusType.Confirmed];
-        if (statusesTasksExportable.indexOf(status) < 0) {
-            throw new factory.errors.Argument('status', `transaction status should be in [${statusesTasksExportable.join(',')}]`);
-        }
-
         const transaction = await repos.transaction.startExportTasks(factory.transactionType.Pay, status);
         if (transaction === null) {
             return;
@@ -203,8 +198,6 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         }
         debug('taskAttributes prepared', taskAttributes);
 
-        return Promise.all(taskAttributes.map(async (taskAttribute) => {
-            return repos.task.save(taskAttribute);
-        }));
+        return Promise.all(taskAttributes.map(async (a) => repos.task.save(a)));
     };
 }
