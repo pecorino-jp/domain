@@ -152,7 +152,7 @@ export function searchTransferActions(
                     'toLocation.id': searchConditions.accountId
                 }
             ]
-        }).sort({ endDate: 1 }).limit(limit)
+        }).sort({ endDate: -1 }).limit(limit)
             .exec().then((docs) => docs.map((doc) => <factory.action.transfer.moneyTransfer.IAction>doc.toObject()));
     };
 }

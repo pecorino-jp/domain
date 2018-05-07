@@ -11,7 +11,7 @@ async function main() {
 
     const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
     const actions = await pecorino.service.account.searchTransferActions({
-        accountId: 'sskts-ilovegadd'
+        accountId: '5aeadf43a05f55009c25c5ae'
     })({ action: actionRepo });
     console.log(actions.map((a) => `${moment(a.endDate).format('YYYY-MM-DD HH:mm')} ${a.typeOf} ${a.amount} ${a.recipient.name} @${a.purpose.typeOf}`).join('\n'));
 }
