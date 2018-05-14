@@ -1,8 +1,11 @@
+import * as createDebug from 'debug';
 import { Connection } from 'mongoose';
 
 import AccountModel from './mongoose/model/account';
 
 import * as factory from '../factory';
+
+const debug = createDebug('pecorino-domain:repository:account');
 
 /**
  * 口座リポジトリー
@@ -12,6 +15,64 @@ export class MongoRepository {
 
     constructor(connection: Connection) {
         this.accountModel = connection.model(AccountModel.modelName);
+    }
+
+    /**
+     * 未開設であれば口座を開設する
+     * @param params 口座開設初期設定
+     */
+    public async open(params: {
+        name: string;
+        initialBalance: number;
+    }): Promise<factory.account.IAccount> {
+        debug('opening account...');
+        const account: factory.account.IAccount = {
+            typeOf: factory.account.AccountType.Account,
+            id: '',
+            name: params.name,
+            balance: params.initialBalance,
+            availableBalance: params.initialBalance,
+            pendingTransactions: [],
+            openDate: new Date(),
+            status: factory.accountStatusType.Opened
+        };
+
+        const doc = await this.accountModel.create(account);
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('Account');
+        }
+
+        return doc.toObject();
+    }
+
+    /**
+     * 口座を閉鎖する
+     * @param params.id 口座ID
+     */
+    public async close(params: {
+        id: string;
+    }) {
+        debug('closing account...');
+        const doc = await this.accountModel.findOneAndUpdate(
+            {
+                _id: params.id,
+                pendingTransactions: { $size: 0 },
+                status: factory.accountStatusType.Opened
+            },
+            {
+                closeDate: new Date(),
+                status: factory.accountStatusType.Closed
+            },
+            {
+                upsert: true,
+                new: true
+            }
+        ).exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('Account');
+        }
     }
 
     public async findById(id: string) {
@@ -73,6 +134,7 @@ export class MongoRepository {
 
     /**
      * 決済処理を実行する
+     * 口座上で進行中の取引について、実際に金額移動処理を実行します。
      */
     public async settleTransaction(params: {
         fromAccountId?: string;
@@ -116,6 +178,7 @@ export class MongoRepository {
 
     /**
      * 取引を取り消す
+     * 口座上で進行中の取引を中止します。
      * @see https://www.investopedia.com/terms/v/void-transaction.asp
      */
     public async voidTransaction(params: {
@@ -152,5 +215,57 @@ export class MongoRepository {
                 }
             ).exec();
         }
+    }
+
+    /**
+     * 口座を検索する
+     * @param searchConditions 検索条件
+     */
+    public async search(searchConditions: {
+        ids: string[];
+        statuses: factory.accountStatusType[];
+        /**
+         * 口座名義
+         */
+        name?: string;
+        limit: number;
+    }): Promise<factory.account.IAccount[]> {
+        const andConditions: any[] = [
+            { typeOf: factory.account.AccountType.Account }
+        ];
+
+        if (Array.isArray(searchConditions.ids) && searchConditions.ids.length > 0) {
+            andConditions.push({
+                _id: { $in: searchConditions.ids }
+            });
+        }
+
+        if (Array.isArray(searchConditions.statuses) && searchConditions.statuses.length > 0) {
+            andConditions.push({
+                status: { $in: searchConditions.statuses }
+            });
+        }
+
+        if (typeof searchConditions.name === 'string') {
+            andConditions.push({
+                name: new RegExp(searchConditions.name, 'gi')
+            });
+        }
+
+        debug('finding accounts...', andConditions);
+
+        return this.accountModel.find(
+            { $and: andConditions },
+            {
+                __v: 0,
+                createdAt: 0,
+                updatedAt: 0,
+                pendingTransactions: 0
+            }
+        )
+            .sort({ _id: 1 })
+            .limit(searchConditions.limit)
+            .exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
     }
 }

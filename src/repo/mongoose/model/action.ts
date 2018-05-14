@@ -134,6 +134,22 @@ schema.index(
     }
 );
 
+schema.index(
+    { 'purpose.typeOf': 1 },
+    {
+        partialFilterExpression: {
+            'purpose.typeOf': { $exists: true }
+        }
+    }
+);
+
+schema.index(
+    { typeOf: 1, startDate: 1, endDate: 1, actionStatus: 1 },
+    {
+        name: 'searchActions'
+    }
+);
+
 export default mongoose.model('Action', schema)
     .on('index', (error) => {
         // tslint:disable-next-line:no-single-line-block-comment

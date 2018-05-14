@@ -1,9 +1,22 @@
+import * as createDebug from 'debug';
 import { Connection } from 'mongoose';
 
 import * as factory from '../factory';
 import ActionModel from './mongoose/model/action';
 
-export type IAction = factory.action.IAction<factory.action.IAttributes<any, any>>;
+const debug = createDebug('pecorino-domain:repository:action');
+
+export type IAction<T> =
+    T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction :
+    factory.action.IAction<factory.action.IAttributes<any, any>>;
+
+/**
+ * 転送アクション検索条件インターフェース
+ */
+export interface ISearchTransferActionsConditions {
+    accountId: string;
+    limit?: number;
+}
 
 /**
  * アクションリポジトリー
@@ -18,24 +31,24 @@ export class MongoRepository {
     /**
      * アクション開始
      */
-    public async start<T extends IAction>(params: factory.action.IAttributes<any, any>): Promise<T> {
+    public async start<T extends factory.actionType>(params: factory.action.IAttributes<any, any>): Promise<IAction<T>> {
         return this.actionModel.create({
             ...params,
             actionStatus: factory.actionStatusType.ActiveActionStatus,
             startDate: new Date()
         }).then(
-            (doc) => <T>doc.toObject()
+            (doc) => doc.toObject()
         );
     }
 
     /**
      * アクション完了
      */
-    public async complete<T extends IAction>(
-        typeOf: factory.actionType,
+    public async complete<T extends factory.actionType>(
+        typeOf: T,
         actionId: string,
         result: any
-    ): Promise<T> {
+    ): Promise<IAction<T>> {
         return this.actionModel.findOneAndUpdate(
             {
                 typeOf: typeOf,
@@ -52,17 +65,17 @@ export class MongoRepository {
                 throw new factory.errors.NotFound('action');
             }
 
-            return <T>doc.toObject();
+            return doc.toObject();
         });
     }
 
     /**
      * アクション中止
      */
-    public async cancel<T extends IAction>(
-        typeOf: factory.actionType,
+    public async cancel<T extends factory.actionType>(
+        typeOf: T,
         actionId: string
-    ): Promise<T> {
+    ): Promise<IAction<T>> {
         return this.actionModel.findOneAndUpdate(
             {
                 typeOf: typeOf,
@@ -77,18 +90,18 @@ export class MongoRepository {
 
                 }
 
-                return <T>doc.toObject();
+                return doc.toObject();
             });
     }
 
     /**
      * アクション失敗
      */
-    public async giveUp<T extends IAction>(
-        typeOf: factory.actionType,
+    public async giveUp<T extends factory.actionType>(
+        typeOf: T,
         actionId: string,
         error: any
-    ): Promise<T> {
+    ): Promise<IAction<T>> {
         return this.actionModel.findOneAndUpdate(
             {
                 typeOf: typeOf,
@@ -105,17 +118,17 @@ export class MongoRepository {
                 throw new factory.errors.NotFound('action');
             }
 
-            return <T>doc.toObject();
+            return doc.toObject();
         });
     }
 
     /**
      * IDで取得する
      */
-    public async findById<T extends IAction>(
-        typeOf: factory.actionType,
+    public async findById<T extends factory.actionType>(
+        typeOf: T,
         actionId: string
-    ): Promise<T> {
+    ): Promise<IAction<T>> {
         return this.actionModel.findOne(
             {
                 typeOf: typeOf,
@@ -127,7 +140,109 @@ export class MongoRepository {
                     throw new factory.errors.NotFound('action');
                 }
 
-                return <T>doc.toObject();
+                return doc.toObject();
             });
+    }
+    /**
+     * 転送アクションを検索する
+     * @param searchConditions 検索条件
+     */
+    public async searchTransferActions(
+        searchConditions: ISearchTransferActionsConditions
+    ): Promise<factory.action.transfer.moneyTransfer.IAction[]> {
+        // tslint:disable-next-line:no-magic-numbers
+        const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : 100;
+
+        return this.actionModel.find({
+            $or: [
+                {
+                    typeOf: factory.actionType.MoneyTransfer,
+                    'fromLocation.typeOf': factory.account.AccountType.Account,
+                    'fromLocation.id': searchConditions.accountId
+                },
+                {
+                    typeOf: factory.actionType.MoneyTransfer,
+                    'toLocation.typeOf': factory.account.AccountType.Account,
+                    'toLocation.id': searchConditions.accountId
+                }
+            ]
+        })
+            .sort({ endDate: -1 }).limit(limit)
+            .exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
+    }
+
+    /**
+     * アクションを検索する
+     * @param searchConditions 検索条件
+     */
+    public async search<T extends factory.actionType>(searchConditions: {
+        typeOf: T;
+        actionStatuses?: factory.accountStatusType[];
+        startDateFrom?: Date;
+        startDateThrough?: Date;
+        purposeTypeOfs?: factory.transactionType[];
+        fromLocationIds?: string[];
+        toLocationIds?: string[];
+        limit: number;
+    }): Promise<IAction<T>[]> {
+        const andConditions: any[] = [
+            { typeOf: searchConditions.typeOf },
+            {
+                startDate: {
+                    $exists: true,
+                    $gte: searchConditions.startDateFrom,
+                    $lte: searchConditions.startDateThrough
+                }
+            }
+        ];
+
+        if (Array.isArray(searchConditions.actionStatuses) && searchConditions.actionStatuses.length > 0) {
+            andConditions.push({
+                actionStatus: { $in: searchConditions.actionStatuses }
+            });
+        }
+
+        if (Array.isArray(searchConditions.purposeTypeOfs) && searchConditions.purposeTypeOfs.length > 0) {
+            andConditions.push({
+                'purpose.typeOf': {
+                    $exists: true,
+                    $in: searchConditions.purposeTypeOfs
+                }
+            });
+        }
+
+        if (Array.isArray(searchConditions.fromLocationIds) && searchConditions.fromLocationIds.length > 0) {
+            andConditions.push({
+                'fromLocation.id': {
+                    $exists: true,
+                    $in: searchConditions.fromLocationIds
+                }
+            });
+        }
+
+        if (Array.isArray(searchConditions.toLocationIds) && searchConditions.toLocationIds.length > 0) {
+            andConditions.push({
+                'toLocation.id': {
+                    $exists: true,
+                    $in: searchConditions.toLocationIds
+                }
+            });
+        }
+
+        debug('finding actions...', andConditions);
+
+        return this.actionModel.find(
+            { $and: andConditions },
+            {
+                __v: 0,
+                createdAt: 0,
+                updatedAt: 0
+            }
+        )
+            .sort({ _id: 1 })
+            .limit(searchConditions.limit)
+            .exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
     }
 }

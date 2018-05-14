@@ -8,7 +8,6 @@ const safe = { j: true, w: 'majority', wtimeout: 10000 };
  */
 const schema = new mongoose.Schema(
     {
-        // _id: String
     },
     {
         collection: 'accounts',
@@ -23,6 +22,13 @@ const schema = new mongoose.Schema(
         },
         toJSON: { getters: true },
         toObject: { getters: true }
+    }
+);
+
+schema.index(
+    { typeOf: 1, status: 1, name: 1, openDate: 1 },
+    {
+        name: 'searchAccounts'
     }
 );
 

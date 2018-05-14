@@ -30,7 +30,7 @@ export function sendEmailMessage(actionAttributes: factory.action.transfer.send.
         action: ActionRepo;
     }) => {
         // アクション開始
-        const action = await repos.action.start<factory.action.transfer.send.message.email.IAction>(actionAttributes);
+        const action = await repos.action.start<factory.actionType.SendAction>(actionAttributes);
         let result: any = {};
 
         try {

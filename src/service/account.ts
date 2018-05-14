@@ -2,7 +2,6 @@
  * 口座サービス
  * 開設、閉鎖等、口座に対するアクションを定義します。
  */
-
 import * as createDebug from 'debug';
 
 import * as factory from '../factory';
@@ -17,148 +16,9 @@ export type IAccountOperation<T> = (repos: { account: AccountRepo }) => Promise<
 export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
 
 /**
- * 未開設であれば口座を開設する
- * @param params 口座開設初期設定
- */
-export function open(params: {
-    name: string;
-    initialBalance: number;
-}): IAccountOperation<factory.account.IAccount> {
-    return async (repos: { account: AccountRepo }) => {
-        debug('opening account...');
-        const account: factory.account.IAccount = {
-            typeOf: factory.account.AccountType.Account,
-            id: '',
-            name: params.name,
-            balance: params.initialBalance,
-            availableBalance: params.initialBalance,
-            pendingTransactions: [],
-            openDate: new Date(),
-            status: factory.accountStatusType.Opened
-        };
-
-        const doc = await repos.account.accountModel.create(
-            account
-        );
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('Account');
-        }
-
-        return <factory.account.IAccount>doc.toObject();
-    };
-}
-
-/**
- * 未開設であれば口座を開設する
- * @param params 口座開設初期設定
- */
-export function openIfNotExists(params: {
-    id: string;
-    name: string;
-    initialBalance: number;
-}): IAccountOperation<factory.account.IAccount> {
-    return async (repos: { account: AccountRepo }) => {
-        debug('opening account...');
-        const account: factory.account.IAccount = {
-            typeOf: factory.account.AccountType.Account,
-            id: params.id,
-            name: params.name,
-            balance: params.initialBalance,
-            availableBalance: params.initialBalance,
-            pendingTransactions: [],
-            openDate: new Date(),
-            status: factory.accountStatusType.Opened
-        };
-
-        const doc = await repos.account.accountModel.findOneAndUpdate(
-            { _id: account.id },
-            { $setOnInsert: account },
-            {
-                upsert: true,
-                new: true
-            }
-        ).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('Account');
-        }
-
-        return <factory.account.IAccount>doc.toObject();
-    };
-}
-
-/**
- * 口座を閉鎖する
- * @param params.id 口座ID
- */
-export function close(params: {
-    id: string;
-}) {
-    return async (repos: { account: AccountRepo }) => {
-        debug('closing account...');
-
-        const doc = await repos.account.accountModel.findOneAndUpdate(
-            {
-                _id: params.id,
-                pendingTransactions: { $size: 0 },
-                status: factory.accountStatusType.Opened
-            },
-            {
-                closeDate: new Date(),
-                status: factory.accountStatusType.Closed
-            },
-            {
-                upsert: true,
-                new: true
-            }
-        ).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('Account');
-        }
-    };
-}
-
-/**
- * 転送アクション検索条件インターフェース
- */
-export interface ISearchTransferActionsConditions {
-    accountId: string;
-    limit?: number;
-}
-
-/**
- * 転送アクションを検索する
- * @param searchConditions 検索条件
- */
-export function searchTransferActions(
-    searchConditions: ISearchTransferActionsConditions
-): IActionRepo<factory.action.transfer.moneyTransfer.IAction[]> {
-    return async (repos: { action: ActionRepo }) => {
-        // tslint:disable-next-line:no-magic-numbers
-        const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : 100;
-
-        return repos.action.actionModel.find({
-            $or: [
-                {
-                    typeOf: factory.actionType.MoneyTransfer,
-                    'fromLocation.typeOf': factory.account.AccountType.Account,
-                    'fromLocation.id': searchConditions.accountId
-                },
-                {
-                    typeOf: factory.actionType.MoneyTransfer,
-                    'toLocation.typeOf': factory.account.AccountType.Account,
-                    'toLocation.id': searchConditions.accountId
-                }
-            ]
-        }).sort({ endDate: -1 }).limit(limit)
-            .exec().then((docs) => docs.map((doc) => <factory.action.transfer.moneyTransfer.IAction>doc.toObject()));
-    };
-}
-
-/**
  * 転送する
+ * 確定取引結果から、実際の転送アクションを実行します。
+ * @param actionAttributes 転送アクション属性
  */
 export function transferMoney(actionAttributes: factory.action.transfer.moneyTransfer.IAttributes) {
     return async (repos: {
@@ -168,10 +28,8 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
     }) => {
         debug(`transfering money... ${actionAttributes.purpose.typeOf} ${actionAttributes.purpose.id}`);
 
-        type IMoneyTransferAction = factory.action.transfer.moneyTransfer.IAction;
-
         // アクション開始
-        const action = await repos.action.start<IMoneyTransferAction>(actionAttributes);
+        const action = await repos.action.start<factory.actionType.MoneyTransfer>(actionAttributes);
 
         try {
             // 取引存在確認
@@ -193,8 +51,7 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
         } catch (error) {
             // actionにエラー結果を追加
             try {
-                // tslint:disable-next-line:max-line-length no-single-line-block-comment
-                const actionError = (error instanceof Error) ? { ...error, ...{ message: error.message } } : /* istanbul ignore next */ error;
+                const actionError = { ...error, ...{ message: error.message, name: error.name } };
                 await repos.action.giveUp(action.typeOf, action.id, actionError);
             } catch (__) {
                 // 失敗したら仕方ない
@@ -212,6 +69,8 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
 
 /**
  * 転送取消
+ * 期限切れ、あるいは、中止された取引から、転送をアクションを取り消します。
+ * @param params.transaction 転送アクションを実行しようとしていた取引
  */
 export function cancelMoneyTransfer(params: {
     transaction: {
@@ -224,12 +83,10 @@ export function cancelMoneyTransfer(params: {
         transaction: TransactionRepo;
     }) => {
         debug(`canceling money transfer... ${params.transaction.typeOf} ${params.transaction.id}`);
-
         try {
-            // 取引存在確認
             let fromAccountId: string | undefined;
             let toAccountId: string | undefined;
-
+            // 取引存在確認
             const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
 
             switch (params.transaction.typeOf) {

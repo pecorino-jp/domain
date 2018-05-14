@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 支払取引サービスを追加。
 - 入金取引サービスを追加。
 - 転送取引サービスを追加。
+- 口座検索メソッドを追加。
+- アクション検索メソッドを追加。
 
 ### Changed
 
