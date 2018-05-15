@@ -23,17 +23,20 @@ export class MongoRepository {
      */
     public async open(params: {
         name: string;
+        accountNumber: string;
         initialBalance: number;
+        openDate: Date;
     }): Promise<factory.account.IAccount> {
         debug('opening account...');
-        const account: factory.account.IAccount = {
+        const account: factory.account.IAccount = <any>{
             typeOf: factory.account.AccountType.Account,
             id: '',
+            accountNumber: params.accountNumber,
             name: params.name,
             balance: params.initialBalance,
             availableBalance: params.initialBalance,
             pendingTransactions: [],
-            openDate: new Date(),
+            openDate: params.openDate,
             status: factory.accountStatusType.Opened
         };
 

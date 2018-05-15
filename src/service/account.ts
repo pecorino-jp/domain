@@ -3,17 +3,42 @@
  * 開設、閉鎖等、口座に対するアクションを定義します。
  */
 import * as createDebug from 'debug';
+import * as moment from 'moment';
 
 import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
+import { RedisRepository as AccountNumberRepo } from '../repo/accountNumber';
 import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
 const debug = createDebug('pecorino-domain:service:account');
 
-export type IAccountOperation<T> = (repos: { account: AccountRepo }) => Promise<T>;
+export type IOpenOperation<T> = (repos: {
+    account: AccountRepo;
+    accountNumber: AccountNumberRepo;
+}) => Promise<T>;
 export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
+
+export function open(params: {
+    name: string;
+    initialBalance: number;
+}): IOpenOperation<factory.account.IAccount> {
+    return async (repos: {
+        account: AccountRepo;
+        accountNumber: AccountNumberRepo;
+    }) => {
+        const openDate = moment().toDate();
+        const accountNumber = await repos.accountNumber.publish(openDate);
+
+        return repos.account.open({
+            name: params.name,
+            accountNumber: accountNumber,
+            initialBalance: params.initialBalance,
+            openDate: openDate
+        });
+    };
+}
 
 /**
  * 転送する

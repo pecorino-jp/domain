@@ -11,6 +11,10 @@
     "arrow-return-shorthand": [
       true
     ],
+    "await-promise": [
+      true,
+      "Bluebird"
+    ],
     "comment-format": [
       true,
       "check-space",

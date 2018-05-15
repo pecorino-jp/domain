@@ -25,6 +25,17 @@ const schema = new mongoose.Schema(
     }
 );
 
+// 口座番号はユニーク
+schema.index(
+    { accountNumber: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            accountNumber: { $exists: true }
+        }
+    }
+);
+
 schema.index(
     { typeOf: 1, status: 1, name: 1, openDate: 1 },
     {
