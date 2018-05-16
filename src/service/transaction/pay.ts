@@ -33,10 +33,10 @@ export function start(
         account: AccountRepo;
         transaction: TransactionRepo;
     }) => {
-        debug(`${params.agent.name} is starting pay transaction... amount:${params.object.price}`);
+        debug(`${params.agent.name} is starting pay transaction... amount:${params.object.amount}`);
 
         // 口座存在確認
-        const account = await repos.account.findById(params.object.fromAccountId);
+        const account = await repos.account.findByAccountNumber(params.object.fromAccountNumber);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const startParams: factory.transaction.IStartParams<factory.transactionType.Pay> = {
@@ -45,8 +45,8 @@ export function start(
             recipient: params.recipient,
             object: {
                 clientUser: params.object.clientUser,
-                price: params.object.price,
-                fromAccountId: account.id,
+                amount: params.object.amount,
+                fromAccountNumber: account.accountNumber,
                 notes: params.object.notes
             },
             expires: params.expires
@@ -64,12 +64,16 @@ export function start(
             throw error;
         }
 
-        const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
+        const pendingTransaction: factory.account.IPendingTransaction = {
+            typeOf: transaction.typeOf,
+            id: transaction.id,
+            amount: params.object.amount
+        };
 
         // 残高確認
         await repos.account.authorizeAmount({
-            id: params.object.fromAccountId,
-            amount: params.object.price,
+            accountNumber: params.object.fromAccountNumber,
+            amount: params.object.amount,
             transaction: pendingTransaction
         });
 
@@ -95,16 +99,16 @@ export function confirm(transactionId: string): ITransactionOperation<factory.tr
             typeOf: factory.actionType.MoneyTransfer,
             description: transaction.object.notes,
             result: {
-                price: transaction.object.price
+                amount: transaction.object.amount
             },
             object: {
             },
             agent: transaction.agent,
             recipient: transaction.recipient,
-            amount: transaction.object.price,
+            amount: transaction.object.amount,
             fromLocation: {
                 typeOf: factory.account.AccountType.Account,
-                id: transaction.object.fromAccountId,
+                accountNumber: transaction.object.fromAccountNumber,
                 name: transaction.agent.name
             },
             toLocation: {

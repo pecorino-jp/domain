@@ -14,7 +14,7 @@ export type IAction<T> =
  * 転送アクション検索条件インターフェース
  */
 export interface ISearchTransferActionsConditions {
-    accountId: string;
+    accountNumber: string;
     limit?: number;
 }
 
@@ -158,12 +158,12 @@ export class MongoRepository {
                 {
                     typeOf: factory.actionType.MoneyTransfer,
                     'fromLocation.typeOf': factory.account.AccountType.Account,
-                    'fromLocation.id': searchConditions.accountId
+                    'fromLocation.accountNumber': searchConditions.accountNumber
                 },
                 {
                     typeOf: factory.actionType.MoneyTransfer,
                     'toLocation.typeOf': factory.account.AccountType.Account,
-                    'toLocation.id': searchConditions.accountId
+                    'toLocation.accountNumber': searchConditions.accountNumber
                 }
             ]
         })
@@ -182,8 +182,8 @@ export class MongoRepository {
         startDateFrom?: Date;
         startDateThrough?: Date;
         purposeTypeOfs?: factory.transactionType[];
-        fromLocationIds?: string[];
-        toLocationIds?: string[];
+        fromLocationAccountNumbers?: string[];
+        toLocationAccountNumbers?: string[];
         limit: number;
     }): Promise<IAction<T>[]> {
         const andConditions: any[] = [
@@ -212,20 +212,20 @@ export class MongoRepository {
             });
         }
 
-        if (Array.isArray(searchConditions.fromLocationIds) && searchConditions.fromLocationIds.length > 0) {
+        if (Array.isArray(searchConditions.fromLocationAccountNumbers) && searchConditions.fromLocationAccountNumbers.length > 0) {
             andConditions.push({
-                'fromLocation.id': {
+                'fromLocation.accountNumber': {
                     $exists: true,
-                    $in: searchConditions.fromLocationIds
+                    $in: searchConditions.fromLocationAccountNumbers
                 }
             });
         }
 
-        if (Array.isArray(searchConditions.toLocationIds) && searchConditions.toLocationIds.length > 0) {
+        if (Array.isArray(searchConditions.toLocationAccountNumbers) && searchConditions.toLocationAccountNumbers.length > 0) {
             andConditions.push({
-                'toLocation.id': {
+                'toLocation.accountNumber': {
                     $exists: true,
-                    $in: searchConditions.toLocationIds
+                    $in: searchConditions.toLocationAccountNumbers
                 }
             });
         }

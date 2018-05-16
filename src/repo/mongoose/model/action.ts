@@ -117,19 +117,19 @@ schema.index(
 );
 
 schema.index(
-    { 'fromLocation.accountId': 1, typeOf: 1 },
+    { 'fromLocation.accountNumber': 1, typeOf: 1 },
     {
         partialFilterExpression: {
-            'fromLocation.accountId': { $exists: true }
+            'fromLocation.accountNumber': { $exists: true }
         }
     }
 );
 
 schema.index(
-    { 'toLocation.accountId': 1, typeOf: 1 },
+    { 'toLocation.accountNumber': 1, typeOf: 1 },
     {
         partialFilterExpression: {
-            'toLocation.accountId': { $exists: true }
+            'toLocation.accountNumber': { $exists: true }
         }
     }
 );

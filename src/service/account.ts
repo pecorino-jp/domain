@@ -60,16 +60,16 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
             // 取引存在確認
             const transaction = await repos.transaction.findById(actionAttributes.purpose.typeOf, actionAttributes.purpose.id);
 
-            const fromAccountId = (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account)
-                ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).id
+            const fromAccountNumber = (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account)
+                ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).accountNumber
                 : undefined;
-            const toAccountId = (actionAttributes.toLocation.typeOf === factory.account.AccountType.Account)
-                ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).id
+            const toAccountNumber = (actionAttributes.toLocation.typeOf === factory.account.AccountType.Account)
+                ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).accountNumber
                 : undefined;
 
             await repos.account.settleTransaction({
-                fromAccountId: fromAccountId,
-                toAccountId: toAccountId,
+                fromAccountNumber: fromAccountNumber,
+                toAccountNumber: toAccountNumber,
                 amount: actionAttributes.amount,
                 transactionId: transaction.id
             });
@@ -109,30 +109,34 @@ export function cancelMoneyTransfer(params: {
     }) => {
         debug(`canceling money transfer... ${params.transaction.typeOf} ${params.transaction.id}`);
         try {
-            let fromAccountId: string | undefined;
-            let toAccountId: string | undefined;
+            let fromAccountNumber: string | undefined;
+            let toAccountNumber: string | undefined;
             // 取引存在確認
             const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
 
             switch (params.transaction.typeOf) {
                 case factory.transactionType.Deposit:
-                    toAccountId = (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toAccountId;
+                    toAccountNumber =
+                        (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toAccountNumber;
                     break;
                 case factory.transactionType.Pay:
-                    fromAccountId = (<factory.transaction.ITransaction<factory.transactionType.Pay>>transaction).object.fromAccountId;
+                    fromAccountNumber =
+                        (<factory.transaction.ITransaction<factory.transactionType.Pay>>transaction).object.fromAccountNumber;
                     break;
                 case factory.transactionType.Transfer:
-                    fromAccountId = (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromAccountId;
-                    toAccountId = (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.toAccountId;
+                    fromAccountNumber =
+                        (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromAccountNumber;
+                    toAccountNumber =
+                        (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.toAccountNumber;
                     break;
                 default:
                     throw new factory.errors.Argument('typeOf', `transaction type ${params.transaction.typeOf} unknown`);
             }
 
             await repos.account.voidTransaction({
-                fromAccountId: fromAccountId,
-                toAccountId: toAccountId,
-                amount: transaction.object.price,
+                fromAccountNumber: fromAccountNumber,
+                toAccountNumber: toAccountNumber,
+                amount: transaction.object.amount,
                 transactionId: transaction.id
             });
         } catch (error) {

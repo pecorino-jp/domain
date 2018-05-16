@@ -33,11 +33,11 @@ export function start(
         account: AccountRepo;
         transaction: TransactionRepo;
     }) => {
-        debug(`${params.agent.name} is starting transfer transaction... amount:${params.object.price}`);
+        debug(`${params.agent.name} is starting transfer transaction... amount:${params.object.amount}`);
 
         // 口座存在確認
-        const fromAccount = await repos.account.findById(params.object.fromAccountId);
-        const toAccount = await repos.account.findById(params.object.toAccountId);
+        const fromAccount = await repos.account.findByAccountNumber(params.object.fromAccountNumber);
+        const toAccount = await repos.account.findByAccountNumber(params.object.toAccountNumber);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const startParams: factory.transaction.IStartParams<factory.transactionType.Transfer> = {
@@ -46,9 +46,9 @@ export function start(
             recipient: params.recipient,
             object: {
                 clientUser: params.object.clientUser,
-                price: params.object.price,
-                fromAccountId: fromAccount.id,
-                toAccountId: toAccount.id,
+                amount: params.object.amount,
+                fromAccountNumber: fromAccount.accountNumber,
+                toAccountNumber: toAccount.accountNumber,
                 notes: params.object.notes
             },
             expires: params.expires
@@ -66,18 +66,22 @@ export function start(
             throw error;
         }
 
-        const pendingTransaction: factory.account.IPendingTransaction = { typeOf: transaction.typeOf, id: transaction.id };
+        const pendingTransaction: factory.account.IPendingTransaction = {
+            typeOf: transaction.typeOf,
+            id: transaction.id,
+            amount: params.object.amount
+        };
 
         // 残高確認
         await repos.account.authorizeAmount({
-            id: params.object.fromAccountId,
-            amount: params.object.price,
+            accountNumber: params.object.fromAccountNumber,
+            amount: params.object.amount,
             transaction: pendingTransaction
         });
 
         // 転送先口座に進行中取引を追加
         await repos.account.startTransaction({
-            id: params.object.toAccountId,
+            accountNumber: params.object.toAccountNumber,
             transaction: pendingTransaction
         });
 
@@ -103,21 +107,21 @@ export function confirm(transactionId: string): ITransactionOperation<void> {
             typeOf: factory.actionType.MoneyTransfer,
             description: transaction.object.notes,
             result: {
-                price: transaction.object.price
+                amount: transaction.object.amount
             },
             object: {
             },
             agent: transaction.agent,
             recipient: transaction.recipient,
-            amount: transaction.object.price,
+            amount: transaction.object.amount,
             fromLocation: {
                 typeOf: factory.account.AccountType.Account,
-                id: transaction.object.fromAccountId,
+                accountNumber: transaction.object.fromAccountNumber,
                 name: transaction.agent.name
             },
             toLocation: {
                 typeOf: factory.account.AccountType.Account,
-                id: transaction.object.toAccountId,
+                accountNumber: transaction.object.toAccountNumber,
                 name: transaction.recipient.name
             },
             purpose: {

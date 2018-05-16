@@ -28,7 +28,7 @@ export class MongoRepository {
         openDate: Date;
     }): Promise<factory.account.IAccount> {
         debug('opening account...');
-        const account: factory.account.IAccount = <any>{
+        const account: factory.account.IAccount = {
             typeOf: factory.account.AccountType.Account,
             id: '',
             accountNumber: params.accountNumber,
@@ -51,15 +51,15 @@ export class MongoRepository {
 
     /**
      * 口座を閉鎖する
-     * @param params.id 口座ID
+     * @param params.accountNumber 口座番号
      */
     public async close(params: {
-        id: string;
+        accountNumber: string;
     }) {
         debug('closing account...');
         const doc = await this.accountModel.findOneAndUpdate(
             {
-                _id: params.id,
+                accountNumber: params.accountNumber,
                 pendingTransactions: { $size: 0 },
                 status: factory.accountStatusType.Opened
             },
@@ -78,8 +78,8 @@ export class MongoRepository {
         }
     }
 
-    public async findById(id: string) {
-        return this.accountModel.findById(id).exec().then((doc) => {
+    public async findByAccountNumber(accountNumber: string) {
+        return this.accountModel.findOne({ accountNumber: accountNumber }).exec().then((doc) => {
             if (doc === null) {
                 throw new factory.errors.NotFound('Account');
             }
@@ -90,19 +90,19 @@ export class MongoRepository {
 
     /**
      * 金額を確保する
-     * @param params.id 口座ID
+     * @param params.accountNumber 口座番号
      * @param params.amount 金額
      * @param params.transaction 進行取引
      * @see https://en.wikipedia.org/wiki/Authorization_hold
      */
     public async authorizeAmount(params: {
-        id: string;
+        accountNumber: string;
         amount: number;
         transaction: factory.account.IPendingTransaction;
     }) {
         const fromAccount = await this.accountModel.findOneAndUpdate(
             {
-                _id: params.id,
+                accountNumber: params.accountNumber,
                 availableBalance: { $gte: params.amount }
             },
             {
@@ -118,15 +118,15 @@ export class MongoRepository {
 
     /**
      * 取引を開始する
-     * @param params.id 口座ID
+     * @param params.accountNumber 口座番号
      * @param params.transaction 進行取引
      */
     public async startTransaction(params: {
-        id: string;
+        accountNumber: string;
         transaction: factory.account.IPendingTransaction;
     }) {
         const account = await this.accountModel.findOneAndUpdate(
-            { _id: params.id },
+            { accountNumber: params.accountNumber },
             { $push: { pendingTransactions: params.transaction } }
         ).exec();
 
@@ -140,16 +140,16 @@ export class MongoRepository {
      * 口座上で進行中の取引について、実際に金額移動処理を実行します。
      */
     public async settleTransaction(params: {
-        fromAccountId?: string;
-        toAccountId?: string;
+        fromAccountNumber?: string;
+        toAccountNumber?: string;
         amount: number;
         transactionId: string;
     }) {
         // 転送元があれば残高調整
-        if (params.fromAccountId !== undefined) {
+        if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    _id: params.fromAccountId,
+                    accountNumber: params.fromAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
                 {
@@ -162,10 +162,10 @@ export class MongoRepository {
         }
 
         // 転送先へがあれば入金
-        if (params.toAccountId !== undefined) {
+        if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    _id: params.toAccountId,
+                    accountNumber: params.toAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
                 {
@@ -185,16 +185,16 @@ export class MongoRepository {
      * @see https://www.investopedia.com/terms/v/void-transaction.asp
      */
     public async voidTransaction(params: {
-        fromAccountId?: string;
-        toAccountId?: string;
+        fromAccountNumber?: string;
+        toAccountNumber?: string;
         amount: number;
         transactionId: string;
     }) {
         // 転送元があればhold解除
-        if (params.fromAccountId !== undefined) {
+        if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    _id: params.fromAccountId,
+                    accountNumber: params.fromAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
                 {
@@ -207,10 +207,10 @@ export class MongoRepository {
         }
 
         // 転送先へがあれば進行中取引削除
-        if (params.toAccountId !== undefined) {
+        if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    _id: params.toAccountId,
+                    accountNumber: params.toAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
                 {
@@ -225,7 +225,7 @@ export class MongoRepository {
      * @param searchConditions 検索条件
      */
     public async search(searchConditions: {
-        ids: string[];
+        accountNumbers: string[];
         statuses: factory.accountStatusType[];
         /**
          * 口座名義
@@ -237,9 +237,9 @@ export class MongoRepository {
             { typeOf: factory.account.AccountType.Account }
         ];
 
-        if (Array.isArray(searchConditions.ids) && searchConditions.ids.length > 0) {
+        if (Array.isArray(searchConditions.accountNumbers) && searchConditions.accountNumbers.length > 0) {
             andConditions.push({
-                _id: { $in: searchConditions.ids }
+                accountNumber: { $in: searchConditions.accountNumbers }
             });
         }
 
@@ -266,7 +266,7 @@ export class MongoRepository {
                 pendingTransactions: 0
             }
         )
-            .sort({ _id: 1 })
+            .sort({ accountNumber: 1 })
             .limit(searchConditions.limit)
             .exec()
             .then((docs) => docs.map((doc) => doc.toObject()));
