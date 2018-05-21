@@ -16,6 +16,7 @@
     "debug": "^3.1.0",
     "http-status": "^1.1.0",
     "ioredis": "^3.2.2",
+    "json2csv": "^4.1.2",
     "moment": "^2.22.1",
     "mongoose": "^5.0.17",
     "request": "^2.85.0",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/debug": "0.0.30",
     "@types/http-status": "^0.2.30",
+    "@types/json2csv": "^4.1.0",
     "@types/mocha": "^2.2.48",
     "@types/nock": "^8.2.1",
     "@types/power-assert": "^1.5.0",

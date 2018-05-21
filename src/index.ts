@@ -1,10 +1,8 @@
 // tslint:disable:max-classes-per-file completed-docs
-
 /**
  * pecorino-domain index module
  * @module
  */
-
 import * as ioredis from 'ioredis';
 import * as mongoose from 'mongoose';
 
@@ -13,6 +11,7 @@ import * as repository from './repository';
 
 import * as AccountService from './service/account';
 import * as NotificationService from './service/notification';
+import * as ReportService from './service/report';
 import * as TaskService from './service/task';
 import * as DepositTransactionService from './service/transaction/deposit';
 import * as PayTransactionService from './service/transaction/pay';
@@ -33,6 +32,7 @@ export import ioredis = ioredis;
 export namespace service {
     export import account = AccountService;
     export import notification = NotificationService;
+    export import report = ReportService;
     export import task = TaskService;
     export namespace transaction {
         export import deposit = DepositTransactionService;

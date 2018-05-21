@@ -204,24 +204,26 @@ export class MongoRepository {
     }
 
     /**
-     * 注文取引を検索する
+     * 取引を検索する
      * @param conditions 検索条件
      */
-    // public async searchPay(
-    //     conditions: {
-    //         startFrom: Date;
-    //         startThrough: Date;
-    //     }
-    // ): Promise<factory.transaction.pay.ITransaction[]> {
-    //     return this.transactionModel.find(
-    //         {
-    //             typeOf: factory.transactionType.Pay,
-    //             startDate: {
-    //                 $gte: conditions.startFrom,
-    //                 $lte: conditions.startThrough
-    //             }
-    //         }
-    //     ).exec()
-    //         .then((docs) => docs.map((doc) => <factory.transaction.pay.ITransaction>doc.toObject()));
-    // }
+    public async search<T extends factory.transactionType>(params: {
+        typeOf?: T;
+        startFrom: Date;
+        startThrough: Date;
+    }): Promise<factory.transaction.ITransaction<T>[]> {
+        const conditions: any = {
+            startDate: {
+                $gte: params.startFrom,
+                $lte: params.startThrough
+            }
+        };
+
+        if (params.typeOf !== undefined) {
+            conditions.typeOf = params.typeOf;
+        }
+
+        return this.transactionModel.find(conditions).exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
+    }
 }

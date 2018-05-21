@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 転送取引サービスを追加。
 - 口座検索メソッドを追加。
 - アクション検索メソッドを追加。
+- レポートサービスを追加。取引CSVのダウンロードを実装。
 
 ### Changed
 
