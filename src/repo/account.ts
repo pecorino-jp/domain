@@ -50,11 +50,13 @@ export class MongoRepository {
     }
 
     /**
-     * 口座を閉鎖する
+     * 口座を解約する
      * @param params.accountNumber 口座番号
+     * @param params.closeDate 解約日時
      */
     public async close(params: {
         accountNumber: string;
+        closeDate: Date;
     }) {
         debug('closing account...');
         const doc = await this.accountModel.findOneAndUpdate(
@@ -64,11 +66,10 @@ export class MongoRepository {
                 status: factory.accountStatusType.Opened
             },
             {
-                closeDate: new Date(),
+                closeDate: params.closeDate,
                 status: factory.accountStatusType.Closed
             },
             {
-                upsert: true,
                 new: true
             }
         ).exec();

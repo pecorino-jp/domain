@@ -20,8 +20,17 @@ export type IOpenOperation<T> = (repos: {
 }) => Promise<T>;
 export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
 
+/**
+ * 口座を開設する
+ */
 export function open(params: {
+    /**
+     * 口座名義
+     */
     name: string;
+    /**
+     * 初期金額
+     */
     initialBalance: number;
 }): IOpenOperation<factory.account.IAccount> {
     return async (repos: {
@@ -37,6 +46,48 @@ export function open(params: {
             initialBalance: params.initialBalance,
             openDate: openDate
         });
+    };
+}
+
+/**
+ * 口座を解約する
+ */
+export function close(params: {
+    /**
+     * 口座番号
+     */
+    accountNumber: string;
+}) {
+    return async (repos: {
+        account: AccountRepo;
+    }) => {
+        try {
+            const closeDate = moment().toDate();
+            await repos.account.close({
+                accountNumber: params.accountNumber,
+                closeDate: closeDate
+            });
+        } catch (error) {
+            // NotFoundの場合、すでにClosedな可能性があるので、ステータスを確認
+            if (error instanceof factory.errors.NotFound) {
+                const account = await repos.account.findByAccountNumber(params.accountNumber);
+                if (account.status === factory.accountStatusType.Closed) {
+                    // すでに解約済であればOK
+                    return;
+                } else if (account.pendingTransactions.length > 0) {
+                    // まだ進行中取引が存在している場合
+                    throw new factory.errors.Argument(
+                        'accountNumber',
+                        `${account.pendingTransactions.length} transactions still pending.`
+                    );
+                } else {
+                    // 基本的にありえないケース
+                    throw new factory.errors.ServiceUnavailable();
+                }
+            } else {
+                throw error;
+            }
+        }
     };
 }
 
