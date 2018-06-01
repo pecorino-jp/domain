@@ -1,7 +1,6 @@
 /**
  * 支払取引サービス
  */
-
 import * as createDebug from 'debug';
 
 import * as factory from '../../factory';
@@ -70,7 +69,7 @@ export function start(
             amount: params.object.amount
         };
 
-        // 残高確認
+        // 残高確保
         await repos.account.authorizeAmount({
             accountNumber: params.object.fromAccountNumber,
             amount: params.object.amount,

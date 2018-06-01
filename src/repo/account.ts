@@ -18,13 +18,25 @@ export class MongoRepository {
     }
 
     /**
-     * 未開設であれば口座を開設する
+     * 口座を開設する
      * @param params 口座開設初期設定
      */
     public async open(params: {
+        /**
+         * 口座名義
+         */
         name: string;
+        /**
+         * 口座番号
+         */
         accountNumber: string;
+        /**
+         * 初期金額
+         */
         initialBalance: number;
+        /**
+         * 開設日時
+         */
         openDate: Date;
     }): Promise<factory.account.IAccount> {
         debug('opening account...');
@@ -41,10 +53,6 @@ export class MongoRepository {
         };
 
         const doc = await this.accountModel.create(account);
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('Account');
-        }
 
         return doc.toObject();
     }
@@ -74,19 +82,32 @@ export class MongoRepository {
             }
         ).exec();
 
+        // NotFoundであれば口座状態確認
         if (doc === null) {
-            throw new factory.errors.NotFound('Account');
+            const account = await this.findByAccountNumber(params.accountNumber);
+            if (account.status === factory.accountStatusType.Closed) {
+                // すでに口座解約済の場合
+                return;
+            } else if (account.pendingTransactions.length > 0) {
+                // 残高不足の場合
+                throw new factory.errors.Argument('accountNumber', 'Pending transactions exist');
+            } else {
+                throw new factory.errors.NotFound('Account');
+            }
         }
     }
 
-    public async findByAccountNumber(accountNumber: string) {
-        return this.accountModel.findOne({ accountNumber: accountNumber }).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('Account');
-            }
+    /**
+     * 口座番号で検索する
+     * @param accountNumber 口座番号
+     */
+    public async findByAccountNumber(accountNumber: string): Promise<factory.account.IAccount> {
+        const doc = await this.accountModel.findOne({ accountNumber: accountNumber }).exec();
+        if (doc === null) {
+            throw new factory.errors.NotFound('Account');
+        }
 
-            return <factory.account.IAccount>doc.toObject();
-        });
+        return doc.toObject();
     }
 
     /**
@@ -101,10 +122,11 @@ export class MongoRepository {
         amount: number;
         transaction: factory.account.IPendingTransaction;
     }) {
-        const fromAccount = await this.accountModel.findOneAndUpdate(
+        const doc = await this.accountModel.findOneAndUpdate(
             {
                 accountNumber: params.accountNumber,
-                availableBalance: { $gte: params.amount }
+                availableBalance: { $gte: params.amount }, // 利用可能金額確認
+                status: factory.accountStatusType.Opened // 開いている口座
             },
             {
                 $inc: { availableBalance: -params.amount }, // 残高を減らす
@@ -112,8 +134,18 @@ export class MongoRepository {
             }
         ).exec();
 
-        if (fromAccount === null) {
-            throw new factory.errors.Argument('amount', 'Insufficient balance.');
+        // NotFoundであれば口座状態確認
+        if (doc === null) {
+            const account = await this.findByAccountNumber(params.accountNumber);
+            if (account.status === factory.accountStatusType.Closed) {
+                // 口座解約済の場合
+                throw new factory.errors.Argument('accountNumber', 'Account already closed');
+            } else if (account.availableBalance < params.amount) {
+                // 残高不足の場合
+                throw new factory.errors.Argument('accountNumber', 'Insufficient balance');
+            } else {
+                throw new factory.errors.NotFound('Account');
+            }
         }
     }
 
@@ -126,13 +158,23 @@ export class MongoRepository {
         accountNumber: string;
         transaction: factory.account.IPendingTransaction;
     }) {
-        const account = await this.accountModel.findOneAndUpdate(
-            { accountNumber: params.accountNumber },
+        const doc = await this.accountModel.findOneAndUpdate(
+            {
+                accountNumber: params.accountNumber,
+                status: factory.accountStatusType.Opened // 開いている口座
+            },
             { $push: { pendingTransactions: params.transaction } }
         ).exec();
 
-        if (account === null) {
-            throw new factory.errors.NotFound('Account');
+        // NotFoundであれば口座状態確認
+        if (doc === null) {
+            const account = await this.findByAccountNumber(params.accountNumber);
+            if (account.status === factory.accountStatusType.Closed) {
+                // 口座解約済の場合
+                throw new factory.errors.Argument('accountNumber', 'Account already closed');
+            } else {
+                throw new factory.errors.NotFound('Account');
+            }
         }
     }
 
