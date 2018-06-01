@@ -34,10 +34,12 @@ export class MongoRepository {
 
     /**
      * IDで取引を取得する
-     * @param transactionId 取引ID
      */
     public async findById<T extends factory.transactionType>(
         typeOf: T,
+        /**
+         * 取引ID
+         */
         transactionId: string
     ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOne({
@@ -46,7 +48,7 @@ export class MongoRepository {
         }).exec();
 
         if (doc === null) {
-            throw new factory.errors.NotFound('transaction');
+            throw new factory.errors.NotFound('Transaction');
         }
 
         return doc.toObject();
@@ -66,7 +68,7 @@ export class MongoRepository {
         }).exec();
 
         if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
+            throw new factory.errors.NotFound('Transaction');
         }
 
         return doc.toObject();
@@ -96,8 +98,58 @@ export class MongoRepository {
             { new: true }
         ).exec();
 
+        // NotFoundであれば取引状態確認
         if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
+            const transaction = await this.findById(typeOf, transactionId);
+            if (transaction.status === factory.transactionStatusType.Confirmed) {
+                // すでに確定済の場合
+                return transaction;
+            } else if (transaction.status === factory.transactionStatusType.Expired) {
+                throw new factory.errors.Argument('accountNumber', 'Transaction expired');
+            } else if (transaction.status === factory.transactionStatusType.Canceled) {
+                throw new factory.errors.Argument('accountNumber', 'Transaction canceled');
+            } else {
+                throw new factory.errors.NotFound('Transaction');
+            }
+        }
+
+        return doc.toObject();
+    }
+
+    /**
+     * 取引を中止する
+     */
+    public async cancel<T extends factory.transactionType>(
+        typeOf: T,
+        transactionId: string
+    ): Promise<factory.transaction.ITransaction<T>> {
+        // 進行中ステータスの取引を中止する
+        const doc = await this.transactionModel.findOneAndUpdate(
+            {
+                typeOf: typeOf,
+                _id: transactionId,
+                status: factory.transactionStatusType.InProgress
+            },
+            {
+                status: factory.transactionStatusType.Canceled,
+                endDate: new Date()
+            },
+            { new: true }
+        ).exec();
+
+        // NotFoundであれば取引状態確認
+        if (doc === null) {
+            const transaction = await this.findById(typeOf, transactionId);
+            if (transaction.status === factory.transactionStatusType.Canceled) {
+                // すでに中止済の場合
+                return transaction;
+            } else if (transaction.status === factory.transactionStatusType.Expired) {
+                throw new factory.errors.Argument('accountNumber', 'Transaction already expired');
+            } else if (transaction.status === factory.transactionStatusType.Confirmed) {
+                throw new factory.errors.Argument('accountNumber', 'Confirmed transaction unable to cancel');
+            } else {
+                throw new factory.errors.NotFound('Transaction');
+            }
         }
 
         return doc.toObject();
@@ -143,7 +195,7 @@ export class MongoRepository {
      * IDでタスクをエクスポート済に変更する
      * @param transactionId transaction id
      */
-    public async setTasksExportedById(transactionId: string) {
+    public async setTasksExportedById(transactionId: string): Promise<void> {
         await this.transactionModel.findByIdAndUpdate(
             transactionId,
             {
@@ -156,51 +208,21 @@ export class MongoRepository {
     /**
      * 取引を期限切れにする
      */
-    public async makeExpired(): Promise<void> {
-        const endDate = moment().toDate();
-
+    public async makeExpired(params: {
+        expires: Date;
+    }): Promise<void> {
         // ステータスと期限を見て更新
         await this.transactionModel.update(
             {
                 status: factory.transactionStatusType.InProgress,
-                expires: { $lt: endDate }
+                expires: { $lt: params.expires }
             },
             {
                 status: factory.transactionStatusType.Expired,
-                endDate: endDate
+                endDate: new Date()
             },
             { multi: true }
         ).exec();
-    }
-
-    /**
-     * 取引を中止する
-     */
-    public async cancel<T extends factory.transactionType>(
-        typeOf: T,
-        transactionId: string
-    ): Promise<factory.transaction.ITransaction<T>> {
-        const endDate = moment().toDate();
-
-        // 進行中ステータスの取引を中止する
-        const doc = await this.transactionModel.findOneAndUpdate(
-            {
-                typeOf: typeOf,
-                _id: transactionId,
-                status: factory.transactionStatusType.InProgress
-            },
-            {
-                status: factory.transactionStatusType.Canceled,
-                endDate: endDate
-            },
-            { new: true }
-        ).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('transaction in progress');
-        }
-
-        return doc.toObject();
     }
 
     /**

@@ -1,7 +1,6 @@
 /**
  * 転送取引サービス
  */
-
 import * as createDebug from 'debug';
 
 import * as factory from '../../factory';
@@ -93,14 +92,16 @@ export function start(
 /**
  * 取引確定
  */
-export function confirm(transactionId: string): ITransactionOperation<void> {
+export function confirm(params: {
+    transactionId: string;
+}): ITransactionOperation<void> {
     return async (repos: {
         transaction: TransactionRepo;
     }) => {
-        debug(`confirming transfer transaction ${transactionId}...`);
+        debug(`confirming transfer transaction ${params.transactionId}...`);
 
         // 取引存在確認
-        const transaction = await repos.transaction.findInProgressById(factory.transactionType.Transfer, transactionId);
+        const transaction = await repos.transaction.findInProgressById(factory.transactionType.Transfer, params.transactionId);
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
