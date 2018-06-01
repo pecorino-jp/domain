@@ -93,7 +93,7 @@ export function confirm(params: {
         debug(`confirming pay transaction ${params.transactionId}...`);
 
         // 取引存在確認
-        const transaction = await repos.transaction.findInProgressById(factory.transactionType.Pay, params.transactionId);
+        const transaction = await repos.transaction.findById(factory.transactionType.Pay, params.transactionId);
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {

@@ -131,7 +131,8 @@ export class MongoRepository {
             {
                 $inc: { availableBalance: -params.amount }, // 残高を減らす
                 $push: { pendingTransactions: params.transaction } // 進行中取引追加
-            }
+            },
+            { new: true }
         ).exec();
 
         // NotFoundであれば口座状態確認

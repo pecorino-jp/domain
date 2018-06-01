@@ -55,26 +55,6 @@ export class MongoRepository {
     }
 
     /**
-     * 進行中の取引を取得する
-     */
-    public async findInProgressById<T extends factory.transactionType>(
-        typeOf: T,
-        transactionId: string
-    ): Promise<factory.transaction.ITransaction<T>> {
-        const doc = await this.transactionModel.findOne({
-            _id: transactionId,
-            typeOf: typeOf,
-            status: factory.transactionStatusType.InProgress
-        }).exec();
-
-        if (doc === null) {
-            throw new factory.errors.NotFound('Transaction');
-        }
-
-        return doc.toObject();
-    }
-
-    /**
      * 取引を確定する
      */
     public async confirm<T extends factory.transactionType>(
@@ -105,9 +85,9 @@ export class MongoRepository {
                 // すでに確定済の場合
                 return transaction;
             } else if (transaction.status === factory.transactionStatusType.Expired) {
-                throw new factory.errors.Argument('accountNumber', 'Transaction expired');
+                throw new factory.errors.Argument('accountNumber', 'Transaction already expired');
             } else if (transaction.status === factory.transactionStatusType.Canceled) {
-                throw new factory.errors.Argument('accountNumber', 'Transaction canceled');
+                throw new factory.errors.Argument('accountNumber', 'Transaction already canceled');
             } else {
                 throw new factory.errors.NotFound('Transaction');
             }
