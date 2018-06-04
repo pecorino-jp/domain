@@ -8,7 +8,7 @@ import { MongoRepository as AccountRepo } from '../../repo/account';
 import { MongoRepository as TaskRepository } from '../../repo/task';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
-const debug = createDebug('pecorino-domain:service:transaction:pay');
+const debug = createDebug('pecorino-domain:service:transaction:withdraw');
 
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
@@ -26,20 +26,20 @@ export type ITransactionOperation<T> = (repos: {
  * 取引開始
  */
 export function start(
-    params: factory.transaction.IStartParams<factory.transactionType.Pay>
-): IStartOperation<factory.transaction.pay.ITransaction> {
+    params: factory.transaction.IStartParams<factory.transactionType.Withdraw>
+): IStartOperation<factory.transaction.withdraw.ITransaction> {
     return async (repos: {
         account: AccountRepo;
         transaction: TransactionRepo;
     }) => {
-        debug(`${params.agent.name} is starting pay transaction... amount:${params.object.amount}`);
+        debug(`${params.agent.name} is starting withdraw transaction... amount:${params.object.amount}`);
 
         // 口座存在確認
         const account = await repos.account.findByAccountNumber(params.object.fromAccountNumber);
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const startParams: factory.transaction.IStartParams<factory.transactionType.Pay> = {
-            typeOf: factory.transactionType.Pay,
+        const startParams: factory.transaction.IStartParams<factory.transactionType.Withdraw> = {
+            typeOf: factory.transactionType.Withdraw,
             agent: params.agent,
             recipient: params.recipient,
             object: {
@@ -52,9 +52,9 @@ export function start(
         };
 
         // 取引作成
-        let transaction: factory.transaction.pay.ITransaction;
+        let transaction: factory.transaction.withdraw.ITransaction;
         try {
-            transaction = await repos.transaction.start(factory.transactionType.Pay, startParams);
+            transaction = await repos.transaction.start(factory.transactionType.Withdraw, startParams);
         } catch (error) {
             if (error.name === 'MongoError') {
                 // no op
@@ -86,14 +86,14 @@ export function start(
  */
 export function confirm(params: {
     transactionId: string;
-}): ITransactionOperation<factory.transaction.pay.IResult> {
+}): ITransactionOperation<factory.transaction.withdraw.IResult> {
     return async (repos: {
         transaction: TransactionRepo;
     }) => {
-        debug(`confirming pay transaction ${params.transactionId}...`);
+        debug(`confirming withdraw transaction ${params.transactionId}...`);
 
         // 取引存在確認
-        const transaction = await repos.transaction.findById(factory.transactionType.Pay, params.transactionId);
+        const transaction = await repos.transaction.findById(factory.transactionType.Withdraw, params.transactionId);
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
@@ -121,12 +121,12 @@ export function confirm(params: {
                 id: transaction.id
             }
         };
-        const potentialActions: factory.transaction.pay.IPotentialActions = {
+        const potentialActions: factory.transaction.withdraw.IPotentialActions = {
             moneyTransfer: moneyTransferActionAttributes
         };
 
         // 取引確定
-        await repos.transaction.confirm(factory.transactionType.Pay, transaction.id, {}, potentialActions);
+        await repos.transaction.confirm(factory.transactionType.Withdraw, transaction.id, {}, potentialActions);
     };
 }
 
@@ -138,7 +138,7 @@ export function exportTasks(status: factory.transactionStatusType) {
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Pay, status);
+        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Withdraw, status);
         if (transaction === null) {
             return;
         }
@@ -158,7 +158,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById(factory.transactionType.Pay, transactionId);
+        const transaction = await repos.transaction.findById(factory.transactionType.Withdraw, transactionId);
         const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes[] = [];

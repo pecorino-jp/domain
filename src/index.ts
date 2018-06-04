@@ -14,8 +14,8 @@ import * as NotificationService from './service/notification';
 import * as ReportService from './service/report';
 import * as TaskService from './service/task';
 import * as DepositTransactionService from './service/transaction/deposit';
-import * as PayTransactionService from './service/transaction/pay';
 import * as TransferTransactionService from './service/transaction/transfer';
+import * as WithdrawTransactionService from './service/transaction/withdraw';
 
 /**
  * MongoDBクライアント`mongoose`
@@ -36,8 +36,8 @@ export namespace service {
     export import task = TaskService;
     export namespace transaction {
         export import deposit = DepositTransactionService;
-        export import pay = PayTransactionService;
         export import transfer = TransferTransactionService;
+        export import withdraw = WithdrawTransactionService;
     }
 }
 

@@ -130,7 +130,7 @@ export function transaction2report(params: {
         case factory.transactionType.Deposit:
             toLocation.accountNumber = params.transaction.object.toAccountNumber;
             break;
-        case factory.transactionType.Pay:
+        case factory.transactionType.Withdraw:
             fromLocation.accountNumber = params.transaction.object.fromAccountNumber;
             break;
         case factory.transactionType.Transfer:

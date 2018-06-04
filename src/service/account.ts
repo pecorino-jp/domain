@@ -170,9 +170,9 @@ export function cancelMoneyTransfer(params: {
                     toAccountNumber =
                         (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toAccountNumber;
                     break;
-                case factory.transactionType.Pay:
+                case factory.transactionType.Withdraw:
                     fromAccountNumber =
-                        (<factory.transaction.ITransaction<factory.transactionType.Pay>>transaction).object.fromAccountNumber;
+                        (<factory.transaction.ITransaction<factory.transactionType.Withdraw>>transaction).object.fromAccountNumber;
                     break;
                 case factory.transactionType.Transfer:
                     fromAccountNumber =
