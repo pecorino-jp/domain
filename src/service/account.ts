@@ -3,7 +3,6 @@
  * 開設、閉鎖等、口座に対するアクションを定義します。
  */
 import * as createDebug from 'debug';
-import * as moment from 'moment';
 
 import * as factory from '../factory';
 
@@ -25,6 +24,11 @@ export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
  */
 export function open(params: {
     /**
+     * 口座番号
+     * ユニークになるように、Pecorinoサービス利用側で番号を生成すること
+     */
+    accountNumber: string;
+    /**
      * 口座名義
      */
     name: string;
@@ -35,10 +39,13 @@ export function open(params: {
 }): IOpenOperation<factory.account.IAccount> {
     return async (repos: {
         account: AccountRepo;
-        accountNumber: AccountNumberRepo;
+        accountNumber?: AccountNumberRepo;
     }) => {
-        const openDate = moment().toDate();
-        const accountNumber = await repos.accountNumber.publish(openDate);
+        const openDate = new Date();
+        let accountNumber = params.accountNumber;
+        if (accountNumber === '' && repos.accountNumber !== undefined) {
+            accountNumber = await repos.accountNumber.publish(openDate);
+        }
 
         return repos.account.open({
             name: params.name,
@@ -62,7 +69,7 @@ export function close(params: {
         account: AccountRepo;
     }) => {
         try {
-            const closeDate = moment().toDate();
+            const closeDate = new Date();
             await repos.account.close({
                 accountNumber: params.accountNumber,
                 closeDate: closeDate
