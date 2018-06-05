@@ -143,6 +143,7 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
+
     /**
      * 転送アクションを検索する
      * @param searchConditions 検索条件
