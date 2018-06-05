@@ -3,7 +3,6 @@
  * pecorino-domain index module
  * @module
  */
-import * as ioredis from 'ioredis';
 import * as mongoose from 'mongoose';
 
 import * as factory from './factory';
@@ -26,8 +25,6 @@ import * as WithdrawTransactionService from './service/transaction/withdraw';
  * });
  */
 export import mongoose = mongoose;
-
-export import ioredis = ioredis;
 
 export namespace service {
     export import account = AccountService;

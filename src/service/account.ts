@@ -7,7 +7,6 @@ import * as createDebug from 'debug';
 import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
-import { RedisRepository as AccountNumberRepo } from '../repo/accountNumber';
 import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
@@ -15,7 +14,6 @@ const debug = createDebug('pecorino-domain:service:account');
 
 export type IOpenOperation<T> = (repos: {
     account: AccountRepo;
-    accountNumber: AccountNumberRepo;
 }) => Promise<T>;
 export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
 
@@ -39,19 +37,12 @@ export function open(params: {
 }): IOpenOperation<factory.account.IAccount> {
     return async (repos: {
         account: AccountRepo;
-        accountNumber?: AccountNumberRepo;
     }) => {
-        const openDate = new Date();
-        let accountNumber = params.accountNumber;
-        if (accountNumber === '' && repos.accountNumber !== undefined) {
-            accountNumber = await repos.accountNumber.publish(openDate);
-        }
-
         return repos.account.open({
             name: params.name,
-            accountNumber: accountNumber,
+            accountNumber: params.accountNumber,
             initialBalance: params.initialBalance,
-            openDate: openDate
+            openDate: new Date()
         });
     };
 }
