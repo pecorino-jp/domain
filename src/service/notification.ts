@@ -94,7 +94,7 @@ export function sendEmailMessage(actionAttributes: factory.action.transfer.send.
  */
 export function report2developers(subject: string, content: string, imageThumbnail?: string, imageFullsize?: string): Operation<void> {
     return async () => {
-        if (process.env.SSKTS_DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN === undefined) {
+        if (process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN === undefined) {
             throw new Error('access token for LINE Notify undefined');
         }
 
@@ -127,7 +127,7 @@ ${content}`
             request.post(
                 {
                     url: LINE_NOTIFY_URL,
-                    auth: { bearer: process.env.SSKTS_DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN },
+                    auth: { bearer: process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN },
                     form: formData,
                     json: true
                 },

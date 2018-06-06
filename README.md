@@ -4,7 +4,7 @@
 
 [![CircleCI](https://circleci.com/gh/motionpicture/pecorino-domain.svg?style=svg&circle-token=d0ad9b7eb95785e46c7ee9071fef8a6d7ee2f7b1)](https://circleci.com/gh/motionpicture/pecorino-domain)
 
-PECORINOサービスをnode.jsで簡単に使用するためのパッケージを提供します。
+PECORINOサービスをNode.jsで簡単に使用するためのパッケージを提供します。
 
 ## Table of contents
 
@@ -20,11 +20,13 @@ npm install @motionpicture/pecorino-domain
 
 ### Environment variables
 
-| Name        | Required | Value             | Purpose          |
-|-------------|----------|-------------------|------------------|
-| `DEBUG`     | false    | pecorino-domain:* | Debug            |
-| `NPM_TOKEN` | true     |                   | NPM auth token   |
-| `NODE_ENV`  | true     |                   | environment name |
+| Name                                 | Required | Value             | Purpose           |
+|--------------------------------------|----------|-------------------|-------------------|
+| `DEBUG`                              | false    | pecorino-domain:* | Debug             |
+| `NPM_TOKEN`                          | true     |                   | NPM auth token    |
+| `NODE_ENV`                           | true     |                   | environment name  |
+| `SENDGRID_API_KEY`                   | false    |                   | SendGridAPIキー     |
+| `DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN` | false    |                   | 開発者LINE通知アクセストークン |
 
 ## Code Samples
 
