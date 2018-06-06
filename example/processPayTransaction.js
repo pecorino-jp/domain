@@ -15,7 +15,7 @@ async function main() {
         object: {
             clientUser: {},
             fromAccountId: 'accountId',
-            toAccountId: 'sskts-ilovegadd',
+            toAccountId: 'pecorino-ilovegadd',
             price: 100,
             notes: 'agentId'
         },

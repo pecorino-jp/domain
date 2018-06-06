@@ -59,33 +59,10 @@ export function close(params: {
     return async (repos: {
         account: AccountRepo;
     }) => {
-        try {
-            const closeDate = new Date();
-            await repos.account.close({
-                accountNumber: params.accountNumber,
-                closeDate: closeDate
-            });
-        } catch (error) {
-            // NotFoundの場合、すでにClosedな可能性があるので、ステータスを確認
-            if (error instanceof factory.errors.NotFound) {
-                const account = await repos.account.findByAccountNumber(params.accountNumber);
-                if (account.status === factory.accountStatusType.Closed) {
-                    // すでに解約済であればOK
-                    return;
-                } else if (account.pendingTransactions.length > 0) {
-                    // まだ進行中取引が存在している場合
-                    throw new factory.errors.Argument(
-                        'accountNumber',
-                        `${account.pendingTransactions.length} transactions still pending.`
-                    );
-                } else {
-                    // 基本的にありえないケース
-                    throw new factory.errors.ServiceUnavailable();
-                }
-            } else {
-                throw error;
-            }
-        }
+        await repos.account.close({
+            accountNumber: params.accountNumber,
+            closeDate: new Date()
+        });
     };
 }
 

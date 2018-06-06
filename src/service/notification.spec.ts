@@ -11,7 +11,7 @@ import { ACCEPTED, BAD_REQUEST, OK } from 'http-status';
 import * as nock from 'nock';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
-import * as sskts from '../index';
+import * as pecorino from '../index';
 
 let sandbox: sinon.SinonSandbox;
 
@@ -37,7 +37,7 @@ describe('report2developers()', () => {
         const imageThumbnail = 'https://example.com';
         const imageFullsize = 'https://example.com';
 
-        const result = await sskts.service.notification.report2developers('', '', imageThumbnail, imageFullsize)()
+        const result = await pecorino.service.notification.report2developers('', '', imageThumbnail, imageFullsize)()
             .catch((err) => err);
 
         assert(result instanceof Error);
@@ -49,7 +49,7 @@ describe('report2developers()', () => {
         const imageThumbnail = 'https://example.com';
         const imageFullsize = 'https://example.com';
 
-        const result = await sskts.service.notification.report2developers('', '', imageThumbnail, imageFullsize)();
+        const result = await pecorino.service.notification.report2developers('', '', imageThumbnail, imageFullsize)();
 
         assert.equal(result, undefined);
         assert(scope.isDone());
@@ -58,7 +58,7 @@ describe('report2developers()', () => {
     it('LINE Notifyの200を返さなければ、エラーになるはず', async () => {
         const scope = nock('https://notify-api.line.me').post('/api/notify').reply(BAD_REQUEST, { message: 'message' });
 
-        const result = await sskts.service.notification.report2developers('', '')()
+        const result = await pecorino.service.notification.report2developers('', '')()
             .catch((err) => err);
 
         assert(result instanceof Error);
@@ -68,7 +68,7 @@ describe('report2developers()', () => {
     it('LINE Notifyの状態が正常でなければ、エラーになるはず', async () => {
         const scope = nock('https://notify-api.line.me').post('/api/notify').replyWithError(new Error('lineError'));
 
-        const result = await sskts.service.notification.report2developers('', '')()
+        const result = await pecorino.service.notification.report2developers('', '')()
             .catch((err) => err);
         assert(result instanceof Error);
         assert(scope.isDone());
@@ -78,10 +78,10 @@ describe('report2developers()', () => {
         const scope = nock('https://notify-api.line.me').post('/api/notify').reply(OK);
         const imageThumbnail = 'invalidUrl';
 
-        const result = await sskts.service.notification.report2developers('', '', imageThumbnail)()
+        const result = await pecorino.service.notification.report2developers('', '', imageThumbnail)()
             .catch((err) => err);
 
-        assert(result instanceof sskts.factory.errors.Argument);
+        assert(result instanceof pecorino.factory.errors.Argument);
         assert(!scope.isDone());
     });
 
@@ -90,10 +90,10 @@ describe('report2developers()', () => {
         const imageThumbnail = 'https://example.com';
         const imageFullsize = 'invalidUrl';
 
-        const result = await sskts.service.notification.report2developers('', '', imageThumbnail, imageFullsize)()
+        const result = await pecorino.service.notification.report2developers('', '', imageThumbnail, imageFullsize)()
             .catch((err) => err);
 
-        assert(result instanceof sskts.factory.errors.Argument);
+        assert(result instanceof pecorino.factory.errors.Argument);
         assert(!scope.isDone());
     });
 });
@@ -105,7 +105,7 @@ describe('sendEmailMessage()', () => {
 
     it('SendGridの状態が正常であればエラーにならないはず', async () => {
         const sendEamilMessageActionAttributets = {
-            typeOf: sskts.factory.actionType.SendAction,
+            typeOf: pecorino.factory.actionType.SendAction,
             object: {
                 identifier: 'identifier',
                 sender: {},
@@ -115,15 +115,15 @@ describe('sendEmailMessage()', () => {
         const sendResponse = [{ statusCode: ACCEPTED }];
         const action = {
             id: 'actionId',
-            typeOf: sskts.factory.actionType.SendAction
+            typeOf: pecorino.factory.actionType.SendAction
         };
-        const actionRepo = new sskts.repository.Action(sskts.mongoose.connection);
+        const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
 
         sandbox.mock(actionRepo).expects('start').once().resolves(action);
         sandbox.mock(actionRepo).expects('complete').once().withArgs(action.typeOf, action.id).resolves(action);
         sandbox.mock(sgMail).expects('send').once().resolves(sendResponse);
 
-        const result = await sskts.service.notification.sendEmailMessage(<any>sendEamilMessageActionAttributets)({ action: actionRepo });
+        const result = await pecorino.service.notification.sendEmailMessage(<any>sendEamilMessageActionAttributets)({ action: actionRepo });
 
         assert.equal(result, undefined);
         sandbox.verify();
@@ -132,7 +132,7 @@ describe('sendEmailMessage()', () => {
     it('SendGridAPIのステータスコードがACCEPTEDでなｋれば、エラーになるはず', async () => {
 
         const sendEamilMessageActionAttributets = {
-            typeOf: sskts.factory.actionType.SendAction,
+            typeOf: pecorino.factory.actionType.SendAction,
             object: {
                 identifier: 'identifier',
                 sender: {},
@@ -142,16 +142,16 @@ describe('sendEmailMessage()', () => {
         const sendResponse = [{ statusCode: BAD_REQUEST }];
         const action = {
             id: 'actionId',
-            typeOf: sskts.factory.actionType.SendAction
+            typeOf: pecorino.factory.actionType.SendAction
         };
-        const actionRepo = new sskts.repository.Action(sskts.mongoose.connection);
+        const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
 
         sandbox.mock(actionRepo).expects('start').once().resolves(action);
         sandbox.mock(actionRepo).expects('giveUp').once().withArgs(action.typeOf, action.id).resolves(action);
         sandbox.mock(actionRepo).expects('complete').never();
         sandbox.mock(sgMail).expects('send').once().resolves(sendResponse);
 
-        const result = await sskts.service.notification.sendEmailMessage(<any>sendEamilMessageActionAttributets)({ action: actionRepo })
+        const result = await pecorino.service.notification.sendEmailMessage(<any>sendEamilMessageActionAttributets)({ action: actionRepo })
             .catch((err) => err);
 
         assert(result instanceof Error);

@@ -7,7 +7,7 @@
 
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
-import * as sskts from '../index';
+import * as pecorino from '../index';
 
 import * as TaskFunctionsService from './taskFunctions';
 
@@ -25,19 +25,19 @@ describe('executeByName()', () => {
     it('未実行タスクが存在すれば、実行されるはず', async () => {
         const task = {
             id: 'id',
-            name: sskts.factory.taskName.MoneyTransfer,
+            name: pecorino.factory.taskName.MoneyTransfer,
             data: { datakey: 'dataValue' },
-            status: sskts.factory.taskStatus.Running
+            status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new sskts.repository.Task(sskts.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
 
         sandbox.mock(taskRepo).expects('executeOneByName').once().withArgs(task.name).resolves(task);
         sandbox.mock(TaskFunctionsService).expects(task.name).once().withArgs(task.data).returns(async () => Promise.resolve());
-        sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, sskts.factory.taskStatus.Executed).resolves();
+        sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, pecorino.factory.taskStatus.Executed).resolves();
 
-        const result = await sskts.service.task.executeByName(task.name)({
+        const result = await pecorino.service.task.executeByName(task.name)({
             taskRepo: taskRepo,
-            connection: sskts.mongoose.connection
+            connection: pecorino.mongoose.connection
         });
 
         assert.equal(result, undefined);
@@ -45,16 +45,16 @@ describe('executeByName()', () => {
     });
 
     it('未実行タスクが存在しなければ、実行されないはず', async () => {
-        const taskName = sskts.factory.taskName.MoneyTransfer;
-        const taskRepo = new sskts.repository.Task(sskts.mongoose.connection);
+        const taskName = pecorino.factory.taskName.MoneyTransfer;
+        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
 
         sandbox.mock(taskRepo).expects('executeOneByName').once()
-            .withArgs(taskName).rejects(new sskts.factory.errors.NotFound('task'));
-        sandbox.mock(sskts.service.task).expects('execute').never();
+            .withArgs(taskName).rejects(new pecorino.factory.errors.NotFound('task'));
+        sandbox.mock(pecorino.service.task).expects('execute').never();
 
-        const result = await sskts.service.task.executeByName(taskName)({
+        const result = await pecorino.service.task.executeByName(taskName)({
             taskRepo: taskRepo,
-            connection: sskts.mongoose.connection
+            connection: pecorino.mongoose.connection
         });
 
         assert.equal(result, undefined);
@@ -69,12 +69,12 @@ describe('retry()', () => {
 
     it('repositoryの状態が正常であれば、エラーにならないはず', async () => {
         const INTERVAL = 10;
-        const taskRepo = new sskts.repository.Task(sskts.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
 
         sandbox.mock(taskRepo).expects('retry').once()
             .withArgs(INTERVAL).resolves();
 
-        const result = await sskts.service.task.retry(INTERVAL)({ task: taskRepo });
+        const result = await pecorino.service.task.retry(INTERVAL)({ task: taskRepo });
 
         assert.equal(result, undefined);
         sandbox.verify();
@@ -92,13 +92,13 @@ describe('abort()', () => {
             id: 'id',
             executionResults: [{ error: 'error' }]
         };
-        const taskRepo = new sskts.repository.Task(sskts.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
 
         sandbox.mock(taskRepo).expects('abortOne').once().withArgs(INTERVAL).resolves(task);
-        sandbox.mock(sskts.service.notification).expects('report2developers').once()
-            .withArgs(sskts.service.task.ABORT_REPORT_SUBJECT).returns(async () => Promise.resolve());
+        sandbox.mock(pecorino.service.notification).expects('report2developers').once()
+            .withArgs(pecorino.service.task.ABORT_REPORT_SUBJECT).returns(async () => Promise.resolve());
 
-        const result = await sskts.service.task.abort(INTERVAL)({ task: taskRepo });
+        const result = await pecorino.service.task.abort(INTERVAL)({ task: taskRepo });
 
         assert.equal(result, undefined);
         sandbox.verify();
@@ -113,18 +113,18 @@ describe('execute()', () => {
     it('存在するタスク名であれば、完了ステータスへ変更されるはず', async () => {
         const task = {
             id: 'id',
-            name: sskts.factory.taskName.MoneyTransfer,
+            name: pecorino.factory.taskName.MoneyTransfer,
             data: { datakey: 'dataValue' },
-            status: sskts.factory.taskStatus.Running
+            status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new sskts.repository.Task(sskts.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
 
         sandbox.mock(TaskFunctionsService).expects(task.name).once().withArgs(task.data).returns(async () => Promise.resolve());
-        sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, sskts.factory.taskStatus.Executed).resolves();
+        sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, pecorino.factory.taskStatus.Executed).resolves();
 
-        const result = await sskts.service.task.execute(<any>task)({
+        const result = await pecorino.service.task.execute(<any>task)({
             taskRepo: taskRepo,
-            connection: sskts.mongoose.connection
+            connection: pecorino.mongoose.connection
         });
 
         assert.equal(result, undefined);
@@ -136,15 +136,15 @@ describe('execute()', () => {
             id: 'id',
             name: 'invalidTaskName',
             data: { datakey: 'dataValue' },
-            status: sskts.factory.taskStatus.Running
+            status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new sskts.repository.Task(sskts.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
 
         sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, task.status).resolves();
 
-        const result = await sskts.service.task.execute(<any>task)({
+        const result = await pecorino.service.task.execute(<any>task)({
             taskRepo: taskRepo,
-            connection: sskts.mongoose.connection
+            connection: pecorino.mongoose.connection
         });
 
         assert.equal(result, undefined);
