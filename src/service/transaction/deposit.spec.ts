@@ -204,7 +204,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
         });
     });
 
-    it('未対応ステータスの取引であればNotImplementedエラーとなるはず', async () => {
+    it('非対応ステータスの取引であればNotImplementedエラーとなるはず', async () => {
         const transaction = {
             id: 'transactionId',
             status: 'UnknownStatus'

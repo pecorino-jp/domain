@@ -88,9 +88,13 @@ export function transferMoney(actionAttributes: factory.action.transfer.moneyTra
 
             const fromAccountNumber = (actionAttributes.fromLocation.typeOf === factory.account.AccountType.Account)
                 ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).accountNumber
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
                 : undefined;
             const toAccountNumber = (actionAttributes.toLocation.typeOf === factory.account.AccountType.Account)
                 ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).accountNumber
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
                 : undefined;
 
             await repos.account.settleTransaction({
@@ -134,39 +138,35 @@ export function cancelMoneyTransfer(params: {
         transaction: TransactionRepo;
     }) => {
         debug(`canceling money transfer... ${params.transaction.typeOf} ${params.transaction.id}`);
-        try {
-            let fromAccountNumber: string | undefined;
-            let toAccountNumber: string | undefined;
-            // 取引存在確認
-            const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
+        let fromAccountNumber: string | undefined;
+        let toAccountNumber: string | undefined;
+        // 取引存在確認
+        const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
 
-            switch (params.transaction.typeOf) {
-                case factory.transactionType.Deposit:
-                    toAccountNumber =
-                        (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toAccountNumber;
-                    break;
-                case factory.transactionType.Withdraw:
-                    fromAccountNumber =
-                        (<factory.transaction.ITransaction<factory.transactionType.Withdraw>>transaction).object.fromAccountNumber;
-                    break;
-                case factory.transactionType.Transfer:
-                    fromAccountNumber =
-                        (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromAccountNumber;
-                    toAccountNumber =
-                        (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.toAccountNumber;
-                    break;
-                default:
-                    throw new factory.errors.Argument('typeOf', `transaction type ${params.transaction.typeOf} unknown`);
-            }
-
-            await repos.account.voidTransaction({
-                fromAccountNumber: fromAccountNumber,
-                toAccountNumber: toAccountNumber,
-                amount: transaction.object.amount,
-                transactionId: transaction.id
-            });
-        } catch (error) {
-            throw error;
+        switch (params.transaction.typeOf) {
+            case factory.transactionType.Deposit:
+                toAccountNumber =
+                    (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toAccountNumber;
+                break;
+            case factory.transactionType.Withdraw:
+                fromAccountNumber =
+                    (<factory.transaction.ITransaction<factory.transactionType.Withdraw>>transaction).object.fromAccountNumber;
+                break;
+            case factory.transactionType.Transfer:
+                fromAccountNumber =
+                    (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromAccountNumber;
+                toAccountNumber =
+                    (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.toAccountNumber;
+                break;
+            default:
+                throw new factory.errors.Argument('typeOf', `transaction type ${params.transaction.typeOf} unknown`);
         }
+
+        await repos.account.voidTransaction({
+            fromAccountNumber: fromAccountNumber,
+            toAccountNumber: toAccountNumber,
+            amount: transaction.object.amount,
+            transactionId: transaction.id
+        });
     };
 }

@@ -138,6 +138,8 @@ export function transaction2report(params: {
             fromLocation.accountNumber = params.transaction.object.fromAccountNumber;
             break;
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore next */
         default:
     }
     if (params.transaction.result !== undefined) {
@@ -145,8 +147,16 @@ export function transaction2report(params: {
             id: params.transaction.id,
             typeOf: params.transaction.typeOf,
             status: params.transaction.status,
-            startDate: (params.transaction.startDate !== undefined) ? params.transaction.startDate.toISOString() : '',
-            endDate: (params.transaction.endDate !== undefined) ? params.transaction.endDate.toISOString() : '',
+            startDate: (params.transaction.startDate !== undefined)
+                ? params.transaction.startDate.toISOString()
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                : '',
+            endDate: (params.transaction.endDate !== undefined)
+                ? params.transaction.endDate.toISOString()
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                : '',
             fromLocation: fromLocation,
             toLocation: toLocation,
             amount: params.transaction.object.amount,
@@ -157,8 +167,16 @@ export function transaction2report(params: {
             id: params.transaction.id,
             typeOf: params.transaction.typeOf,
             status: params.transaction.status,
-            startDate: (params.transaction.startDate !== undefined) ? params.transaction.startDate.toISOString() : '',
-            endDate: (params.transaction.endDate !== undefined) ? params.transaction.endDate.toISOString() : '',
+            startDate: (params.transaction.startDate !== undefined)
+                ? params.transaction.startDate.toISOString()
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                : '',
+            endDate: (params.transaction.endDate !== undefined)
+                ? params.transaction.endDate.toISOString()
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                : '',
             fromLocation: fromLocation,
             toLocation: toLocation,
             amount: params.transaction.object.amount,
