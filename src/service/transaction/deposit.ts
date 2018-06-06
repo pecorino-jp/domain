@@ -56,6 +56,8 @@ export function start(
         try {
             transaction = await repos.transaction.start(factory.transactionType.Deposit, startParams);
         } catch (error) {
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore next */
             if (error.name === 'MongoError') {
                 // no op
             }
@@ -163,7 +165,11 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
         const taskAttributes: factory.task.IAttributes[] = [];
         switch (transaction.status) {
             case factory.transactionStatusType.Confirmed:
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
                 if (potentialActions !== undefined) {
+                    // tslint:disable-next-line:no-single-line-block-comment
+                    /* istanbul ignore else */
                     if (potentialActions.moneyTransfer !== undefined) {
                         const moneyTransferTask: factory.task.moneyTransfer.IAttributes = {
                             name: factory.taskName.MoneyTransfer,
