@@ -6,14 +6,11 @@
 
 PECORINOサービスをnode.jsで簡単に使用するためのパッケージを提供します。
 
-
 ## Table of contents
 
 * [Usage](#usage)
 * [Code Samples](#code-samples)
-* [Jsdoc](#jsdoc)
 * [License](#license)
-
 
 ## Usage
 
@@ -23,20 +20,15 @@ npm install @motionpicture/pecorino-domain
 
 ### Environment variables
 
-| Name           | Required | Value             | Purpose                |
-| -------------- | -------- | ----------------- | ---------------------- |
-| `DEBUG`        | false    | pecorino-domain:* | Debug                  |
-| `NPM_TOKEN`    | true     |                   | NPM auth token         |
-| `NODE_ENV`     | true     |                   | environment name       |
-| `MONGOLAB_URI` | true     |                   | MongoDB connection URI |
+| Name        | Required | Value             | Purpose          |
+|-------------|----------|-------------------|------------------|
+| `DEBUG`     | false    | pecorino-domain:* | Debug            |
+| `NPM_TOKEN` | true     |                   | NPM auth token   |
+| `NODE_ENV`  | true     |                   | environment name |
 
 ## Code Samples
 
 Code sample are [here](https://github.com/motionpicture/pecorino-domain/tree/master/example).
-
-## Jsdoc
-
-`npm run doc` emits jsdoc to ./doc.
 
 ## License
 

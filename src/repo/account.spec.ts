@@ -45,6 +45,45 @@ describe('口座解約', () => {
         assert.equal(result, undefined);
         sandbox.verify();
     });
+
+    it('すでに解約済であれば成功するはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Closed,
+            pendingTransactions: [{}]
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.close(<any>{});
+        assert.equal(result, undefined);
+        sandbox.verify();
+    });
+
+    it('進行中取引が存在する場合Argumentエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Opened,
+            pendingTransactions: [{}]
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.close(<any>{}).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('解約トライ時には存在しなかったが、状態確認で存在した場合NotFoundエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Opened,
+            pendingTransactions: []
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.close(<any>{}).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
+        sandbox.verify();
+    });
 });
 
 describe('口座番号で検索', () => {
@@ -58,6 +97,14 @@ describe('口座番号で検索', () => {
 
         const result = await accountRepo.findByAccountNumber('accountNumber');
         assert.equal(typeof result, 'object');
+        sandbox.verify();
+    });
+
+    it('存在しなければNotFoundエラーとなるはず', async () => {
+        sandbox.mock(accountRepo.accountModel).expects('findOne').once().chain('exec').resolves(null);
+
+        const result = await accountRepo.findByAccountNumber('accountNumber').catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
 });
@@ -75,6 +122,47 @@ describe('口座の金額を確保する', () => {
         assert.equal(result, undefined);
         sandbox.verify();
     });
+
+    it('すでに解約済であればArgumentエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Closed,
+            pendingTransactions: []
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.authorizeAmount(<any>{}).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('残高不足であればArgumentエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Opened,
+            availableBalance: 1233,
+            pendingTransactions: []
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.authorizeAmount(<any>{ amount: 1234 }).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('金額確保トライ時は存在しなかったが、状態確認で存在した場合NotFoundエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Opened,
+            availableBalance: 1234,
+            pendingTransactions: []
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.authorizeAmount(<any>{ amount: 1234 }).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
+        sandbox.verify();
+    });
 });
 
 describe('口座内で取引を開始する', () => {
@@ -88,6 +176,34 @@ describe('口座内で取引を開始する', () => {
 
         const result = await accountRepo.startTransaction(<any>{});
         assert.equal(result, undefined);
+        sandbox.verify();
+    });
+
+    it('すでに解約済であればArgumentエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Closed,
+            availableBalance: 1234,
+            pendingTransactions: []
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.startTransaction(<any>{}).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('取引開始時には存在しなかったが、状態確認で存在した場合NotFoundエラーとなるはず', async () => {
+        const account = {
+            status: pecorino.factory.accountStatusType.Opened,
+            availableBalance: 1234,
+            pendingTransactions: []
+        };
+        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+
+        const result = await accountRepo.startTransaction(<any>{}).catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
 });
@@ -165,11 +281,17 @@ describe('口座を検索する', () => {
     });
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
+        const searchConditions = {
+            accountNumbers: ['accountNumber'],
+            statuses: [pecorino.factory.accountStatusType.Opened],
+            name: '',
+            limit: 1
+        };
         sandbox.mock(accountRepo.accountModel).expects('find').once()
             .chain('sort').chain('limit').chain('exec')
             .resolves([new accountRepo.accountModel()]);
 
-        const result = await accountRepo.search(<any>{});
+        const result = await accountRepo.search(searchConditions);
         assert(Array.isArray(result));
         sandbox.verify();
     });

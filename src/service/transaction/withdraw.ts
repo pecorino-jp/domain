@@ -166,7 +166,8 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
             case factory.transactionStatusType.Confirmed:
                 if (potentialActions !== undefined) {
                     if (potentialActions.moneyTransfer !== undefined) {
-                        taskAttributes.push(factory.task.moneyTransfer.createAttributes({
+                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes = {
+                            name: factory.taskName.MoneyTransfer,
                             status: factory.taskStatus.Ready,
                             runsAt: new Date(), // なるはやで実行
                             remainingNumberOfTries: 10,
@@ -176,15 +177,16 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
                             data: {
                                 actionAttributes: potentialActions.moneyTransfer
                             }
-                        }));
+                        };
+                        taskAttributes.push(moneyTransferTask);
                     }
                 }
-
                 break;
 
             case factory.transactionStatusType.Canceled:
             case factory.transactionStatusType.Expired:
-                taskAttributes.push(factory.task.cancelMoneyTransfer.createAttributes({
+                const cancelMoneyTransferTask: factory.task.cancelMoneyTransfer.IAttributes = {
+                    name: factory.taskName.CancelMoneyTransfer,
                     status: factory.taskStatus.Ready,
                     runsAt: new Date(), // なるはやで実行
                     remainingNumberOfTries: 10,
@@ -194,8 +196,8 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
                     data: {
                         transaction: { typeOf: transaction.typeOf, id: transaction.id }
                     }
-                }));
-
+                };
+                taskAttributes.push(cancelMoneyTransferTask);
                 break;
 
             default:

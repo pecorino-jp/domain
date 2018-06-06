@@ -46,6 +46,14 @@ describe('IDで取引を検索する', () => {
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
+
+    it('存在しなければNotFoundエラーとなるはず', async () => {
+        sandbox.mock(transactionRepo.transactionModel).expects('findOne').once().chain('exec').resolves(null);
+
+        const result = await transactionRepo.findById(pecorino.factory.transactionType.Deposit, 'transactionId').catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
+        sandbox.verify();
+    });
 });
 
 describe('取引を確定する', () => {
@@ -62,6 +70,57 @@ describe('取引を確定する', () => {
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
+
+    it('すでに確認済であれば成功するはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.Confirmed
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{});
+        assert.equal(typeof result, 'object');
+        sandbox.verify();
+    });
+
+    it('取引が期限切れステータスであればArgumentエラーとなるはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.Expired
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
+            .catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('取引が中止済ステータスであればArgumentエラーとなるはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.Canceled
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
+            .catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('万が一確定時に存在せず、状態確認時に存在した場合NotFoundエラーとなるはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.InProgress
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
+            .catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
+        sandbox.verify();
+    });
 });
 
 describe('取引を中止する', () => {
@@ -76,6 +135,57 @@ describe('取引を中止する', () => {
 
         const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId');
         assert.equal(typeof result, 'object');
+        sandbox.verify();
+    });
+
+    it('すでに中止済であれば成功するはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.Canceled
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId');
+        assert.equal(typeof result, 'object');
+        sandbox.verify();
+    });
+
+    it('取引が期限切れステータスであればArgumentエラーとなるはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.Expired
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
+            .catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('取引が確定ステータスであればArgumentエラーとなるはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.Confirmed
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
+            .catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.Argument);
+        sandbox.verify();
+    });
+
+    it('万が一中止時に存在せず、状態確認時に存在した場合NotFoundエラーとなるはず', async () => {
+        const transaction = {
+            status: pecorino.factory.transactionStatusType.InProgress
+        };
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+
+        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
+            .catch((err) => err);
+        assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
 });
@@ -95,6 +205,17 @@ describe('取引タスクエクスポートを開始する', () => {
             pecorino.factory.transactionStatusType.Canceled
         );
         assert.equal(typeof result, 'object');
+        sandbox.verify();
+    });
+
+    it('取引が存在しなければnullが返されるはず', async () => {
+        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+
+        const result = await transactionRepo.startExportTasks(
+            pecorino.factory.transactionType.Deposit,
+            pecorino.factory.transactionStatusType.Canceled
+        );
+        assert.equal(result, null);
         sandbox.verify();
     });
 });
@@ -154,10 +275,15 @@ describe('取引を検索する', () => {
     });
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
+        const searchConditions = {
+            typeOf: pecorino.factory.transactionType.Deposit,
+            startFrom: new Date(),
+            startThrough: new Date()
+        };
         sandbox.mock(transactionRepo.transactionModel).expects('find').once()
             .chain('exec').resolves([new transactionRepo.transactionModel()]);
 
-        const result = await transactionRepo.search(<any>{});
+        const result = await transactionRepo.search(searchConditions);
         assert(Array.isArray(result));
         sandbox.verify();
     });

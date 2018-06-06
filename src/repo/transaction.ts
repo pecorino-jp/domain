@@ -221,6 +221,8 @@ export class MongoRepository {
             }
         };
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (params.typeOf !== undefined) {
             conditions.typeOf = params.typeOf;
         }

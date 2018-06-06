@@ -42,7 +42,6 @@ export class MongoRepository {
         debug('opening account...');
         const account: factory.account.IAccount = {
             typeOf: factory.account.AccountType.Account,
-            id: '',
             accountNumber: params.accountNumber,
             name: params.name,
             balance: params.initialBalance,
@@ -89,7 +88,7 @@ export class MongoRepository {
                 // すでに口座解約済の場合
                 return;
             } else if (account.pendingTransactions.length > 0) {
-                // 残高不足の場合
+                // 進行中取引が存在する場合の場合
                 throw new factory.errors.Argument('accountNumber', 'Pending transactions exist');
             } else {
                 throw new factory.errors.NotFound('Account');
@@ -281,18 +280,24 @@ export class MongoRepository {
             { typeOf: factory.account.AccountType.Account }
         ];
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (Array.isArray(searchConditions.accountNumbers) && searchConditions.accountNumbers.length > 0) {
             andConditions.push({
                 accountNumber: { $in: searchConditions.accountNumbers }
             });
         }
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (Array.isArray(searchConditions.statuses) && searchConditions.statuses.length > 0) {
             andConditions.push({
                 status: { $in: searchConditions.statuses }
             });
         }
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (typeof searchConditions.name === 'string') {
             andConditions.push({
                 name: new RegExp(searchConditions.name, 'gi')

@@ -151,8 +151,8 @@ export class MongoRepository {
     public async searchTransferActions(
         searchConditions: ISearchTransferActionsConditions
     ): Promise<factory.action.transfer.moneyTransfer.IAction[]> {
-        // tslint:disable-next-line:no-magic-numbers
-        const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : 100;
+        // tslint:disable-next-line:no-magic-numbers no-single-line-block-comment
+        const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : /* istanbul ignore next*/ 100;
 
         return this.actionModel.find({
             $or: [
@@ -198,12 +198,16 @@ export class MongoRepository {
             }
         ];
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (Array.isArray(searchConditions.actionStatuses) && searchConditions.actionStatuses.length > 0) {
             andConditions.push({
                 actionStatus: { $in: searchConditions.actionStatuses }
             });
         }
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (Array.isArray(searchConditions.purposeTypeOfs) && searchConditions.purposeTypeOfs.length > 0) {
             andConditions.push({
                 'purpose.typeOf': {
@@ -213,6 +217,8 @@ export class MongoRepository {
             });
         }
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (Array.isArray(searchConditions.fromLocationAccountNumbers) && searchConditions.fromLocationAccountNumbers.length > 0) {
             andConditions.push({
                 'fromLocation.accountNumber': {
@@ -222,6 +228,8 @@ export class MongoRepository {
             });
         }
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
         if (Array.isArray(searchConditions.toLocationAccountNumbers) && searchConditions.toLocationAccountNumbers.length > 0) {
             andConditions.push({
                 'toLocation.accountNumber': {

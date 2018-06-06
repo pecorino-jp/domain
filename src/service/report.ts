@@ -101,16 +101,16 @@ export interface ITransactionReport {
     endDate: string;
     fromLocation: {
         typeOf: string;
-        id: string;
-        name: string;
-        url: string;
+        id?: string;
+        name?: string;
+        url?: string;
         accountNumber?: string;
     };
     toLocation: {
         typeOf: string;
-        id: string;
-        name: string;
-        url: string;
+        id?: string;
+        name?: string;
+        url?: string;
         accountNumber?: string;
     };
     amount: number;
