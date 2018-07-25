@@ -44,7 +44,7 @@ describe('executeOneByName()', () => {
     });
 
     it('MongoDBの状態が正常であれば、オブジェクトが返却されるはず', async () => {
-        const taskName = pecorino.factory.taskName.CreateOrder;
+        const taskName = pecorino.factory.taskName.MoneyTransfer;
 
         const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
 
@@ -58,7 +58,7 @@ describe('executeOneByName()', () => {
     });
 
     it('存在しなければ、NotFoundエラーとなるはず', async () => {
-        const taskName = pecorino.factory.taskName.CreateOrder;
+        const taskName = pecorino.factory.taskName.MoneyTransfer;
 
         const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
 

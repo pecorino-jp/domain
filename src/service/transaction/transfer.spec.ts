@@ -89,7 +89,6 @@ describe('転送取引を確定する', () => {
     });
 
     it('リポジトリーが正常であれば確定できるはず', async () => {
-        const account = {};
         const transaction = {
             id: 'transactionId',
             typeOf: pecorino.factory.transactionType.Transfer,
@@ -215,7 +214,6 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             id: 'transactionId',
             status: 'UnknownStatus'
         };
-        const task = {};
         const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
         const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
         sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);

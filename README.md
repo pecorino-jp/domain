@@ -1,10 +1,8 @@
-<img src="https://motionpicture.jp/images/common/logo_01.svg" alt="motionpicture" title="motionpicture" align="right" height="56" width="98"/>
+# Pecorino Domain Library for Node.js
 
-# PECORINO Domain Library for Node.js
+[![CircleCI](https://circleci.com/gh/pecorino-jp/domain.svg?style=svg)](https://circleci.com/gh/pecorino-jp/domain)
 
-[![CircleCI](https://circleci.com/gh/motionpicture/pecorino-domain.svg?style=svg&circle-token=d0ad9b7eb95785e46c7ee9071fef8a6d7ee2f7b1)](https://circleci.com/gh/motionpicture/pecorino-domain)
-
-PECORINOサービスをNode.jsで簡単に使用するためのパッケージを提供します。
+PecorinoサービスをNode.jsで簡単に使用するためのパッケージを提供します。
 
 ## Table of contents
 
@@ -15,7 +13,7 @@ PECORINOサービスをNode.jsで簡単に使用するためのパッケージ�
 ## Usage
 
 ```shell
-npm install @motionpicture/pecorino-domain
+npm install @pecorino/domain
 ```
 
 ### Environment variables
@@ -30,7 +28,7 @@ npm install @motionpicture/pecorino-domain
 
 ## Code Samples
 
-Code sample are [here](https://github.com/motionpicture/pecorino-domain/tree/master/example).
+Code sample are [here](https://github.com/pecorino-jp/domain/tree/master/example).
 
 ## License
 

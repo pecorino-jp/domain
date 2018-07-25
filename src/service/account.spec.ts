@@ -22,7 +22,7 @@ describe('口座を開設する', () => {
         const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
         sandbox.mock(accountRepo).expects('open').once().resolves({});
 
-        const result = await pecorino.service.account.open({})({
+        const result = await pecorino.service.account.open(<any>{})({
             account: accountRepo
         });
         assert.equal(typeof result, 'object');

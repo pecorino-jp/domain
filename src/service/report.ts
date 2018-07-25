@@ -1,10 +1,10 @@
 /**
  * レポートサービス
  */
-import * as factory from '@motionpicture/pecorino-factory';
 import * as createDebug from 'debug';
 import * as json2csv from 'json2csv';
 
+import * as factory from '../factory';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
 const debug = createDebug('pecorino-domain:service:report');
