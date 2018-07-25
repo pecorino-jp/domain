@@ -1,4 +1,4 @@
 /**
  * pecorino-factory
  */
-export * from '@motionpicture/pecorino-factory';
+export * from '@pecorino/factory';
