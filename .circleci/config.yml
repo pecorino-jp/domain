@@ -3,7 +3,7 @@ jobs:
   build:
     # The primary container is an instance of the first list image listed. Your build commands run in this container.
     docker:
-      - image: circleci/node:8.4
+      - image: circleci/node:latest
     steps:
       - checkout
       - run:
@@ -22,8 +22,8 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: install npm packages
-          command: npm install
+          name: Install npm dependencies with a clean slate
+          command: npm ci
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
@@ -33,7 +33,7 @@ jobs:
           command: npm run build
   test:
     docker:
-      - image: circleci/node:8.4
+      - image: circleci/node:latest
     steps:
       - checkout
       - restore_cache:
@@ -43,7 +43,7 @@ jobs:
           command: npm test
   doc:
     docker:
-      - image: circleci/node:8.4
+      - image: circleci/node:latest
     steps:
       - checkout
       - restore_cache:
@@ -55,7 +55,7 @@ jobs:
             npm run doc
   prerelease:
     docker:
-      - image: circleci/node:8.4
+      - image: circleci/node:latest
     steps:
       - checkout
       - restore_cache:
@@ -71,7 +71,7 @@ jobs:
           command: npm publish --tag next --access public
   deploy:
     docker:
-      - image: circleci/node:8.4
+      - image: circleci/node:latest
     steps:
       - checkout
       - restore_cache:
@@ -86,7 +86,6 @@ jobs:
 # Used for orchestrating all jobs.
 workflows:
   version: 2
-
   build-test-doc-and-deploy:
     jobs:
       - build

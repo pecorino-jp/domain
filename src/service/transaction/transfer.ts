@@ -25,9 +25,9 @@ export type ITransactionOperation<T> = (repos: {
 /**
  * 取引開始
  */
-export function start(
-    params: factory.transaction.IStartParams<factory.transactionType.Transfer>
-): IStartOperation<factory.transaction.transfer.ITransaction> {
+export function start<T extends factory.account.AccountType>(
+    params: factory.transaction.IStartParams<factory.transactionType.Transfer, T>
+): IStartOperation<factory.transaction.transfer.ITransaction<T>> {
     return async (repos: {
         account: AccountRepo;
         transaction: TransactionRepo;
@@ -35,17 +35,24 @@ export function start(
         debug(`${params.agent.name} is starting transfer transaction... amount:${params.object.amount}`);
 
         // 口座存在確認
-        const fromAccount = await repos.account.findByAccountNumber(params.object.fromAccountNumber);
-        const toAccount = await repos.account.findByAccountNumber(params.object.toAccountNumber);
+        const fromAccount = await repos.account.findByAccountNumber<T>({
+            accountType: params.object.accountType,
+            accountNumber: params.object.fromAccountNumber
+        });
+        const toAccount = await repos.account.findByAccountNumber<T>({
+            accountType: params.object.accountType,
+            accountNumber: params.object.toAccountNumber
+        });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const startParams: factory.transaction.IStartParams<factory.transactionType.Transfer> = {
+        const startParams: factory.transaction.IStartParams<factory.transactionType.Transfer, T> = {
             typeOf: factory.transactionType.Transfer,
             agent: params.agent,
             recipient: params.recipient,
             object: {
                 clientUser: params.object.clientUser,
                 amount: params.object.amount,
+                accountType: params.object.accountType,
                 fromAccountNumber: fromAccount.accountNumber,
                 toAccountNumber: toAccount.accountNumber,
                 notes: params.object.notes
@@ -54,9 +61,9 @@ export function start(
         };
 
         // 取引作成
-        let transaction: factory.transaction.transfer.ITransaction;
+        let transaction: factory.transaction.transfer.ITransaction<T>;
         try {
-            transaction = await repos.transaction.start(factory.transactionType.Transfer, startParams);
+            transaction = await repos.transaction.start<factory.transactionType.Transfer, T>(factory.transactionType.Transfer, startParams);
         } catch (error) {
             // tslint:disable-next-line:no-single-line-block-comment
             /* istanbul ignore next */
@@ -74,14 +81,16 @@ export function start(
         };
 
         // 残高確認
-        await repos.account.authorizeAmount({
+        await repos.account.authorizeAmount<T>({
+            accountType: params.object.accountType,
             accountNumber: params.object.fromAccountNumber,
             amount: params.object.amount,
             transaction: pendingTransaction
         });
 
         // 転送先口座に進行中取引を追加
-        await repos.account.startTransaction({
+        await repos.account.startTransaction<T>({
+            accountType: params.object.accountType,
             accountNumber: params.object.toAccountNumber,
             transaction: pendingTransaction
         });
@@ -94,7 +103,7 @@ export function start(
 /**
  * 取引確定
  */
-export function confirm(params: {
+export function confirm<T extends factory.account.AccountType>(params: {
     transactionId: string;
 }): ITransactionOperation<void> {
     return async (repos: {
@@ -106,7 +115,7 @@ export function confirm(params: {
         const transaction = await repos.transaction.findById(factory.transactionType.Transfer, params.transactionId);
 
         // 現金転送アクション属性作成
-        const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
+        const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes<T> = {
             typeOf: factory.actionType.MoneyTransfer,
             description: transaction.object.notes,
             result: {
@@ -118,12 +127,14 @@ export function confirm(params: {
             recipient: transaction.recipient,
             amount: transaction.object.amount,
             fromLocation: {
-                typeOf: factory.account.AccountType.Account,
+                typeOf: factory.account.TypeOf.Account,
+                accountType: transaction.object.accountType,
                 accountNumber: transaction.object.fromAccountNumber,
                 name: transaction.agent.name
             },
             toLocation: {
-                typeOf: factory.account.AccountType.Account,
+                typeOf: factory.account.TypeOf.Account,
+                accountType: transaction.object.accountType,
                 accountNumber: transaction.object.toAccountNumber,
                 name: transaction.recipient.name
             },
@@ -132,7 +143,7 @@ export function confirm(params: {
                 id: transaction.id
             }
         };
-        const potentialActions: factory.transaction.transfer.IPotentialActions = {
+        const potentialActions: factory.transaction.transfer.IPotentialActions<T> = {
             moneyTransfer: moneyTransferActionAttributes
         };
 
@@ -164,7 +175,9 @@ export function exportTasks(status: factory.transactionStatusType) {
 /**
  * ID指定で取引のタスク出力
  */
-export function exportTasksById(transactionId: string): ITaskAndTransactionOperation<factory.task.ITask[]> {
+export function exportTasksById<T extends factory.account.AccountType>(
+    transactionId: string
+): ITaskAndTransactionOperation<factory.task.ITask[]> {
     return async (repos: {
         task: TaskRepository;
         transaction: TransactionRepo;
@@ -181,7 +194,7 @@ export function exportTasksById(transactionId: string): ITaskAndTransactionOpera
                     // tslint:disable-next-line:no-single-line-block-comment
                     /* istanbul ignore else */
                     if (potentialActions.moneyTransfer !== undefined) {
-                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes = {
+                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes<T> = {
                             name: factory.taskName.MoneyTransfer,
                             status: factory.taskStatus.Ready,
                             runsAt: new Date(), // なるはやで実行

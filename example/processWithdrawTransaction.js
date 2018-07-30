@@ -11,11 +11,12 @@ async function main() {
 
     const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
     const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-    const transaction = await pecorino.service.transaction.pay.start({
+    const transaction = await pecorino.service.transaction.withdraw.start({
         object: {
             clientUser: {},
-            fromAccountId: 'accountId',
-            toAccountId: 'pecorino-ilovegadd',
+            accountType: 'Coin',
+            fromAccountId: 'fromAccountId',
+            toAccountId: 'toAccountId',
             price: 100,
             notes: 'agentId'
         },

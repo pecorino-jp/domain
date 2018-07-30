@@ -31,8 +31,8 @@ export function cancelMoneyTransfer(
     };
 }
 
-export function moneyTransfer(
-    data: factory.task.moneyTransfer.IData
+export function moneyTransfer<T extends factory.account.AccountType>(
+    data: factory.task.moneyTransfer.IData<T>
 ): IOperation<void> {
     return async (settings: {
         connection: mongoose.Connection;
@@ -40,7 +40,7 @@ export function moneyTransfer(
         const accountRepo = new AccountRepo(settings.connection);
         const actionRepo = new ActionRepo(settings.connection);
         const transactionRepo = new TransactionRepo(settings.connection);
-        await AccountService.transferMoney(data.actionAttributes)({
+        await AccountService.transferMoney<T>(data.actionAttributes)({
             action: actionRepo,
             account: accountRepo,
             transaction: transactionRepo

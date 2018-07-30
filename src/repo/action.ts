@@ -6,14 +6,14 @@ import ActionModel from './mongoose/model/action';
 
 const debug = createDebug('pecorino-domain:repository:action');
 
-export type IAction<T> =
-    T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction :
+export type IAction<T extends factory.actionType> =
+    T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction<factory.account.AccountType> :
     factory.action.IAction<factory.action.IAttributes<any, any>>;
-
 /**
  * 転送アクション検索条件インターフェース
  */
-export interface ISearchTransferActionsConditions {
+export interface ISearchTransferActionsConditions<T extends factory.account.AccountType> {
+    accountType: T;
     accountNumber: string;
     limit?: number;
 }
@@ -27,7 +27,6 @@ export class MongoRepository {
     constructor(connection: Connection) {
         this.actionModel = connection.model(ActionModel.modelName);
     }
-
     /**
      * アクション開始
      */
@@ -40,7 +39,6 @@ export class MongoRepository {
             (doc) => doc.toObject()
         );
     }
-
     /**
      * アクション完了
      */
@@ -68,7 +66,6 @@ export class MongoRepository {
             return doc.toObject();
         });
     }
-
     /**
      * アクション中止
      */
@@ -93,7 +90,6 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
-
     /**
      * アクション失敗
      */
@@ -121,7 +117,6 @@ export class MongoRepository {
             return doc.toObject();
         });
     }
-
     /**
      * IDで取得する
      */
@@ -143,14 +138,13 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
-
     /**
      * 転送アクションを検索する
      * @param searchConditions 検索条件
      */
-    public async searchTransferActions(
-        searchConditions: ISearchTransferActionsConditions
-    ): Promise<factory.action.transfer.moneyTransfer.IAction[]> {
+    public async searchTransferActions<T extends factory.account.AccountType>(
+        searchConditions: ISearchTransferActionsConditions<T>
+    ): Promise<factory.action.transfer.moneyTransfer.IAction<T>[]> {
         // tslint:disable-next-line:no-magic-numbers no-single-line-block-comment
         const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : /* istanbul ignore next*/ 100;
 
@@ -158,12 +152,14 @@ export class MongoRepository {
             $or: [
                 {
                     typeOf: factory.actionType.MoneyTransfer,
-                    'fromLocation.typeOf': factory.account.AccountType.Account,
+                    'fromLocation.typeOf': factory.account.TypeOf.Account,
+                    'fromLocation.accountType': searchConditions.accountType,
                     'fromLocation.accountNumber': searchConditions.accountNumber
                 },
                 {
                     typeOf: factory.actionType.MoneyTransfer,
-                    'toLocation.typeOf': factory.account.AccountType.Account,
+                    'toLocation.typeOf': factory.account.TypeOf.Account,
+                    'toLocation.accountType': searchConditions.accountType,
                     'toLocation.accountNumber': searchConditions.accountNumber
                 }
             ]
@@ -172,7 +168,6 @@ export class MongoRepository {
             .exec()
             .then((docs) => docs.map((doc) => doc.toObject()));
     }
-
     /**
      * アクションを検索する
      * @param searchConditions 検索条件
