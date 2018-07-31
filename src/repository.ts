@@ -1,6 +1,6 @@
 // tslint:disable:max-classes-per-file completed-docs
 /**
- * pecorino-domain リポジトリー
+ * リポジトリー
  * @module
  */
 import { MongoRepository as AccountRepo } from './repo/account';

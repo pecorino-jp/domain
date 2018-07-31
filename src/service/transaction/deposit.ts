@@ -8,7 +8,7 @@ import { MongoRepository as AccountRepo } from '../../repo/account';
 import { MongoRepository as TaskRepository } from '../../repo/task';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
-const debug = createDebug('pecorino-domain:service:transaction:deposit');
+const debug = createDebug('pecorino-domain:*');
 
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;

@@ -51,8 +51,10 @@
     "node": ">=6.9.1",
     "npm": ">=5.3.0"
   },
-  "keywords": [],
-  "license": "UNLICENSED",
+  "keywords": [
+    "pecorino"
+  ],
+  "license": "ISC",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [

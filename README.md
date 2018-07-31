@@ -26,7 +26,6 @@ npm install @pecorino/domain
 | Name                                 | Required | Value             | Purpose           |
 |--------------------------------------|----------|-------------------|-------------------|
 | `DEBUG`                              | false    | pecorino-domain:* | Debug             |
-| `NPM_TOKEN`                          | true     |                   | NPM auth token    |
 | `NODE_ENV`                           | true     |                   | environment name  |
 | `SENDGRID_API_KEY`                   | false    |                   | SendGridAPIキー     |
 | `DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN` | false    |                   | 開発者LINE通知アクセストークン |
@@ -37,4 +36,4 @@ Code sample are [here](https://github.com/pecorino-jp/domain/tree/master/example
 
 ## License
 
-UNLICENSED
+ISC

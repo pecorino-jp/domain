@@ -1,7 +1,6 @@
 // tslint:disable:max-classes-per-file completed-docs
 /**
- * pecorino-domain index module
- * @module
+ * domain index module
  */
 import * as mongoose from 'mongoose';
 
@@ -18,9 +17,8 @@ import * as WithdrawTransactionService from './service/transaction/withdraw';
 
 /**
  * MongoDBクライアント`mongoose`
- *
  * @example
- * var promise = pecorino.mongoose.connect('mongodb://localhost/myapp', {
+ * var promise = domain.mongoose.connect('mongodb://localhost/myapp', {
  *     useMongoClient: true
  * });
  */
