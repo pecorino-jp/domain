@@ -7,7 +7,7 @@ import * as json2csv from 'json2csv';
 import * as factory from '../factory';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
-const debug = createDebug('pecorino-domain:service:report');
+const debug = createDebug('pecorino-domain:*');
 
 /**
  * 取引ダウンロードフォーマット
@@ -122,7 +122,7 @@ export interface ITransactionReport {
  * @param transaction 取引オブジェクト
  */
 export function transaction2report(params: {
-    transaction: factory.transaction.ITransaction<factory.transactionType>;
+    transaction: factory.transaction.ITransaction<factory.transactionType, factory.account.AccountType>;
 }): ITransactionReport {
     const fromLocation = { ...params.transaction.agent, accountNumber: '' };
     const toLocation = { ...params.transaction.recipient, accountNumber: '' };

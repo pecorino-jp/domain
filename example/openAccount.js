@@ -20,8 +20,10 @@ async function main() {
     const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
     const accountNumberRepo = new pecorino.repository.AccountNumber(redisClient);
     const account = await pecorino.service.account.open({
+        accountType: 'Coin',
+        accountNumber: moment().unix().toString(),
         name: 'PECORINO TARO',
-        initialBalance: 1000000000
+        initialBalance: 0
     })({ account: accountRepo, accountNumber: accountNumberRepo });
     console.log('account opened.', account);
 }

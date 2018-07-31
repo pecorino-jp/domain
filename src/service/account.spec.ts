@@ -58,18 +58,19 @@ describe('金額を転送する', () => {
             purpose: {},
             amount: 1234,
             fromLocation: {
-                typeOf: pecorino.factory.account.AccountType.Account,
+                typeOf: pecorino.factory.account.TypeOf.Account,
                 accountNumber: 'accountNumber'
             },
             toLocation: {
-                typeOf: pecorino.factory.account.AccountType.Account,
+                typeOf: pecorino.factory.account.TypeOf.Account,
                 accountNumber: 'accountNumber'
             }
         };
+        const transaction = { object: {} };
         const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
         const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
         const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves({});
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
         sandbox.mock(accountRepo).expects('settleTransaction').once().resolves();
         sandbox.mock(actionRepo).expects('start').once().resolves({});
         sandbox.mock(actionRepo).expects('complete').once().resolves({});
@@ -89,19 +90,20 @@ describe('金額を転送する', () => {
             purpose: {},
             amount: 1234,
             fromLocation: {
-                typeOf: pecorino.factory.account.AccountType.Account,
+                typeOf: pecorino.factory.account.TypeOf.Account,
                 accountNumber: 'accountNumber'
             },
             toLocation: {
-                typeOf: pecorino.factory.account.AccountType.Account,
+                typeOf: pecorino.factory.account.TypeOf.Account,
                 accountNumber: 'accountNumber'
             }
         };
+        const transaction = { object: {} };
         const settleError = new Error('settleError');
         const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
         const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
         const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves({});
+        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
         sandbox.mock(actionRepo).expects('start').once().resolves({});
         sandbox.mock(accountRepo).expects('settleTransaction').once().rejects(settleError);
         sandbox.mock(actionRepo).expects('giveUp').once().resolves({});

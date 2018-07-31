@@ -132,6 +132,7 @@ describe('転送アクションを検索する', () => {
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
+            accountType: 'accountType',
             accountNumber: 'accountNumber',
             limit: 1
         };

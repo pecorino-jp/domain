@@ -19,7 +19,7 @@ export type TaskAndConnectionOperation<T> = (settings: {
     connection: mongoose.Connection;
 }) => Promise<T>;
 
-const debug = createDebug('pecorino-domain:service:task');
+const debug = createDebug('pecorino-domain:*');
 
 export const ABORT_REPORT_SUBJECT = 'Task aborted !!!';
 

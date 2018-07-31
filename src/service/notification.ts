@@ -16,7 +16,7 @@ import { MongoRepository as ActionRepo } from '../repo/action';
 
 export type Operation<T> = () => Promise<T>;
 
-const debug = createDebug('pecorino-domain:service:notification');
+const debug = createDebug('pecorino-domain:*');
 
 export const LINE_NOTIFY_URL = 'https://notify-api.line.me/api/notify';
 

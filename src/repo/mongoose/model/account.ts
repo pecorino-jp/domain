@@ -25,12 +25,16 @@ const schema = new mongoose.Schema(
     }
 );
 
-// 口座番号はユニーク
+// 口座タイプと口座番号でユニーク
 schema.index(
-    { accountNumber: 1 },
+    {
+        accountType: 1,
+        accountNumber: 1
+    },
     {
         unique: true,
         partialFilterExpression: {
+            accountType: { $exists: true },
             accountNumber: { $exists: true }
         }
     }

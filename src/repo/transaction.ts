@@ -14,14 +14,13 @@ export class MongoRepository {
     constructor(connection: Connection) {
         this.transactionModel = connection.model(TransactionModel.modelName);
     }
-
     /**
      * 取引を開始する
      */
-    public async start<T extends factory.transactionType>(
+    public async start<T extends factory.transactionType, T1 extends factory.account.AccountType>(
         typeOf: T,
-        params: factory.transaction.IStartParams<T>
-    ): Promise<factory.transaction.ITransaction<T>> {
+        params: factory.transaction.IStartParams<T, T1>
+    ): Promise<factory.transaction.ITransaction<T, T1>> {
         return this.transactionModel.create({
             typeOf: typeOf,
             ...<Object>params,
@@ -31,17 +30,16 @@ export class MongoRepository {
             tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
         }).then((doc) => doc.toObject());
     }
-
     /**
      * IDで取引を取得する
      */
-    public async findById<T extends factory.transactionType>(
+    public async findById<T extends factory.transactionType, T1 extends factory.account.AccountType>(
         typeOf: T,
         /**
          * 取引ID
          */
         transactionId: string
-    ): Promise<factory.transaction.ITransaction<T>> {
+    ): Promise<factory.transaction.ITransaction<T, T1>> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
             typeOf: typeOf
@@ -53,16 +51,15 @@ export class MongoRepository {
 
         return doc.toObject();
     }
-
     /**
      * 取引を確定する
      */
-    public async confirm<T extends factory.transactionType>(
+    public async confirm<T extends factory.transactionType, T1 extends factory.account.AccountType>(
         typeOf: T,
         transactionId: string,
         result: factory.transaction.IResult<T>,
-        potentialActions: factory.transaction.IPotentialActions<T>
-    ): Promise<factory.transaction.ITransaction<T>> {
+        potentialActions: factory.transaction.IPotentialActions<T, T1>
+    ): Promise<factory.transaction.ITransaction<T, T1>> {
         const doc = await this.transactionModel.findOneAndUpdate(
             {
                 _id: transactionId,
@@ -80,7 +77,7 @@ export class MongoRepository {
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
-            const transaction = await this.findById(typeOf, transactionId);
+            const transaction = await this.findById<T, T1>(typeOf, transactionId);
             if (transaction.status === factory.transactionStatusType.Confirmed) {
                 // すでに確定済の場合
                 return transaction;
@@ -95,14 +92,13 @@ export class MongoRepository {
 
         return doc.toObject();
     }
-
     /**
      * 取引を中止する
      */
-    public async cancel<T extends factory.transactionType>(
+    public async cancel<T extends factory.transactionType, T1 extends factory.account.AccountType>(
         typeOf: T,
         transactionId: string
-    ): Promise<factory.transaction.ITransaction<T>> {
+    ): Promise<factory.transaction.ITransaction<T, T1>> {
         // 進行中ステータスの取引を中止する
         const doc = await this.transactionModel.findOneAndUpdate(
             {
@@ -119,7 +115,7 @@ export class MongoRepository {
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
-            const transaction = await this.findById(typeOf, transactionId);
+            const transaction = await this.findById<T, T1>(typeOf, transactionId);
             if (transaction.status === factory.transactionStatusType.Canceled) {
                 // すでに中止済の場合
                 return transaction;
@@ -134,15 +130,14 @@ export class MongoRepository {
 
         return doc.toObject();
     }
-
     /**
      * タスク未エクスポートの取引をひとつ取得してエクスポートを開始する
      * @param typeOf 取引タイプ
      * @param status 取引ステータス
      */
-    public async startExportTasks<T extends factory.transactionType>(
+    public async startExportTasks<T extends factory.transactionType, T1 extends factory.account.AccountType>(
         typeOf: T, status: factory.transactionStatusType
-    ): Promise<factory.transaction.ITransaction<T> | null> {
+    ): Promise<factory.transaction.ITransaction<T, T1> | null> {
         return this.transactionModel.findOneAndUpdate(
             {
                 typeOf: typeOf,
@@ -153,7 +148,6 @@ export class MongoRepository {
             { new: true }
         ).exec().then((doc) => (doc === null) ? null : doc.toObject());
     }
-
     /**
      * タスクエクスポートリトライ
      * todo updatedAtを基準にしているが、タスクエクスポートトライ日時を持たせた方が安全か？
@@ -169,7 +163,6 @@ export class MongoRepository {
             }
         ).exec();
     }
-
     /**
      * set task status exported by transaction id
      * IDでタスクをエクスポート済に変更する
@@ -184,7 +177,6 @@ export class MongoRepository {
             }
         ).exec();
     }
-
     /**
      * 取引を期限切れにする
      */
@@ -204,16 +196,15 @@ export class MongoRepository {
             { multi: true }
         ).exec();
     }
-
     /**
      * 取引を検索する
      * @param conditions 検索条件
      */
-    public async search<T extends factory.transactionType>(params: {
+    public async search<T extends factory.transactionType, T1 extends factory.account.AccountType>(params: {
         typeOf?: T;
         startFrom: Date;
         startThrough: Date;
-    }): Promise<factory.transaction.ITransaction<T>[]> {
+    }): Promise<factory.transaction.ITransaction<T, T1>[]> {
         const conditions: any = {
             startDate: {
                 $gte: params.startFrom,

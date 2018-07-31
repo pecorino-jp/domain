@@ -95,7 +95,10 @@ describe('口座番号で検索', () => {
     it('口座が存在すればオブジェクトを取得できるはず', async () => {
         sandbox.mock(accountRepo.accountModel).expects('findOne').once().chain('exec').resolves(new accountRepo.accountModel());
 
-        const result = await accountRepo.findByAccountNumber('accountNumber');
+        const result = await accountRepo.findByAccountNumber({
+            accountType: 'accountType',
+            accountNumber: 'accountNumber'
+        });
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -103,7 +106,10 @@ describe('口座番号で検索', () => {
     it('存在しなければNotFoundエラーとなるはず', async () => {
         sandbox.mock(accountRepo.accountModel).expects('findOne').once().chain('exec').resolves(null);
 
-        const result = await accountRepo.findByAccountNumber('accountNumber').catch((err) => err);
+        const result = await accountRepo.findByAccountNumber({
+            accountType: 'accountType',
+            accountNumber: 'accountNumber'
+        }).catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -218,6 +224,7 @@ describe('口座に保留中の取引を実行する', () => {
         sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.settleTransaction({
+            accountType: 'accountType',
             fromAccountNumber: 'fromAccountNumber',
             // toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -231,6 +238,7 @@ describe('口座に保留中の取引を実行する', () => {
         sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.settleTransaction({
+            accountType: 'accountType',
             // fromAccountNumber: 'fromAccountNumber',
             toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -251,6 +259,7 @@ describe('口座に保留中の取引を中止する', () => {
         sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.voidTransaction({
+            accountType: 'accountType',
             fromAccountNumber: 'fromAccountNumber',
             // toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -264,6 +273,7 @@ describe('口座に保留中の取引を中止する', () => {
         sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.voidTransaction({
+            accountType: 'accountType',
             // fromAccountNumber: 'fromAccountNumber',
             toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -282,6 +292,7 @@ describe('口座を検索する', () => {
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
+            accountType: 'accountType',
             accountNumbers: ['accountNumber'],
             statuses: [pecorino.factory.accountStatusType.Opened],
             name: '',

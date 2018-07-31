@@ -1,4 +1,4 @@
 /**
- * pecorino-factory
+ * factory
  */
 export * from '@pecorino/factory';

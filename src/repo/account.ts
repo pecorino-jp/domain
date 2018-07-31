@@ -5,23 +5,25 @@ import AccountModel from './mongoose/model/account';
 
 import * as factory from '../factory';
 
-const debug = createDebug('pecorino-domain:repository:account');
+const debug = createDebug('pecorino-domain:*');
 
 /**
  * 口座リポジトリー
  */
 export class MongoRepository {
     public readonly accountModel: typeof AccountModel;
-
     constructor(connection: Connection) {
         this.accountModel = connection.model(AccountModel.modelName);
     }
-
     /**
      * 口座を開設する
      * @param params 口座開設初期設定
      */
-    public async open(params: {
+    public async open<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
         /**
          * 口座名義
          */
@@ -38,10 +40,11 @@ export class MongoRepository {
          * 開設日時
          */
         openDate: Date;
-    }): Promise<factory.account.IAccount> {
+    }): Promise<factory.account.IAccount<T>> {
         debug('opening account...');
-        const account: factory.account.IAccount = {
-            typeOf: factory.account.AccountType.Account,
+        const account: factory.account.IAccount<T> = {
+            typeOf: factory.account.TypeOf.Account,
+            accountType: params.accountType,
             accountNumber: params.accountNumber,
             name: params.name,
             balance: params.initialBalance,
@@ -55,19 +58,29 @@ export class MongoRepository {
 
         return doc.toObject();
     }
-
     /**
      * 口座を解約する
      * @param params.accountNumber 口座番号
      * @param params.closeDate 解約日時
      */
-    public async close(params: {
+    public async close<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
+        /**
+         * 口座番号
+         */
         accountNumber: string;
+        /**
+         * 解約日時
+         */
         closeDate: Date;
     }) {
         debug('closing account...');
         const doc = await this.accountModel.findOneAndUpdate(
             {
+                accountType: params.accountType,
                 accountNumber: params.accountNumber,
                 pendingTransactions: { $size: 0 },
                 status: factory.accountStatusType.Opened
@@ -83,7 +96,10 @@ export class MongoRepository {
 
         // NotFoundであれば口座状態確認
         if (doc === null) {
-            const account = await this.findByAccountNumber(params.accountNumber);
+            const account = await this.findByAccountNumber({
+                accountType: params.accountType,
+                accountNumber: params.accountNumber
+            });
             if (account.status === factory.accountStatusType.Closed) {
                 // すでに口座解約済の場合
                 return;
@@ -95,34 +111,54 @@ export class MongoRepository {
             }
         }
     }
-
     /**
      * 口座番号で検索する
-     * @param accountNumber 口座番号
      */
-    public async findByAccountNumber(accountNumber: string): Promise<factory.account.IAccount> {
-        const doc = await this.accountModel.findOne({ accountNumber: accountNumber }).exec();
+    public async findByAccountNumber<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
+        /**
+         * 口座番号
+         */
+        accountNumber: string;
+    }): Promise<factory.account.IAccount<T>> {
+        const doc = await this.accountModel.findOne({
+            accountType: params.accountType,
+            accountNumber: params.accountNumber
+        }).exec();
         if (doc === null) {
             throw new factory.errors.NotFound('Account');
         }
 
         return doc.toObject();
     }
-
     /**
      * 金額を確保する
-     * @param params.accountNumber 口座番号
-     * @param params.amount 金額
-     * @param params.transaction 進行取引
      * @see https://en.wikipedia.org/wiki/Authorization_hold
      */
-    public async authorizeAmount(params: {
+    public async authorizeAmount<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
+        /**
+         * 口座番号
+         */
         accountNumber: string;
+        /**
+         * 金額
+         */
         amount: number;
+        /**
+         * 進行取引
+         */
         transaction: factory.account.IPendingTransaction;
     }) {
         const doc = await this.accountModel.findOneAndUpdate(
             {
+                accountType: params.accountType,
                 accountNumber: params.accountNumber,
                 availableBalance: { $gte: params.amount }, // 利用可能金額確認
                 status: factory.accountStatusType.Opened // 開いている口座
@@ -136,7 +172,10 @@ export class MongoRepository {
 
         // NotFoundであれば口座状態確認
         if (doc === null) {
-            const account = await this.findByAccountNumber(params.accountNumber);
+            const account = await this.findByAccountNumber({
+                accountType: params.accountType,
+                accountNumber: params.accountNumber
+            });
             if (account.status === factory.accountStatusType.Closed) {
                 // 口座解約済の場合
                 throw new factory.errors.Argument('accountNumber', 'Account already closed');
@@ -148,18 +187,26 @@ export class MongoRepository {
             }
         }
     }
-
     /**
      * 取引を開始する
-     * @param params.accountNumber 口座番号
-     * @param params.transaction 進行取引
      */
-    public async startTransaction(params: {
+    public async startTransaction<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
+        /**
+         * 口座番号
+         */
         accountNumber: string;
+        /**
+         * 進行取引
+         */
         transaction: factory.account.IPendingTransaction;
     }) {
         const doc = await this.accountModel.findOneAndUpdate(
             {
+                accountType: params.accountType,
                 accountNumber: params.accountNumber,
                 status: factory.accountStatusType.Opened // 開いている口座
             },
@@ -168,7 +215,10 @@ export class MongoRepository {
 
         // NotFoundであれば口座状態確認
         if (doc === null) {
-            const account = await this.findByAccountNumber(params.accountNumber);
+            const account = await this.findByAccountNumber({
+                accountType: params.accountType,
+                accountNumber: params.accountNumber
+            });
             if (account.status === factory.accountStatusType.Closed) {
                 // 口座解約済の場合
                 throw new factory.errors.Argument('accountNumber', 'Account already closed');
@@ -177,12 +227,15 @@ export class MongoRepository {
             }
         }
     }
-
     /**
      * 決済処理を実行する
      * 口座上で進行中の取引について、実際に金額移動処理を実行します。
      */
-    public async settleTransaction(params: {
+    public async settleTransaction<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
@@ -192,6 +245,7 @@ export class MongoRepository {
         if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
+                    accountType: params.accountType,
                     accountNumber: params.fromAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -208,6 +262,7 @@ export class MongoRepository {
         if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
+                    accountType: params.accountType,
                     accountNumber: params.toAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -221,13 +276,16 @@ export class MongoRepository {
             ).exec();
         }
     }
-
     /**
      * 取引を取り消す
      * 口座上で進行中の取引を中止します。
      * @see https://www.investopedia.com/terms/v/void-transaction.asp
      */
-    public async voidTransaction(params: {
+    public async voidTransaction<T extends factory.account.AccountType>(params: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
@@ -237,6 +295,7 @@ export class MongoRepository {
         if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
+                    accountType: params.accountType,
                     accountNumber: params.fromAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -253,6 +312,7 @@ export class MongoRepository {
         if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
+                    accountType: params.accountType,
                     accountNumber: params.toAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -262,22 +322,34 @@ export class MongoRepository {
             ).exec();
         }
     }
-
     /**
      * 口座を検索する
      * @param searchConditions 検索条件
      */
-    public async search(searchConditions: {
+    public async search<T extends factory.account.AccountType>(searchConditions: {
+        /**
+         * 口座タイプ
+         */
+        accountType: T;
+        /**
+         * 口座番号リスト
+         */
         accountNumbers: string[];
+        /**
+         * 口座ステータスリスト
+         */
         statuses: factory.accountStatusType[];
         /**
          * 口座名義
          */
         name?: string;
         limit: number;
-    }): Promise<factory.account.IAccount[]> {
+    }): Promise<factory.account.IAccount<T>[]> {
         const andConditions: any[] = [
-            { typeOf: factory.account.AccountType.Account }
+            {
+                typeOf: factory.account.TypeOf.Account,
+                accountType: searchConditions.accountType
+            }
         ];
 
         // tslint:disable-next-line:no-single-line-block-comment

@@ -16,6 +16,8 @@ async function main(mongooseConnection, redisConnection) {
     //     openDate: new Date()
     // });
     const account = await pecorino.service.account.open({
+        accountType: 'Coin',
+        accountNumber: moment().unix().toString(),
         name: 'PECORINO TARO',
         initialBalance: 0
     })({ account: accountRepo, accountNumber: accountNumberRepo });
