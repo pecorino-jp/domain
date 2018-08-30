@@ -15,6 +15,37 @@ export class MongoRepository {
     constructor(connection: Connection) {
         this.accountModel = connection.model(AccountModel.modelName);
     }
+    public static CREATE_MONGO_CONDITIONS<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>) {
+        const andConditions: any[] = [
+            {
+                typeOf: factory.account.TypeOf.Account,
+                accountType: params.accountType
+            }
+        ];
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (Array.isArray(params.accountNumbers) && params.accountNumbers.length > 0) {
+            andConditions.push({
+                accountNumber: { $in: params.accountNumbers }
+            });
+        }
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (Array.isArray(params.statuses) && params.statuses.length > 0) {
+            andConditions.push({
+                status: { $in: params.statuses }
+            });
+        }
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof params.name === 'string') {
+            andConditions.push({
+                name: new RegExp(params.name, 'gi')
+            });
+        }
+
+        return andConditions;
+    }
     /**
      * 口座を開設する
      * @param params 口座開設初期設定
@@ -322,74 +353,38 @@ export class MongoRepository {
             ).exec();
         }
     }
+    public async count<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>): Promise<number> {
+        const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
+
+        return this.accountModel.countDocuments({ $and: conditions }).setOptions({ maxTimeMS: 10000 }).exec();
+    }
     /**
      * 口座を検索する
-     * @param searchConditions 検索条件
      */
-    public async search<T extends factory.account.AccountType>(searchConditions: {
-        /**
-         * 口座タイプ
-         */
-        accountType: T;
-        /**
-         * 口座番号リスト
-         */
-        accountNumbers: string[];
-        /**
-         * 口座ステータスリスト
-         */
-        statuses: factory.accountStatusType[];
-        /**
-         * 口座名義
-         */
-        name?: string;
-        limit: number;
-    }): Promise<factory.account.IAccount<T>[]> {
-        const andConditions: any[] = [
-            {
-                typeOf: factory.account.TypeOf.Account,
-                accountType: searchConditions.accountType
-            }
-        ];
-
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore else */
-        if (Array.isArray(searchConditions.accountNumbers) && searchConditions.accountNumbers.length > 0) {
-            andConditions.push({
-                accountNumber: { $in: searchConditions.accountNumbers }
-            });
-        }
-
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore else */
-        if (Array.isArray(searchConditions.statuses) && searchConditions.statuses.length > 0) {
-            andConditions.push({
-                status: { $in: searchConditions.statuses }
-            });
-        }
-
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore else */
-        if (typeof searchConditions.name === 'string') {
-            andConditions.push({
-                name: new RegExp(searchConditions.name, 'gi')
-            });
-        }
-
-        debug('finding accounts...', andConditions);
-
-        return this.accountModel.find(
-            { $and: andConditions },
+    public async search<T extends factory.account.AccountType>(
+        params: factory.account.ISearchConditions<T>
+    ): Promise<factory.account.IAccount<T>[]> {
+        const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
+        const query = this.accountModel.find(
+            { $and: conditions },
             {
                 __v: 0,
                 createdAt: 0,
                 updatedAt: 0,
                 pendingTransactions: 0
             }
-        )
-            .sort({ accountNumber: 1 })
-            .limit(searchConditions.limit)
-            .exec()
-            .then((docs) => docs.map((doc) => doc.toObject()));
+        );
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.limit !== undefined && params.page !== undefined) {
+            query.limit(params.limit).skip(params.limit * (params.page - 1));
+        }
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.sort !== undefined) {
+            query.sort(params.sort);
+        }
+
+        return query.setOptions({ maxTimeMS: 10000 }).exec().then((docs) => docs.map((doc) => doc.toObject()));
     }
 }

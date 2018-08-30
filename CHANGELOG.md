@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- 口座検索条件を強化。
+- 転送アクション検索条件を強化。
+
 ### Deprecated
 
 ### Removed

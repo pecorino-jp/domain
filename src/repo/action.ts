@@ -9,23 +9,39 @@ const debug = createDebug('pecorino-domain:*');
 export type IAction<T extends factory.actionType> =
     T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction<factory.account.AccountType> :
     factory.action.IAction<factory.action.IAttributes<any, any>>;
-/**
- * 転送アクション検索条件インターフェース
- */
-export interface ISearchTransferActionsConditions<T extends factory.account.AccountType> {
-    accountType: T;
-    accountNumber: string;
-    limit?: number;
-}
 
 /**
  * アクションリポジトリー
  */
 export class MongoRepository {
     public readonly actionModel: typeof ActionModel;
-
     constructor(connection: Connection) {
         this.actionModel = connection.model(ActionModel.modelName);
+    }
+    public static CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS<T extends factory.account.AccountType>(
+        params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
+    ) {
+        const andConditions: any[] = [
+            {
+                typeOf: factory.actionType.MoneyTransfer
+            }
+        ];
+        andConditions.push({
+            $or: [
+                {
+                    'fromLocation.typeOf': factory.account.TypeOf.Account,
+                    'fromLocation.accountType': params.accountType,
+                    'fromLocation.accountNumber': params.accountNumber
+                },
+                {
+                    'toLocation.typeOf': factory.account.TypeOf.Account,
+                    'toLocation.accountType': params.accountType,
+                    'toLocation.accountNumber': params.accountNumber
+                }
+            ]
+        });
+
+        return andConditions;
     }
     /**
      * アクション開始
@@ -138,35 +154,40 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
+    public async countTransferActions<T extends factory.account.AccountType>(
+        params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
+    ): Promise<number> {
+        const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
+
+        return this.actionModel.countDocuments({ $and: conditions }).setOptions({ maxTimeMS: 10000 }).exec();
+    }
     /**
      * 転送アクションを検索する
-     * @param searchConditions 検索条件
      */
     public async searchTransferActions<T extends factory.account.AccountType>(
-        searchConditions: ISearchTransferActionsConditions<T>
+        params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
     ): Promise<factory.action.transfer.moneyTransfer.IAction<T>[]> {
-        // tslint:disable-next-line:no-magic-numbers no-single-line-block-comment
-        const limit = (searchConditions.limit !== undefined) ? searchConditions.limit : /* istanbul ignore next*/ 100;
+        const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
+        const query = this.actionModel.find(
+            { $and: conditions },
+            {
+                __v: 0,
+                createdAt: 0,
+                updatedAt: 0
+            }
+        );
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.limit !== undefined && params.page !== undefined) {
+            query.limit(params.limit).skip(params.limit * (params.page - 1));
+        }
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.sort !== undefined) {
+            query.sort(params.sort);
+        }
 
-        return this.actionModel.find({
-            $or: [
-                {
-                    typeOf: factory.actionType.MoneyTransfer,
-                    'fromLocation.typeOf': factory.account.TypeOf.Account,
-                    'fromLocation.accountType': searchConditions.accountType,
-                    'fromLocation.accountNumber': searchConditions.accountNumber
-                },
-                {
-                    typeOf: factory.actionType.MoneyTransfer,
-                    'toLocation.typeOf': factory.account.TypeOf.Account,
-                    'toLocation.accountType': searchConditions.accountType,
-                    'toLocation.accountNumber': searchConditions.accountNumber
-                }
-            ]
-        })
-            .sort({ endDate: -1 }).limit(limit)
-            .exec()
-            .then((docs) => docs.map((doc) => doc.toObject()));
+        return query.setOptions({ maxTimeMS: 10000 }).exec().then((docs) => docs.map((doc) => doc.toObject()));
     }
     /**
      * アクションを検索する
