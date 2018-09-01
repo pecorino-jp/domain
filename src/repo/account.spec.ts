@@ -283,25 +283,49 @@ describe('口座に保留中の取引を中止する', () => {
         sandbox.verify();
     });
 });
-
+describe('口座をカウント', () => {
+    beforeEach(() => {
+        sandbox.restore();
+        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+    });
+    it('MongoDBが正常であれば数字を取得できるはず', async () => {
+        const searchConditions = {
+            accountType: 'accountType',
+            accountNumbers: ['accountNumber'],
+            statuses: [pecorino.factory.accountStatusType.Opened],
+            name: '',
+            limit: 1,
+            page: 1,
+            sort: {
+                accountNumber: pecorino.factory.sortType.Ascending
+            }
+        };
+        sandbox.mock(accountRepo.accountModel).expects('countDocuments').once()
+            .chain('exec').resolves(1);
+        const result = await accountRepo.count(searchConditions);
+        assert(Number.isInteger(result));
+        sandbox.verify();
+    });
+});
 describe('口座を検索する', () => {
     beforeEach(() => {
         sandbox.restore();
         accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
     });
-
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
             statuses: [pecorino.factory.accountStatusType.Opened],
             name: '',
-            limit: 1
+            limit: 1,
+            page: 1,
+            sort: {
+                accountNumber: pecorino.factory.sortType.Ascending
+            }
         };
         sandbox.mock(accountRepo.accountModel).expects('find').once()
-            .chain('sort').chain('limit').chain('exec')
-            .resolves([new accountRepo.accountModel()]);
-
+            .chain('exec').resolves([new accountRepo.accountModel()]);
         const result = await accountRepo.search(searchConditions);
         assert(Array.isArray(result));
         sandbox.verify();

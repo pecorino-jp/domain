@@ -18,6 +18,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Security
 
+## v1.1.0 - 2018-09-01
+
+### Changed
+
+- 口座検索条件を強化。
+- 転送アクション検索条件を強化。
+
 ## v1.0.0 - 2018-07-31
 
 ### Changed

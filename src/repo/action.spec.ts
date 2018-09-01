@@ -100,7 +100,6 @@ describe('アクションを断念する', () => {
         sandbox.verify();
     });
 });
-
 describe('IDでアクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
@@ -123,28 +122,50 @@ describe('IDでアクションを検索する', () => {
         sandbox.verify();
     });
 });
-
+describe('転送アクションをカウント', () => {
+    beforeEach(() => {
+        sandbox.restore();
+        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+    });
+    it('MongoDBが正常であれば数字を取得できるはず', async () => {
+        const searchConditions = {
+            accountType: 'accountType',
+            accountNumber: 'accountNumber',
+            limit: 1,
+            page: 1,
+            sort: {
+                endDate: pecorino.factory.sortType.Ascending
+            }
+        };
+        sandbox.mock(actionRepo.actionModel).expects('countDocuments').once()
+            .chain('exec').resolves(1);
+        const result = await actionRepo.countTransferActions(searchConditions);
+        assert(Number.isInteger(result));
+        sandbox.verify();
+    });
+});
 describe('転送アクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
         actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
     });
-
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
             accountType: 'accountType',
             accountNumber: 'accountNumber',
-            limit: 1
+            limit: 1,
+            page: 1,
+            sort: {
+                endDate: pecorino.factory.sortType.Ascending
+            }
         };
         sandbox.mock(actionRepo.actionModel).expects('find').once()
-            .chain('sort').chain('limit').chain('exec').resolves([new actionRepo.actionModel()]);
-
+            .chain('exec').resolves([new actionRepo.actionModel()]);
         const result = await actionRepo.searchTransferActions(searchConditions);
         assert(Array.isArray(result));
         sandbox.verify();
     });
 });
-
 describe('アクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
