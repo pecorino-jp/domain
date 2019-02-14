@@ -1,13 +1,14 @@
 import * as mongoose from 'mongoose';
 
+const modelName = 'Account';
+
 const safe = { j: true, w: 'majority', wtimeout: 10000 };
 
 /**
  * 口座スキーマ
  */
 const schema = new mongoose.Schema(
-    {
-    },
+    {},
     {
         collection: 'accounts',
         id: true,
@@ -19,8 +20,18 @@ const schema = new mongoose.Schema(
             createdAt: 'createdAt',
             updatedAt: 'updatedAt'
         },
-        toJSON: { getters: true },
-        toObject: { getters: true }
+        toJSON: {
+            getters: true,
+            virtuals: true,
+            minimize: false,
+            versionKey: false
+        },
+        toObject: {
+            getters: true,
+            virtuals: true,
+            minimize: false,
+            versionKey: false
+        }
     }
 );
 
@@ -40,13 +51,43 @@ schema.index(
 );
 
 schema.index(
-    { typeOf: 1, status: 1, name: 1, openDate: 1 },
-    {
-        name: 'searchAccounts'
-    }
+    { createdAt: 1 },
+    { name: 'searchByCreatedAt' }
+);
+schema.index(
+    { updatedAt: 1 },
+    { name: 'searchByUpdatedAt' }
+);
+schema.index(
+    { typeOf: 1 },
+    { name: 'searchByTypeOf' }
+);
+schema.index(
+    { accountNumber: 1 },
+    { name: 'searchByAccountNumber' }
+);
+schema.index(
+    { accountType: 1 },
+    { name: 'searchByAccountType' }
+);
+schema.index(
+    { name: 1 },
+    { name: 'searchByName' }
+);
+schema.index(
+    { openDate: 1 },
+    { name: 'searchByOpenDate' }
+);
+schema.index(
+    { status: 1 },
+    { name: 'searchByStatus' }
+);
+schema.index(
+    { accountType: 1, accountNumber: 1, status: 1 },
+    { name: 'authorizeAmount' }
 );
 
-export default mongoose.model('Account', schema)
+export default mongoose.model(modelName, schema)
     .on(
         'index',
         // tslint:disable-next-line:no-single-line-block-comment
