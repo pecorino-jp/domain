@@ -29,14 +29,32 @@ export class MongoRepository {
         andConditions.push({
             $or: [
                 {
-                    'fromLocation.typeOf': factory.account.TypeOf.Account,
-                    'fromLocation.accountType': params.accountType,
-                    'fromLocation.accountNumber': params.accountNumber
+                    'fromLocation.typeOf': {
+                        $exists: true,
+                        $eq: factory.account.TypeOf.Account
+                    },
+                    'fromLocation.accountType': {
+                        $exists: true,
+                        $eq: params.accountType
+                    },
+                    'fromLocation.accountNumber': {
+                        $exists: true,
+                        $eq: params.accountNumber
+                    }
                 },
                 {
-                    'toLocation.typeOf': factory.account.TypeOf.Account,
-                    'toLocation.accountType': params.accountType,
-                    'toLocation.accountNumber': params.accountNumber
+                    'toLocation.typeOf': {
+                        $exists: true,
+                        $eq: factory.account.TypeOf.Account
+                    },
+                    'toLocation.accountType': {
+                        $exists: true,
+                        $eq: params.accountType
+                    },
+                    'toLocation.accountNumber': {
+                        $exists: true,
+                        $eq: params.accountNumber
+                    }
                 }
             ]
         });

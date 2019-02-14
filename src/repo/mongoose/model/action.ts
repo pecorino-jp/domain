@@ -1,5 +1,7 @@
 import * as mongoose from 'mongoose';
 
+const modelName = 'Action';
+
 const safe = { j: true, w: 'majority', wtimeout: 10000 };
 
 const agentSchema = new mongoose.Schema(
@@ -10,7 +12,6 @@ const agentSchema = new mongoose.Schema(
         strict: false
     }
 );
-
 const recipientSchema = new mongoose.Schema(
     {},
     {
@@ -19,16 +20,6 @@ const recipientSchema = new mongoose.Schema(
         strict: false
     }
 );
-
-const resultSchema = new mongoose.Schema(
-    {},
-    {
-        id: false,
-        _id: false,
-        strict: false
-    }
-);
-
 const errorSchema = new mongoose.Schema(
     {},
     {
@@ -37,16 +28,8 @@ const errorSchema = new mongoose.Schema(
         strict: false
     }
 );
-
-const objectSchema = new mongoose.Schema(
-    {},
-    {
-        id: false,
-        _id: false,
-        strict: false
-    }
-);
-
+const objectSchema = mongoose.SchemaTypes.Mixed;
+const resultSchema = mongoose.SchemaTypes.Mixed;
 const purposeSchema = new mongoose.Schema(
     {},
     {
@@ -55,7 +38,14 @@ const purposeSchema = new mongoose.Schema(
         strict: false
     }
 );
-
+const potentialActionsSchema = new mongoose.Schema(
+    {},
+    {
+        id: false,
+        _id: false,
+        strict: false
+    }
+);
 const locationSchema = new mongoose.Schema(
     {},
     {
@@ -64,8 +54,7 @@ const locationSchema = new mongoose.Schema(
         strict: false
     }
 );
-
-const potentialActionsSchema = new mongoose.Schema(
+const instrumentSchema = new mongoose.Schema(
     {},
     {
         id: false,
@@ -76,7 +65,6 @@ const potentialActionsSchema = new mongoose.Schema(
 
 /**
  * アクションスキーマ
- * @ignore
  */
 const schema = new mongoose.Schema(
     {
@@ -94,7 +82,8 @@ const schema = new mongoose.Schema(
         potentialActions: potentialActionsSchema,
         amount: Number,
         fromLocation: locationSchema,
-        toLocation: locationSchema
+        toLocation: locationSchema,
+        instrument: instrumentSchema
     },
     {
         collection: 'actions',
@@ -107,50 +96,133 @@ const schema = new mongoose.Schema(
             createdAt: 'createdAt',
             updatedAt: 'updatedAt'
         },
-        toJSON: { getters: true },
-        toObject: { getters: true }
-    }
-);
-
-schema.index(
-    { typeOf: 1, _id: 1 }
-);
-
-schema.index(
-    { 'fromLocation.accountNumber': 1, typeOf: 1 },
-    {
-        partialFilterExpression: {
-            'fromLocation.accountNumber': { $exists: true }
+        toJSON: {
+            getters: true,
+            virtuals: true,
+            minimize: false,
+            versionKey: false
+        },
+        toObject: {
+            getters: true,
+            virtuals: true,
+            minimize: false,
+            versionKey: false
         }
     }
 );
 
 schema.index(
-    { 'toLocation.accountNumber': 1, typeOf: 1 },
+    { createdAt: 1 },
+    { name: 'searchByCreatedAt' }
+);
+schema.index(
+    { updatedAt: 1 },
+    { name: 'searchByUpdatedAt' }
+);
+schema.index(
+    { typeOf: 1 },
+    { name: 'searchByTypeOf' }
+);
+schema.index(
+    { actionStatus: 1 },
+    { name: 'searchByActionStatus' }
+);
+schema.index(
+    { startDate: 1 },
+    { name: 'searchByStartDate' }
+);
+schema.index(
+    { endDate: 1 },
     {
+        name: 'searchByEndDate',
         partialFilterExpression: {
-            'toLocation.accountNumber': { $exists: true }
+            endDate: { $exists: true }
         }
     }
 );
-
 schema.index(
     { 'purpose.typeOf': 1 },
     {
+        name: 'searchByPurposeTypeOf',
         partialFilterExpression: {
             'purpose.typeOf': { $exists: true }
         }
     }
 );
-
 schema.index(
-    { typeOf: 1, startDate: 1, endDate: 1, actionStatus: 1 },
+    { 'purpose.id': 1 },
     {
-        name: 'searchActions'
+        name: 'searchByPurposeId',
+        partialFilterExpression: {
+            'purpose.id': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'object.typeOf': 1 },
+    {
+        name: 'searchByObjectTypeOf',
+        partialFilterExpression: {
+            'object.typeOf': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'fromLocation.typeOf': 1 },
+    {
+        name: 'searchByFromLocationTypeOf',
+        partialFilterExpression: {
+            'fromLocation.typeOf': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'fromLocation.accountNumber': 1 },
+    {
+        name: 'searchByFromLocationAccountNumber',
+        partialFilterExpression: {
+            'fromLocation.accountNumber': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'fromLocation.accountType': 1 },
+    {
+        name: 'searchByFromLocationAccountType',
+        partialFilterExpression: {
+            'fromLocation.accountType': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'toLocation.typeOf': 1 },
+    {
+        name: 'searchByToLocationTypeOf',
+        partialFilterExpression: {
+            'toLocation.typeOf': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'toLocation.accountNumber': 1 },
+    {
+        name: 'searchByToLocationAccountNumber',
+        partialFilterExpression: {
+            'toLocation.accountNumber': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'toLocation.accountType': 1 },
+    {
+        name: 'searchByToLocationAccountType',
+        partialFilterExpression: {
+            'toLocation.accountType': { $exists: true }
+        }
     }
 );
 
-export default mongoose.model('Action', schema)
+export default mongoose.model(modelName, schema)
     .on(
         'index',
         // tslint:disable-next-line:no-single-line-block-comment

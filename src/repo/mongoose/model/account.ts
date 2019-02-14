@@ -4,7 +4,6 @@ const safe = { j: true, w: 'majority', wtimeout: 10000 };
 
 /**
  * 口座スキーマ
- * @ignore
  */
 const schema = new mongoose.Schema(
     {

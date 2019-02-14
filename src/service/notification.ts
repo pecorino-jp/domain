@@ -89,7 +89,6 @@ export function sendEmailMessage(actionAttributes: factory.action.transfer.send.
 /**
  * report to developers
  * 開発者に報告する
- * @export
  * @see https://notify-bot.line.me/doc/ja/
  */
 export function report2developers(subject: string, content: string, imageThumbnail?: string, imageFullsize?: string): Operation<void> {

@@ -27,7 +27,6 @@ export const ABORT_REPORT_SUBJECT = 'Task aborted !!!';
  * execute a task by taskName
  * タスク名でタスクをひとつ実行する
  * @param taskName タスク名
- * @export
  */
 export function executeByName(taskName: factory.taskName): TaskAndConnectionOperation<void> {
     return async (settings: {
@@ -55,7 +54,6 @@ export function executeByName(taskName: factory.taskName): TaskAndConnectionOper
  * execute a task
  * タスクを実行する
  * @param task タスクオブジェクト
- * @export
  */
 export function execute(task: factory.task.ITask): TaskAndConnectionOperation<void> {
     debug('executing a task...', task);
@@ -90,7 +88,6 @@ export function execute(task: factory.task.ITask): TaskAndConnectionOperation<vo
  * retry tasks in running status
  * 実行中ステータスのままになっているタスクをリトライする
  * @param intervalInMinutes 最終トライ日時から何分経過したタスクをリトライするか
- * @export
  */
 export function retry(intervalInMinutes: number): TaskOperation<void> {
     return async (repos: { task: TaskRepo }) => {
@@ -102,7 +99,6 @@ export function retry(intervalInMinutes: number): TaskOperation<void> {
  * abort a task
  * トライ可能回数が0に達したタスクを実行中止する
  * @param intervalInMinutes 最終トライ日時から何分経過したタスクを中止するか
- * @export
  */
 export function abort(intervalInMinutes: number): TaskOperation<void> {
     return async (repos: { task: TaskRepo }) => {
