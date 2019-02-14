@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- install typescript@3.x.x
+- update tslint
+
 ### Deprecated
 
 ### Removed

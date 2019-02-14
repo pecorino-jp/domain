@@ -23,9 +23,10 @@ export class MongoRepository {
         this.taskModel = connection.model(taskModel.modelName);
     }
     public async save(taskAttributes: factory.task.IAttributes): Promise<factory.task.ITask> {
-        return this.taskModel.create(taskAttributes).then(
-            (doc) => <factory.task.ITask>doc.toObject()
-        );
+        return this.taskModel.create(taskAttributes)
+            .then(
+                (doc) => <factory.task.ITask>doc.toObject()
+            );
     }
     public async executeOneByName(taskName: factory.taskName): Promise<factory.task.ITask> {
         const doc = await this.taskModel.findOneAndUpdate(
@@ -43,7 +44,9 @@ export class MongoRepository {
                 }
             },
             { new: true }
-        ).sort(sortOrder4executionOfTasks).exec();
+        )
+            .sort(sortOrder4executionOfTasks)
+            .exec();
 
         if (doc === null) {
             throw new factory.errors.NotFound('executable task');
@@ -52,7 +55,9 @@ export class MongoRepository {
         return <factory.task.ITask>doc.toObject();
     }
     public async retry(intervalInMinutes: number) {
-        const lastTriedAtShoudBeLessThan = moment().add(-intervalInMinutes, 'minutes').toDate();
+        const lastTriedAtShoudBeLessThan = moment()
+            .add(-intervalInMinutes, 'minutes')
+            .toDate();
         await this.taskModel.update(
             {
                 status: factory.taskStatus.Running,
@@ -63,10 +68,13 @@ export class MongoRepository {
                 status: factory.taskStatus.Ready // 実行前に変更
             },
             { multi: true }
-        ).exec();
+        )
+            .exec();
     }
     public async abortOne(intervalInMinutes: number): Promise<factory.task.ITask> {
-        const lastTriedAtShoudBeLessThan = moment().add(-intervalInMinutes, 'minutes').toDate();
+        const lastTriedAtShoudBeLessThan = moment()
+            .add(-intervalInMinutes, 'minutes')
+            .toDate();
 
         const doc = await this.taskModel.findOneAndUpdate(
             {
@@ -78,7 +86,8 @@ export class MongoRepository {
                 status: factory.taskStatus.Aborted
             },
             { new: true }
-        ).exec();
+        )
+            .exec();
 
         if (doc === null) {
             throw new factory.errors.NotFound('abortable task');
@@ -97,6 +106,7 @@ export class MongoRepository {
                 status: status, // 失敗してもここでは戻さない(Runningのまま待機)
                 $push: { executionResults: executionResult }
             }
-        ).exec();
+        )
+            .exec();
     }
 }

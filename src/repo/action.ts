@@ -51,9 +51,10 @@ export class MongoRepository {
             ...params,
             actionStatus: factory.actionStatusType.ActiveActionStatus,
             startDate: new Date()
-        }).then(
-            (doc) => doc.toObject()
-        );
+        })
+            .then(
+                (doc) => doc.toObject()
+            );
     }
     /**
      * アクション完了
@@ -74,13 +75,15 @@ export class MongoRepository {
                 endDate: new Date()
             },
             { new: true }
-        ).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('action');
-            }
+        )
+            .exec()
+            .then((doc) => {
+                if (doc === null) {
+                    throw new factory.errors.NotFound('action');
+                }
 
-            return doc.toObject();
-        });
+                return doc.toObject();
+            });
     }
     /**
      * アクション中止
@@ -96,7 +99,8 @@ export class MongoRepository {
             },
             { actionStatus: factory.actionStatusType.CanceledActionStatus },
             { new: true }
-        ).exec()
+        )
+            .exec()
             .then((doc) => {
                 if (doc === null) {
                     throw new factory.errors.NotFound('action');
@@ -125,16 +129,18 @@ export class MongoRepository {
                 endDate: new Date()
             },
             { new: true }
-        ).exec().then((doc) => {
-            if (doc === null) {
-                throw new factory.errors.NotFound('action');
-            }
+        )
+            .exec()
+            .then((doc) => {
+                if (doc === null) {
+                    throw new factory.errors.NotFound('action');
+                }
 
-            return doc.toObject();
-        });
+                return doc.toObject();
+            });
     }
     /**
-     * IDで取得する
+     * アクション検索
      */
     public async findById<T extends factory.actionType>(
         typeOf: T,
@@ -145,7 +151,8 @@ export class MongoRepository {
                 typeOf: typeOf,
                 _id: actionId
             }
-        ).exec()
+        )
+            .exec()
             .then((doc) => {
                 if (doc === null) {
                     throw new factory.errors.NotFound('action');
@@ -159,7 +166,9 @@ export class MongoRepository {
     ): Promise<number> {
         const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
 
-        return this.actionModel.countDocuments({ $and: conditions }).setOptions({ maxTimeMS: 10000 }).exec();
+        return this.actionModel.countDocuments({ $and: conditions })
+            .setOptions({ maxTimeMS: 10000 })
+            .exec();
     }
     /**
      * 転送アクションを検索する
@@ -179,7 +188,8 @@ export class MongoRepository {
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
         if (params.limit !== undefined && params.page !== undefined) {
-            query.limit(params.limit).skip(params.limit * (params.page - 1));
+            query.limit(params.limit)
+                .skip(params.limit * (params.page - 1));
         }
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
@@ -187,7 +197,9 @@ export class MongoRepository {
             query.sort(params.sort);
         }
 
-        return query.setOptions({ maxTimeMS: 10000 }).exec().then((docs) => docs.map((doc) => doc.toObject()));
+        return query.setOptions({ maxTimeMS: 10000 })
+            .exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
     }
     /**
      * アクションを検索する

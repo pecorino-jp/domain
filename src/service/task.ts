@@ -35,6 +35,7 @@ export function executeByName(taskName: factory.taskName): TaskAndConnectionOper
         connection: mongoose.Connection;
     }) => {
         // 未実行のタスクを取得
+        // tslint:disable-next-line:no-null-keyword
         let task: factory.task.ITask | null = null;
         try {
             task = await settings.taskRepo.executeOneByName(taskName);
@@ -119,8 +120,10 @@ export function abort(intervalInMinutes: number): TaskOperation<void> {
             ABORT_REPORT_SUBJECT,
             `id:${abortedTask.id}
 name:${abortedTask.name}
-runsAt:${moment(abortedTask.runsAt).toISOString()}
-lastTriedAt:${moment(<Date>abortedTask.lastTriedAt).toISOString()}
+runsAt:${moment(abortedTask.runsAt)
+                .toISOString()}
+lastTriedAt:${moment(<Date>abortedTask.lastTriedAt)
+                .toISOString()}
 numberOfTried:${abortedTask.numberOfTried}
 lastResult:${lastResult}`
         )();

@@ -76,13 +76,15 @@ schema.index({ createdAt: 1, lastTriedAt: 1 });
 schema.index({ status: 1, createdAt: 1 });
 schema.index({ createdAt: 1 });
 
-export default mongoose.model('Task', schema).on(
-    'index',
-    // tslint:disable-next-line:no-single-line-block-comment
-    /* istanbul ignore next */
-    (error) => {
-        if (error !== undefined) {
-            console.error(error);
+export default mongoose.model('Task', schema)
+    .on(
+        'index',
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore next */
+        (error) => {
+            if (error !== undefined) {
+                // tslint:disable-next-line:no-console
+                console.error(error);
+            }
         }
-    }
-);
+    );

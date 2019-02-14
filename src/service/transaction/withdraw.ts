@@ -161,7 +161,7 @@ export function exportTasks(status: factory.transactionStatusType) {
 }
 
 /**
- * ID指定で取引のタスク出力
+ * 取引のタスク出力
  */
 export function exportTasksById<T extends factory.account.AccountType>(
     transactionId: string
@@ -189,6 +189,7 @@ export function exportTasksById<T extends factory.account.AccountType>(
                             status: factory.taskStatus.Ready,
                             runsAt: new Date(), // なるはやで実行
                             remainingNumberOfTries: 10,
+                            // tslint:disable-next-line:no-null-keyword
                             lastTriedAt: null,
                             numberOfTried: 0,
                             executionResults: [],
@@ -208,6 +209,7 @@ export function exportTasksById<T extends factory.account.AccountType>(
                     status: factory.taskStatus.Ready,
                     runsAt: new Date(), // なるはやで実行
                     remainingNumberOfTries: 10,
+                    // tslint:disable-next-line:no-null-keyword
                     lastTriedAt: null,
                     numberOfTried: 0,
                     executionResults: [],

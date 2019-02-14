@@ -6,7 +6,7 @@ import TransactionModel from './mongoose/model/transaction';
 import * as factory from '../factory';
 
 /**
- * 取引Mongoリポジトリー
+ * 取引リポジトリー
  */
 export class MongoRepository {
     public readonly transactionModel: typeof TransactionModel;
@@ -28,10 +28,11 @@ export class MongoRepository {
             startDate: new Date(),
             endDate: undefined,
             tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
-        }).then((doc) => doc.toObject());
+        })
+            .then((doc) => doc.toObject());
     }
     /**
-     * IDで取引を取得する
+     * 取引検索
      */
     public async findById<T extends factory.transactionType, T1 extends factory.account.AccountType>(
         typeOf: T,
@@ -43,7 +44,8 @@ export class MongoRepository {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
             typeOf: typeOf
-        }).exec();
+        })
+            .exec();
 
         if (doc === null) {
             throw new factory.errors.NotFound('Transaction');
@@ -73,7 +75,8 @@ export class MongoRepository {
                 potentialActions: potentialActions
             },
             { new: true }
-        ).exec();
+        )
+            .exec();
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
@@ -111,7 +114,8 @@ export class MongoRepository {
                 endDate: new Date()
             },
             { new: true }
-        ).exec();
+        )
+            .exec();
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
@@ -146,7 +150,10 @@ export class MongoRepository {
             },
             { tasksExportationStatus: factory.transactionTasksExportationStatus.Exporting },
             { new: true }
-        ).exec().then((doc) => (doc === null) ? null : doc.toObject());
+        )
+            .exec()
+            // tslint:disable-next-line:no-null-keyword
+            .then((doc) => (doc === null) ? null : doc.toObject());
     }
     /**
      * タスクエクスポートリトライ
@@ -156,16 +163,20 @@ export class MongoRepository {
         await this.transactionModel.findOneAndUpdate(
             {
                 tasksExportationStatus: factory.transactionTasksExportationStatus.Exporting,
-                updatedAt: { $lt: moment().add(-intervalInMinutes, 'minutes').toISOString() }
+                updatedAt: {
+                    $lt: moment()
+                        .add(-intervalInMinutes, 'minutes')
+                        .toISOString()
+                }
             },
             {
                 tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
             }
-        ).exec();
+        )
+            .exec();
     }
     /**
-     * set task status exported by transaction id
-     * IDでタスクをエクスポート済に変更する
+     * タスクをエクスポート済に変更する
      * @param transactionId transaction id
      */
     public async setTasksExportedById(transactionId: string): Promise<void> {
@@ -173,9 +184,11 @@ export class MongoRepository {
             transactionId,
             {
                 tasksExportationStatus: factory.transactionTasksExportationStatus.Exported,
-                tasksExportedAt: moment().toDate()
+                tasksExportedAt: moment()
+                    .toDate()
             }
-        ).exec();
+        )
+            .exec();
     }
     /**
      * 取引を期限切れにする
@@ -194,7 +207,8 @@ export class MongoRepository {
                 endDate: new Date()
             },
             { multi: true }
-        ).exec();
+        )
+            .exec();
     }
     /**
      * 取引を検索する
@@ -218,7 +232,8 @@ export class MongoRepository {
             conditions.typeOf = params.typeOf;
         }
 
-        return this.transactionModel.find(conditions).exec()
+        return this.transactionModel.find(conditions)
+            .exec()
             .then((docs) => docs.map((doc) => doc.toObject()));
     }
 }
