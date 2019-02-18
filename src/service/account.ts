@@ -51,6 +51,7 @@ export function open<T extends factory.account.AccountType>(params: {
         });
     };
 }
+
 /**
  * 口座を解約する
  */
@@ -74,10 +75,10 @@ export function close<T extends factory.account.AccountType>(params: {
         });
     };
 }
+
 /**
  * 転送する
  * 確定取引結果から、実際の転送アクションを実行します。
- * @param actionAttributes 転送アクション属性
  */
 export function transferMoney<T extends factory.account.AccountType>(
     actionAttributes: factory.action.transfer.moneyTransfer.IAttributes<T>
@@ -85,7 +86,6 @@ export function transferMoney<T extends factory.account.AccountType>(
     return async (repos: {
         action: ActionRepo;
         account: AccountRepo;
-        transaction: TransactionRepo;
     }) => {
         debug(`transfering money... ${actionAttributes.purpose.typeOf} ${actionAttributes.purpose.id}`);
 
@@ -93,10 +93,16 @@ export function transferMoney<T extends factory.account.AccountType>(
         const action = await repos.action.start<factory.actionType.MoneyTransfer>(actionAttributes);
 
         try {
-            // 取引存在確認
-            const transaction = await repos.transaction.findById<factory.transactionType, T>(
-                actionAttributes.purpose.typeOf, actionAttributes.purpose.id
-            );
+            let accountType: T;
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (actionAttributes.fromLocation.typeOf === factory.account.TypeOf.Account) {
+                accountType = (<factory.action.transfer.moneyTransfer.IAccount<T>>actionAttributes.fromLocation).accountType;
+            } else if (actionAttributes.toLocation.typeOf === factory.account.TypeOf.Account) {
+                accountType = (<factory.action.transfer.moneyTransfer.IAccount<T>>actionAttributes.toLocation).accountType;
+            } else {
+                throw new factory.errors.NotImplemented('No Account Location');
+            }
 
             const fromAccountNumber = (actionAttributes.fromLocation.typeOf === factory.account.TypeOf.Account)
                 ? (<factory.action.transfer.moneyTransfer.IAccount<T>>actionAttributes.fromLocation).accountNumber
@@ -110,11 +116,11 @@ export function transferMoney<T extends factory.account.AccountType>(
                 : undefined;
 
             await repos.account.settleTransaction<T>({
-                accountType: transaction.object.accountType,
+                accountType: accountType,
                 fromAccountNumber: fromAccountNumber,
                 toAccountNumber: toAccountNumber,
                 amount: actionAttributes.amount,
-                transactionId: transaction.id
+                transactionId: actionAttributes.purpose.id
             });
         } catch (error) {
             // actionにエラー結果を追加
@@ -134,10 +140,10 @@ export function transferMoney<T extends factory.account.AccountType>(
         await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }
+
 /**
  * 転送取消
  * 期限切れ、あるいは、中止された取引から、転送をアクションを取り消します。
- * @param params.transaction 転送アクションを実行しようとしていた取引
  */
 export function cancelMoneyTransfer<T extends factory.account.AccountType>(params: {
     transaction: {
@@ -150,32 +156,43 @@ export function cancelMoneyTransfer<T extends factory.account.AccountType>(param
         transaction: TransactionRepo;
     }) => {
         debug(`canceling money transfer... ${params.transaction.typeOf} ${params.transaction.id}`);
+        let accountType: T;
         let fromAccountNumber: string | undefined;
         let toAccountNumber: string | undefined;
+
         // 取引存在確認
         const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
 
         switch (params.transaction.typeOf) {
             case factory.transactionType.Deposit:
+                accountType =
+                    (<factory.transaction.ITransaction<factory.transactionType.Deposit, T>>transaction).object.toLocation.accountType;
                 toAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Deposit, T>>transaction).object.toAccountNumber;
+                    (<factory.transaction.ITransaction<factory.transactionType.Deposit, T>>transaction).object.toLocation.accountNumber;
                 break;
+
             case factory.transactionType.Withdraw:
+                accountType =
+                    (<factory.transaction.ITransaction<factory.transactionType.Withdraw, T>>transaction).object.fromLocation.accountType;
                 fromAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Withdraw, T>>transaction).object.fromAccountNumber;
+                    (<factory.transaction.ITransaction<factory.transactionType.Withdraw, T>>transaction).object.fromLocation.accountNumber;
                 break;
+
             case factory.transactionType.Transfer:
+                accountType =
+                    (<factory.transaction.ITransaction<factory.transactionType.Transfer, T>>transaction).object.fromLocation.accountType;
                 fromAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Transfer, T>>transaction).object.fromAccountNumber;
+                    (<factory.transaction.ITransaction<factory.transactionType.Transfer, T>>transaction).object.fromLocation.accountNumber;
                 toAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Transfer, T>>transaction).object.toAccountNumber;
+                    (<factory.transaction.ITransaction<factory.transactionType.Transfer, T>>transaction).object.toLocation.accountNumber;
                 break;
+
             default:
                 throw new factory.errors.Argument('typeOf', `transaction type ${params.transaction.typeOf} unknown`);
         }
 
         await repos.account.voidTransaction({
-            accountType: transaction.object.accountType,
+            accountType: accountType,
             fromAccountNumber: fromAccountNumber,
             toAccountNumber: toAccountNumber,
             amount: transaction.object.amount,

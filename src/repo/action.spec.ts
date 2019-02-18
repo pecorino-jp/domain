@@ -1,9 +1,9 @@
 // tslint:disable:no-implicit-dependencies
 /**
  * アクションリポジトリーテスト
- * @ignore
  */
 import { } from 'mocha';
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 // tslint:disable-next-line:no-require-imports no-var-requires
@@ -20,11 +20,14 @@ before(() => {
 describe('アクションを開始する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
 
     it('MongoDBが正常であれば開始できるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('create').once().resolves(new actionRepo.actionModel());
+        sandbox.mock(actionRepo.actionModel)
+            .expects('create')
+            .once()
+            .resolves(new actionRepo.actionModel());
 
         const result = await actionRepo.start(<any>{});
         assert.equal(typeof result, 'object');
@@ -35,11 +38,15 @@ describe('アクションを開始する', () => {
 describe('アクションを完了する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
 
     it('アクションが存在すれば完了できるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOneAndUpdate').once().chain('exec').resolves(new actionRepo.actionModel());
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new actionRepo.actionModel());
 
         const result = await actionRepo.complete(pecorino.factory.actionType.AuthorizeAction, 'actionId', {});
         assert.equal(typeof result, 'object');
@@ -47,9 +54,15 @@ describe('アクションを完了する', () => {
     });
 
     it('存在しなければNotFoundエラーとなるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await actionRepo.complete(pecorino.factory.actionType.AuthorizeAction, 'actionId', {}).catch((err) => err);
+        const result = await actionRepo.complete(pecorino.factory.actionType.AuthorizeAction, 'actionId', {})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -58,11 +71,15 @@ describe('アクションを完了する', () => {
 describe('アクションを中止する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
 
     it('アクションが存在すれば中止できるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOneAndUpdate').once().chain('exec').resolves(new actionRepo.actionModel());
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new actionRepo.actionModel());
 
         const result = await actionRepo.cancel(pecorino.factory.actionType.AuthorizeAction, 'actionId');
         assert.equal(typeof result, 'object');
@@ -70,9 +87,15 @@ describe('アクションを中止する', () => {
     });
 
     it('存在しなければNotFoundエラーとなるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await actionRepo.cancel(pecorino.factory.actionType.AuthorizeAction, 'actionId').catch((err) => err);
+        const result = await actionRepo.cancel(pecorino.factory.actionType.AuthorizeAction, 'actionId')
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -81,11 +104,15 @@ describe('アクションを中止する', () => {
 describe('アクションを断念する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
 
     it('アクションが存在すれば断念できるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOneAndUpdate').once().chain('exec').resolves(new actionRepo.actionModel());
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new actionRepo.actionModel());
 
         const result = await actionRepo.giveUp(pecorino.factory.actionType.AuthorizeAction, 'actionId', {});
         assert.equal(typeof result, 'object');
@@ -93,9 +120,15 @@ describe('アクションを断念する', () => {
     });
 
     it('存在しなければNotFoundエラーとなるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await actionRepo.giveUp(pecorino.factory.actionType.AuthorizeAction, 'actionId', {}).catch((err) => err);
+        const result = await actionRepo.giveUp(pecorino.factory.actionType.AuthorizeAction, 'actionId', {})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -103,11 +136,15 @@ describe('アクションを断念する', () => {
 describe('IDでアクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
 
     it('アクションが存在すればオブジェクトを取得できるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOne').once().chain('exec').resolves(new actionRepo.actionModel());
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOne')
+            .once()
+            .chain('exec')
+            .resolves(new actionRepo.actionModel());
 
         const result = await actionRepo.findById(pecorino.factory.actionType.AuthorizeAction, 'actionId');
         assert.equal(typeof result, 'object');
@@ -115,9 +152,15 @@ describe('IDでアクションを検索する', () => {
     });
 
     it('存在しなければNotFoundエラーとなるはず', async () => {
-        sandbox.mock(actionRepo.actionModel).expects('findOne').once().chain('exec').resolves(null);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('findOne')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await actionRepo.findById(pecorino.factory.actionType.AuthorizeAction, 'actionId').catch((err) => err);
+        const result = await actionRepo.findById(pecorino.factory.actionType.AuthorizeAction, 'actionId')
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -125,7 +168,7 @@ describe('IDでアクションを検索する', () => {
 describe('転送アクションをカウント', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
     it('MongoDBが正常であれば数字を取得できるはず', async () => {
         const searchConditions = {
@@ -137,8 +180,11 @@ describe('転送アクションをカウント', () => {
                 endDate: pecorino.factory.sortType.Ascending
             }
         };
-        sandbox.mock(actionRepo.actionModel).expects('countDocuments').once()
-            .chain('exec').resolves(1);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('countDocuments')
+            .once()
+            .chain('exec')
+            .resolves(1);
         const result = await actionRepo.countTransferActions(searchConditions);
         assert(Number.isInteger(result));
         sandbox.verify();
@@ -147,7 +193,7 @@ describe('転送アクションをカウント', () => {
 describe('転送アクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
@@ -159,8 +205,11 @@ describe('転送アクションを検索する', () => {
                 endDate: pecorino.factory.sortType.Ascending
             }
         };
-        sandbox.mock(actionRepo.actionModel).expects('find').once()
-            .chain('exec').resolves([new actionRepo.actionModel()]);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('find')
+            .once()
+            .chain('exec')
+            .resolves([new actionRepo.actionModel()]);
         const result = await actionRepo.searchTransferActions(searchConditions);
         assert(Array.isArray(result));
         sandbox.verify();
@@ -169,7 +218,7 @@ describe('転送アクションを検索する', () => {
 describe('アクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        actionRepo = new pecorino.repository.Action(mongoose.connection);
     });
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
@@ -183,8 +232,12 @@ describe('アクションを検索する', () => {
             toLocationAccountNumbers: ['accountNumber'],
             limit: 1
         };
-        sandbox.mock(actionRepo.actionModel).expects('find').once()
-            .chain('sort').chain('limit').chain('exec').resolves([new actionRepo.actionModel()]);
+        sandbox.mock(actionRepo.actionModel)
+            .expects('find')
+            .once()
+            .chain('limit')
+            .chain('exec')
+            .resolves([new actionRepo.actionModel()]);
 
         const result = await actionRepo.search(searchConditions);
         assert(Array.isArray(result));

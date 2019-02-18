@@ -39,11 +39,9 @@ export function moneyTransfer<T extends factory.account.AccountType>(
     }) => {
         const accountRepo = new AccountRepo(settings.connection);
         const actionRepo = new ActionRepo(settings.connection);
-        const transactionRepo = new TransactionRepo(settings.connection);
         await AccountService.transferMoney<T>(data.actionAttributes)({
             action: actionRepo,
-            account: accountRepo,
-            transaction: transactionRepo
+            account: accountRepo
         });
     };
 }

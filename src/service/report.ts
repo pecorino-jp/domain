@@ -68,7 +68,7 @@ export function download(
                     { label: '転送先URL', default: '', value: 'fromLocation.url' },
                     { label: '転送先口座番号', default: '', value: 'toLocation.accountNumber' },
                     { label: '金額', default: '', value: 'amount' },
-                    { label: '説明', default: '', value: 'notes' }
+                    { label: '説明', default: '', value: 'description' }
                 ];
                 const json2csvParser = new json2csv.Parser({
                     fields: fields,
@@ -114,7 +114,7 @@ export interface ITransactionReport {
         accountNumber?: string;
     };
     amount: number;
-    notes: string;
+    description: string;
 }
 
 /**
@@ -128,14 +128,14 @@ export function transaction2report(params: {
     const toLocation = { ...params.transaction.recipient, accountNumber: '' };
     switch (params.transaction.typeOf) {
         case factory.transactionType.Deposit:
-            toLocation.accountNumber = params.transaction.object.toAccountNumber;
+            toLocation.accountNumber = params.transaction.object.toLocation.accountNumber;
             break;
         case factory.transactionType.Withdraw:
-            fromLocation.accountNumber = params.transaction.object.fromAccountNumber;
+            fromLocation.accountNumber = params.transaction.object.fromLocation.accountNumber;
             break;
         case factory.transactionType.Transfer:
-            toLocation.accountNumber = params.transaction.object.toAccountNumber;
-            fromLocation.accountNumber = params.transaction.object.fromAccountNumber;
+            toLocation.accountNumber = params.transaction.object.toLocation.accountNumber;
+            fromLocation.accountNumber = params.transaction.object.fromLocation.accountNumber;
             break;
 
         // tslint:disable-next-line:no-single-line-block-comment
@@ -160,7 +160,9 @@ export function transaction2report(params: {
             fromLocation: fromLocation,
             toLocation: toLocation,
             amount: params.transaction.object.amount,
-            notes: params.transaction.object.notes
+            description: (params.transaction.object.description !== undefined)
+                ? params.transaction.object.description
+                : /* istanbul ignore next */ ''
         };
     } else {
         return {
@@ -180,7 +182,9 @@ export function transaction2report(params: {
             fromLocation: fromLocation,
             toLocation: toLocation,
             amount: params.transaction.object.amount,
-            notes: params.transaction.object.notes
+            description: (params.transaction.object.description !== undefined)
+                ? params.transaction.object.description
+                : /* istanbul ignore next */ ''
         };
     }
 }

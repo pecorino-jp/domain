@@ -13,10 +13,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - install typescript@3.x.x
 - update tslint
 - MongoDBインデックス調整
+- install @pecorino/factory@2.0.0
+- 各取引インターフェースを再構成
+- アクションコレクションのインデックス調整
 
 ### Deprecated
 
 ### Removed
+
+- mongooseのエクスポートを削除
 
 ### Fixed
 

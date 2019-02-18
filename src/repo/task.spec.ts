@@ -1,11 +1,9 @@
 // tslint:disable:no-implicit-dependencies
-
 /**
  * task repository test
- * @ignore
  */
-
 import { } from 'mocha';
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 // tslint:disable-next-line:no-require-imports no-var-requires
@@ -26,7 +24,7 @@ describe('save()', () => {
     it('MongoDBの状態が正常であれば、保管できるはず', async () => {
         const ownershipInfo = {};
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('create').once()
             .resolves(new repository.taskModel());
@@ -46,7 +44,7 @@ describe('executeOneByName()', () => {
     it('MongoDBの状態が正常であれば、オブジェクトが返却されるはず', async () => {
         const taskName = pecorino.factory.taskName.MoneyTransfer;
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
             .chain('exec').resolves(new repository.taskModel());
@@ -60,7 +58,7 @@ describe('executeOneByName()', () => {
     it('存在しなければ、NotFoundエラーとなるはず', async () => {
         const taskName = pecorino.factory.taskName.MoneyTransfer;
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
             .chain('exec').resolves(null);
@@ -79,7 +77,7 @@ describe('retry()', () => {
     it('MongoDBの状態が正常であれば、成功するはず', async () => {
         const intervalInMinutes = 10;
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('update').once()
             .chain('exec').resolves();
@@ -99,7 +97,7 @@ describe('abortOne()', () => {
     it('MongoDBの状態が正常であれば、オブジェクトが返却されるはず', async () => {
         const intervalInMinutes = 10;
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
             .chain('exec').resolves(new repository.taskModel());
@@ -113,7 +111,7 @@ describe('abortOne()', () => {
     it('存在しなければ、NotFoundエラーとなるはず', async () => {
         const intervalInMinutes = 10;
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
             .chain('exec').resolves(null);
@@ -134,7 +132,7 @@ describe('pushExecutionResultById()', () => {
         const status = pecorino.factory.taskStatus.Executed;
         const executionResult = {};
 
-        const repository = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const repository = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(repository.taskModel).expects('findByIdAndUpdate').once()
             .chain('exec').resolves(new repository.taskModel());

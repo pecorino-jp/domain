@@ -295,7 +295,6 @@ export class MongoRepository {
                 updatedAt: 0
             }
         )
-            .sort({ _id: 1 })
             .limit(searchConditions.limit)
             .exec()
             .then((docs) => docs.map((doc) => doc.toObject()));

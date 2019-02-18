@@ -1,8 +1,8 @@
 // tslint:disable:no-implicit-dependencies
 /**
  * 口座サービステスト
- * @ignore
  */
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 import * as pecorino from '../index';
@@ -19,8 +19,11 @@ describe('口座を開設する', () => {
     });
 
     it('リポジトリーが正常であれば開設できるはず', async () => {
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        sandbox.mock(accountRepo).expects('open').once().resolves({});
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        sandbox.mock(accountRepo)
+            .expects('open')
+            .once()
+            .resolves({});
 
         const result = await pecorino.service.account.open(<any>{})({
             account: accountRepo
@@ -36,8 +39,11 @@ describe('口座を解約する', () => {
     });
 
     it('リポジトリーが正常であれば解約できるはず', async () => {
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        sandbox.mock(accountRepo).expects('close').once().resolves({});
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        sandbox.mock(accountRepo)
+            .expects('close')
+            .once()
+            .resolves({});
 
         const result = await pecorino.service.account.close(<any>{})({
             account: accountRepo
@@ -52,7 +58,7 @@ describe('金額を転送する', () => {
         sandbox.restore();
     });
 
-    it('リポジトリーが正常であれば転送できるはず', async () => {
+    it('転送元が口座であれば転送できるはず', async () => {
         const actionAttributes = {
             typeOf: pecorino.factory.actionType.MoneyTransfer,
             purpose: {},
@@ -66,19 +72,60 @@ describe('金額を転送する', () => {
                 accountNumber: 'accountNumber'
             }
         };
-        const transaction = { object: {} };
-        const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
-        sandbox.mock(accountRepo).expects('settleTransaction').once().resolves();
-        sandbox.mock(actionRepo).expects('start').once().resolves({});
-        sandbox.mock(actionRepo).expects('complete').once().resolves({});
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+
+        sandbox.mock(accountRepo)
+            .expects('settleTransaction')
+            .once()
+            .resolves();
+        sandbox.mock(actionRepo)
+            .expects('start')
+            .once()
+            .resolves({});
+        sandbox.mock(actionRepo)
+            .expects('complete')
+            .once()
+            .resolves({});
 
         const result = await pecorino.service.account.transferMoney(<any>actionAttributes)({
             action: actionRepo,
-            account: accountRepo,
-            transaction: transactionRepo
+            account: accountRepo
+        });
+        assert.equal(result, undefined);
+        sandbox.verify();
+    });
+
+    it('転送先が口座であれば転送できるはず', async () => {
+        const actionAttributes = {
+            typeOf: pecorino.factory.actionType.MoneyTransfer,
+            purpose: {},
+            amount: 1234,
+            fromLocation: {},
+            toLocation: {
+                typeOf: pecorino.factory.account.TypeOf.Account,
+                accountNumber: 'accountNumber'
+            }
+        };
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+
+        sandbox.mock(accountRepo)
+            .expects('settleTransaction')
+            .once()
+            .resolves();
+        sandbox.mock(actionRepo)
+            .expects('start')
+            .once()
+            .resolves({});
+        sandbox.mock(actionRepo)
+            .expects('complete')
+            .once()
+            .resolves({});
+
+        const result = await pecorino.service.account.transferMoney(<any>actionAttributes)({
+            action: actionRepo,
+            account: accountRepo
         });
         assert.equal(result, undefined);
         sandbox.verify();
@@ -98,22 +145,31 @@ describe('金額を転送する', () => {
                 accountNumber: 'accountNumber'
             }
         };
-        const transaction = { object: {} };
         const settleError = new Error('settleError');
-        const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
-        sandbox.mock(actionRepo).expects('start').once().resolves({});
-        sandbox.mock(accountRepo).expects('settleTransaction').once().rejects(settleError);
-        sandbox.mock(actionRepo).expects('giveUp').once().resolves({});
-        sandbox.mock(actionRepo).expects('complete').never();
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+
+        sandbox.mock(actionRepo)
+            .expects('start')
+            .once()
+            .resolves({});
+        sandbox.mock(accountRepo)
+            .expects('settleTransaction')
+            .once()
+            .rejects(settleError);
+        sandbox.mock(actionRepo)
+            .expects('giveUp')
+            .once()
+            .resolves({});
+        sandbox.mock(actionRepo)
+            .expects('complete')
+            .never();
 
         const result = await pecorino.service.account.transferMoney(<any>actionAttributes)({
             action: actionRepo,
-            account: accountRepo,
-            transaction: transactionRepo
-        }).catch((err) => err);
+            account: accountRepo
+        })
+            .catch((err) => err);
         assert.deepEqual(result, settleError);
         sandbox.verify();
     });
@@ -138,12 +194,21 @@ describe('金額転送を中止する', () => {
                 }
             };
             const transaction = {
-                object: {}
+                object: {
+                    fromLocation: {},
+                    toLocation: {}
+                }
             };
-            const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-            const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-            sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
-            sandbox.mock(accountRepo).expects('voidTransaction').once().resolves();
+            const accountRepo = new pecorino.repository.Account(mongoose.connection);
+            const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+            sandbox.mock(transactionRepo)
+                .expects('findById')
+                .once()
+                .resolves(transaction);
+            sandbox.mock(accountRepo)
+                .expects('voidTransaction')
+                .once()
+                .resolves();
 
             const result = await pecorino.service.account.cancelMoneyTransfer(actionAttributes)({
                 account: accountRepo,
@@ -162,17 +227,26 @@ describe('金額転送を中止する', () => {
             }
         };
         const transaction = {
-            object: {}
+            object: {
+                fromLocation: {},
+                toLocation: {}
+            }
         };
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
-        sandbox.mock(accountRepo).expects('voidTransaction').never();
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
+        sandbox.mock(accountRepo)
+            .expects('voidTransaction')
+            .never();
 
         const result = await pecorino.service.account.cancelMoneyTransfer(actionAttributes)({
             account: accountRepo,
             transaction: transactionRepo
-        }).catch((err) => err);
+        })
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
     });

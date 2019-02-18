@@ -1,8 +1,6 @@
 /**
  * 口座開設サンプル
- * @ignore
  */
-
 const moment = require('moment');
 const pecorino = require('../');
 
@@ -27,7 +25,7 @@ async function main(mongooseConnection, redisConnection) {
 async function openAccounts() {
     return new Promise((resolve) => {
         // MongoDB接続確保
-        const mongooseConnection = pecorino.mongoose.createConnection(process.env.MONGOLAB_URI);
+        const mongooseConnection = mongoose.createConnection(process.env.MONGOLAB_URI);
         const redisClient = new pecorino.ioredis({
             host: process.env.REDIS_HOST,
             // tslint:disable-next-line:no-magic-numbers

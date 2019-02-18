@@ -1,16 +1,14 @@
 /**
  * 支払取引プロセスサンプル
- * @ignore
  */
-
 const moment = require('moment');
 const pecorino = require('../');
 
 async function main() {
-    await pecorino.mongoose.connect(process.env.MONGOLAB_URI);
+    await mongoose.connect(process.env.MONGOLAB_URI);
 
-    const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-    const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+    const accountRepo = new pecorino.repository.Account(mongoose.connection);
+    const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
     const transaction = await pecorino.service.transaction.withdraw.start({
         object: {
             clientUser: {},
@@ -18,7 +16,7 @@ async function main() {
             fromAccountId: 'fromAccountId',
             toAccountId: 'toAccountId',
             price: 100,
-            notes: 'agentId'
+            description: 'description'
         },
         expires: moment().add(30, 'seconds').toDate(),
         agent: {
@@ -45,5 +43,5 @@ main()
     })
     .catch(console.error)
     .then(async () => {
-        await pecorino.mongoose.disconnect();
+        await mongoose.disconnect();
     });

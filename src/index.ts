@@ -2,8 +2,6 @@
 /**
  * domain index module
  */
-import * as mongoose from 'mongoose';
-
 import * as factory from './factory';
 import * as repository from './repository';
 
@@ -14,15 +12,6 @@ import * as TaskService from './service/task';
 import * as DepositTransactionService from './service/transaction/deposit';
 import * as TransferTransactionService from './service/transaction/transfer';
 import * as WithdrawTransactionService from './service/transaction/withdraw';
-
-/**
- * MongoDBクライアント`mongoose`
- * @example
- * var promise = domain.mongoose.connect('mongodb://localhost/myapp', {
- *     useMongoClient: true
- * });
- */
-export import mongoose = mongoose;
 
 export namespace service {
     export import account = AccountService;
@@ -37,5 +26,4 @@ export namespace service {
 }
 
 export import factory = factory;
-
 export import repository = repository;

@@ -1,9 +1,9 @@
 // tslint:disable:no-implicit-dependencies
 /**
  * 口座リポジトリーテスト
- * @ignore
  */
 import { } from 'mocha';
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 // tslint:disable-next-line:no-require-imports no-var-requires
@@ -20,7 +20,7 @@ before(() => {
 describe('口座開設', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('MongoDBが正常であれば開設できるはず', async () => {
@@ -35,7 +35,7 @@ describe('口座開設', () => {
 describe('口座解約', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('開設状態の口座があれば解約できるはず', async () => {
@@ -89,7 +89,7 @@ describe('口座解約', () => {
 describe('口座番号で検索', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('口座が存在すればオブジェクトを取得できるはず', async () => {
@@ -118,7 +118,7 @@ describe('口座番号で検索', () => {
 describe('口座の金額を確保する', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('残高が足りていれば確保できるはず', async () => {
@@ -174,7 +174,7 @@ describe('口座の金額を確保する', () => {
 describe('口座内で取引を開始する', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('口座が存在すれば取引を開始できるはず', async () => {
@@ -217,7 +217,7 @@ describe('口座内で取引を開始する', () => {
 describe('口座に保留中の取引を実行する', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('転送元口座が存在すれば取引を実行できるはず', async () => {
@@ -252,7 +252,7 @@ describe('口座に保留中の取引を実行する', () => {
 describe('口座に保留中の取引を中止する', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
 
     it('転送元口座が存在すれば取引を中止できるはず', async () => {
@@ -286,7 +286,7 @@ describe('口座に保留中の取引を中止する', () => {
 describe('口座をカウント', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
     it('MongoDBが正常であれば数字を取得できるはず', async () => {
         const searchConditions = {
@@ -310,7 +310,7 @@ describe('口座をカウント', () => {
 describe('口座を検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+        accountRepo = new pecorino.repository.Account(mongoose.connection);
     });
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {

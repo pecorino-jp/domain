@@ -98,7 +98,7 @@ export class MongoRepository {
     public async pushExecutionResultById(
         id: string,
         status: factory.taskStatus,
-        executionResult: factory.taskExecutionResult.IAttributes
+        executionResult: factory.task.IExecutionResult
     ): Promise<void> {
         await this.taskModel.findByIdAndUpdate(
             id,

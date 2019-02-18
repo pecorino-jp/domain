@@ -1,12 +1,10 @@
 /**
  * 口座開設サンプル
- * @ignore
  */
-
 const moment = require('moment');
 const pecorino = require('../');
 
-pecorino.mongoose.connect(process.env.MONGOLAB_URI);
+mongoose.connect(process.env.MONGOLAB_URI);
 
 const redisClient = new pecorino.ioredis({
     host: process.env.REDIS_HOST,
@@ -17,7 +15,7 @@ const redisClient = new pecorino.ioredis({
 });
 
 async function main() {
-    const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+    const accountRepo = new pecorino.repository.Account(mongoose.connection);
     const accountNumberRepo = new pecorino.repository.AccountNumber(redisClient);
     const account = await pecorino.service.account.open({
         accountType: 'Coin',
@@ -34,6 +32,6 @@ main()
     })
     .catch(console.error)
     .then(async () => {
-        await pecorino.mongoose.disconnect();
+        await mongoose.disconnect();
         await redisClient.quit();
     });

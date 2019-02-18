@@ -221,6 +221,28 @@ schema.index(
         }
     }
 );
+schema.index(
+    { 'fromLocation.typeOf': 1, 'fromLocation.accountType': 1, 'fromLocation.accountNumber': 1, endDate: -1 },
+    {
+        name: 'searchTransferActionsByFromAccountLocation',
+        partialFilterExpression: {
+            'fromLocation.typeOf': { $exists: true },
+            'fromLocation.accountType': { $exists: true },
+            'fromLocation.accountNumber': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'toLocation.typeOf': 1, 'toLocation.accountType': 1, 'toLocation.accountNumber': 1, endDate: -1 },
+    {
+        name: 'searchTransferActionsByToAccountLocation',
+        partialFilterExpression: {
+            'toLocation.typeOf': { $exists: true },
+            'toLocation.accountType': { $exists: true },
+            'toLocation.accountNumber': { $exists: true }
+        }
+    }
+);
 
 export default mongoose.model(modelName, schema)
     .on(
