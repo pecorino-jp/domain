@@ -36,8 +36,8 @@ export function start<T extends factory.account.AccountType>(
 
         // 口座存在確認
         const account = await repos.account.findByAccountNumber<T>({
-            accountType: params.object.accountType,
-            accountNumber: params.object.fromAccountNumber
+            accountType: params.object.fromLocation.accountType,
+            accountNumber: params.object.fromLocation.accountNumber
         });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
@@ -48,9 +48,13 @@ export function start<T extends factory.account.AccountType>(
             object: {
                 clientUser: params.object.clientUser,
                 amount: params.object.amount,
-                accountType: params.object.accountType,
-                fromAccountNumber: account.accountNumber,
-                notes: params.object.notes
+                fromLocation: {
+                    typeOf: factory.account.TypeOf.Account,
+                    accountType: account.accountType,
+                    accountNumber: account.accountNumber,
+                    name: account.name
+                },
+                description: params.object.description
             },
             expires: params.expires
         };
@@ -77,8 +81,8 @@ export function start<T extends factory.account.AccountType>(
 
         // 残高確保
         await repos.account.authorizeAmount<T>({
-            accountType: params.object.accountType,
-            accountNumber: params.object.fromAccountNumber,
+            accountType: params.object.fromLocation.accountType,
+            accountNumber: params.object.fromLocation.accountNumber,
             amount: params.object.amount,
             transaction: pendingTransaction
         });
@@ -107,7 +111,7 @@ export function confirm<T extends factory.account.AccountType>(params: {
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes<T> = {
             typeOf: factory.actionType.MoneyTransfer,
-            description: transaction.object.notes,
+            description: transaction.object.description,
             result: {
                 amount: transaction.object.amount
             },
@@ -117,15 +121,15 @@ export function confirm<T extends factory.account.AccountType>(params: {
             recipient: transaction.recipient,
             amount: transaction.object.amount,
             fromLocation: {
-                typeOf: factory.account.TypeOf.Account,
-                accountType: transaction.object.accountType,
-                accountNumber: transaction.object.fromAccountNumber,
+                ...transaction.object.fromLocation,
                 name: transaction.agent.name
             },
-            toLocation: {
-                typeOf: transaction.recipient.typeOf,
-                name: transaction.recipient.name
-            },
+            toLocation: transaction.object.toLocation !== undefined
+                ? transaction.object.fromLocation
+                : /* istanbul ignore next */ {
+                    typeOf: transaction.recipient.typeOf,
+                    name: transaction.recipient.name
+                },
             purpose: {
                 typeOf: transaction.typeOf,
                 id: transaction.id
@@ -161,7 +165,7 @@ export function exportTasks(status: factory.transactionStatusType) {
 }
 
 /**
- * ID指定で取引のタスク出力
+ * 取引のタスク出力
  */
 export function exportTasksById<T extends factory.account.AccountType>(
     transactionId: string
@@ -189,7 +193,6 @@ export function exportTasksById<T extends factory.account.AccountType>(
                             status: factory.taskStatus.Ready,
                             runsAt: new Date(), // なるはやで実行
                             remainingNumberOfTries: 10,
-                            lastTriedAt: null,
                             numberOfTried: 0,
                             executionResults: [],
                             data: {
@@ -208,7 +211,6 @@ export function exportTasksById<T extends factory.account.AccountType>(
                     status: factory.taskStatus.Ready,
                     runsAt: new Date(), // なるはやで実行
                     remainingNumberOfTries: 10,
-                    lastTriedAt: null,
                     numberOfTried: 0,
                     executionResults: [],
                     data: {

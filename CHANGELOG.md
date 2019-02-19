@@ -18,6 +18,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Security
 
+## v2.0.0 - 2019-02-19
+
+### Changed
+
+- install typescript@3.x.x
+- update tslint
+- MongoDBインデックス調整
+- install @pecorino/factory@2.0.0
+- 各取引インターフェースを再構成
+- アクションコレクションのインデックス調整
+
+### Removed
+
+- mongooseのエクスポートを削除
+
 ## v1.1.0 - 2018-09-01
 
 ### Changed

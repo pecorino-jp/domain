@@ -1,10 +1,8 @@
 // tslint:disable:no-implicit-dependencies
-
 /**
  * task service test
- * @ignore
  */
-
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 import * as pecorino from '../index';
@@ -29,7 +27,7 @@ describe('executeByName()', () => {
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(taskRepo).expects('executeOneByName').once().withArgs(task.name).resolves(task);
         sandbox.mock(TaskFunctionsService).expects(task.name).once().withArgs(task.data).returns(async () => Promise.resolve());
@@ -37,7 +35,7 @@ describe('executeByName()', () => {
 
         const result = await pecorino.service.task.executeByName(task.name)({
             taskRepo: taskRepo,
-            connection: pecorino.mongoose.connection
+            connection: mongoose.connection
         });
 
         assert.equal(result, undefined);
@@ -46,7 +44,7 @@ describe('executeByName()', () => {
 
     it('未実行タスクが存在しなければ、実行されないはず', async () => {
         const taskName = pecorino.factory.taskName.MoneyTransfer;
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(taskRepo).expects('executeOneByName').once()
             .withArgs(taskName).rejects(new pecorino.factory.errors.NotFound('task'));
@@ -54,7 +52,7 @@ describe('executeByName()', () => {
 
         const result = await pecorino.service.task.executeByName(taskName)({
             taskRepo: taskRepo,
-            connection: pecorino.mongoose.connection
+            connection: mongoose.connection
         });
 
         assert.equal(result, undefined);
@@ -69,7 +67,7 @@ describe('retry()', () => {
 
     it('repositoryの状態が正常であれば、エラーにならないはず', async () => {
         const INTERVAL = 10;
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(taskRepo).expects('retry').once()
             .withArgs(INTERVAL).resolves();
@@ -92,7 +90,7 @@ describe('abort()', () => {
             id: 'id',
             executionResults: [{ error: 'error' }]
         };
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(taskRepo).expects('abortOne').once().withArgs(INTERVAL).resolves(task);
         sandbox.mock(pecorino.service.notification).expects('report2developers').once()
@@ -117,14 +115,14 @@ describe('execute()', () => {
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(TaskFunctionsService).expects(task.name).once().withArgs(task.data).returns(async () => Promise.resolve());
         sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, pecorino.factory.taskStatus.Executed).resolves();
 
         const result = await pecorino.service.task.execute(<any>task)({
             taskRepo: taskRepo,
-            connection: pecorino.mongoose.connection
+            connection: mongoose.connection
         });
 
         assert.equal(result, undefined);
@@ -138,13 +136,13 @@ describe('execute()', () => {
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(taskRepo).expects('pushExecutionResultById').once().withArgs(task.id, task.status).resolves();
 
         const result = await pecorino.service.task.execute(<any>task)({
             taskRepo: taskRepo,
-            connection: pecorino.mongoose.connection
+            connection: mongoose.connection
         });
 
         assert.equal(result, undefined);

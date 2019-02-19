@@ -1,8 +1,8 @@
 // tslint:disable:no-implicit-dependencies
 /**
  * タスクファンクションサービステスト
- * @ignore
  */
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 
@@ -25,7 +25,7 @@ describe('金額転送を中止する', () => {
             .returns(async () => Promise.resolve());
 
         const result = await taskFunctions.cancelMoneyTransfer(<any>{})({
-            connection: pecorino.mongoose.connection
+            connection: mongoose.connection
         });
         assert.equal(result, undefined);
         sandbox.verify();
@@ -42,7 +42,7 @@ describe('金額を転送する', () => {
             .returns(async () => Promise.resolve());
 
         const result = await taskFunctions.moneyTransfer(<any>{})({
-            connection: pecorino.mongoose.connection
+            connection: mongoose.connection
         });
         assert.equal(result, undefined);
         sandbox.verify();

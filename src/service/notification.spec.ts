@@ -1,13 +1,11 @@
 // tslint:disable:no-implicit-dependencies
-
 /**
  * 通知サービステスト
- * @ignore
  */
-
 // tslint:disable-next-line:no-require-imports
 import sgMail = require('@sendgrid/mail');
 import { ACCEPTED, BAD_REQUEST, OK } from 'http-status';
+import * as mongoose from 'mongoose';
 import * as nock from 'nock';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
@@ -117,7 +115,7 @@ describe('sendEmailMessage()', () => {
             id: 'actionId',
             typeOf: pecorino.factory.actionType.SendAction
         };
-        const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
 
         sandbox.mock(actionRepo).expects('start').once().resolves(action);
         sandbox.mock(actionRepo).expects('complete').once().withArgs(action.typeOf, action.id).resolves(action);
@@ -144,7 +142,7 @@ describe('sendEmailMessage()', () => {
             id: 'actionId',
             typeOf: pecorino.factory.actionType.SendAction
         };
-        const actionRepo = new pecorino.repository.Action(pecorino.mongoose.connection);
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
 
         sandbox.mock(actionRepo).expects('start').once().resolves(action);
         sandbox.mock(actionRepo).expects('giveUp').once().withArgs(action.typeOf, action.id).resolves(action);

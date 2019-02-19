@@ -1,15 +1,14 @@
 /**
  * 口座検索サンプル
- * @ignore
  */
+const mongoose = require('mongoose');
 
-const moment = require('moment');
 const pecorino = require('../');
 
-pecorino.mongoose.connect(process.env.MONGOLAB_URI);
+mongoose.connect(process.env.MONGOLAB_URI);
 
 async function main() {
-    const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
+    const accountRepo = new pecorino.repository.Account(mongoose.connection);
     const accounts = await accountRepo.search({
         accountType: 'Coin',
         // ids: ['5af55d3821f0fa00a210f51c'],
@@ -24,5 +23,5 @@ main().then(() => {
     console.log('success!');
 }).catch(console.error)
     .then(() => {
-        pecorino.mongoose.disconnect();
+        mongoose.disconnect();
     });

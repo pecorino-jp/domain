@@ -123,7 +123,8 @@ export class MongoRepository {
             {
                 new: true
             }
-        ).exec();
+        )
+            .exec();
 
         // NotFoundであれば口座状態確認
         if (doc === null) {
@@ -158,7 +159,8 @@ export class MongoRepository {
         const doc = await this.accountModel.findOne({
             accountType: params.accountType,
             accountNumber: params.accountNumber
-        }).exec();
+        })
+            .exec();
         if (doc === null) {
             throw new factory.errors.NotFound('Account');
         }
@@ -199,7 +201,8 @@ export class MongoRepository {
                 $push: { pendingTransactions: params.transaction } // 進行中取引追加
             },
             { new: true }
-        ).exec();
+        )
+            .exec();
 
         // NotFoundであれば口座状態確認
         if (doc === null) {
@@ -242,7 +245,8 @@ export class MongoRepository {
                 status: factory.accountStatusType.Opened // 開いている口座
             },
             { $push: { pendingTransactions: params.transaction } }
-        ).exec();
+        )
+            .exec();
 
         // NotFoundであれば口座状態確認
         if (doc === null) {
@@ -286,7 +290,8 @@ export class MongoRepository {
                     },
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
-            ).exec();
+            )
+                .exec();
         }
 
         // 転送先へがあれば入金
@@ -304,7 +309,8 @@ export class MongoRepository {
                     },
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
-            ).exec();
+            )
+                .exec();
         }
     }
     /**
@@ -336,7 +342,8 @@ export class MongoRepository {
                     },
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
-            ).exec();
+            )
+                .exec();
         }
 
         // 転送先へがあれば進行中取引削除
@@ -350,13 +357,16 @@ export class MongoRepository {
                 {
                     $pull: { pendingTransactions: { id: params.transactionId } }
                 }
-            ).exec();
+            )
+                .exec();
         }
     }
     public async count<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>): Promise<number> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
 
-        return this.accountModel.countDocuments({ $and: conditions }).setOptions({ maxTimeMS: 10000 }).exec();
+        return this.accountModel.countDocuments({ $and: conditions })
+            .setOptions({ maxTimeMS: 10000 })
+            .exec();
     }
     /**
      * 口座を検索する
@@ -377,7 +387,8 @@ export class MongoRepository {
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
         if (params.limit !== undefined && params.page !== undefined) {
-            query.limit(params.limit).skip(params.limit * (params.page - 1));
+            query.limit(params.limit)
+                .skip(params.limit * (params.page - 1));
         }
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
@@ -385,6 +396,8 @@ export class MongoRepository {
             query.sort(params.sort);
         }
 
-        return query.setOptions({ maxTimeMS: 10000 }).exec().then((docs) => docs.map((doc) => doc.toObject()));
+        return query.setOptions({ maxTimeMS: 10000 })
+            .exec()
+            .then((docs) => docs.map((doc) => doc.toObject()));
     }
 }

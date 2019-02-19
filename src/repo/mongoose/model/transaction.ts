@@ -1,5 +1,7 @@
 import * as mongoose from 'mongoose';
 
+const modelName = 'Transaction';
+
 const safe = { j: true, w: 'majority', wtimeout: 10000 };
 
 const objectSchema = new mongoose.Schema(
@@ -58,7 +60,6 @@ const potentialActionsSchema = new mongoose.Schema(
 
 /**
  * 取引スキーマ
- * @ignore
  */
 const schema = new mongoose.Schema(
     {
@@ -87,59 +88,140 @@ const schema = new mongoose.Schema(
             createdAt: 'createdAt',
             updatedAt: 'updatedAt'
         },
-        toJSON: { getters: true },
-        toObject: { getters: true }
+        toJSON: {
+            getters: true,
+            virtuals: true,
+            minimize: false,
+            versionKey: false
+        },
+        toObject: {
+            getters: true,
+            virtuals: true,
+            minimize: false,
+            versionKey: false
+        }
     }
 );
 
-// タスクエクスポート時の検索で使用
 schema.index(
-    { tasksExportationStatus: 1, status: 1 }
+    { createdAt: 1 },
+    { name: 'searchByCreatedAt' }
 );
-
-// 取引期限切れ確認等に使用
 schema.index(
-    { status: 1, expires: 1 }
+    { updatedAt: 1 },
+    { name: 'searchByUpdatedAt' }
 );
-
-// 実行中タスクエクスポート監視に使用
 schema.index(
-    { tasksExportationStatus: 1, updatedAt: 1 }
+    { typeOf: 1 },
+    { name: 'searchByTypeOf' }
 );
-
-// 取引進行中は、基本的にIDとステータスで参照する
 schema.index(
-    { status: 1, typeOf: 1, _id: 1 }
+    { status: 1 },
+    { name: 'searchByStatus' }
 );
-
-// 許可証でユニークに
 schema.index(
+    { startDate: 1 },
+    { name: 'searchByStartDate' }
+);
+schema.index(
+    { endDate: 1 },
     {
-        'object.passportToken': 1
-    },
-    {
-        unique: true,
+        name: 'searchByEndDate',
         partialFilterExpression: {
-            'object.passportToken': { $exists: true }
+            endDate: { $exists: true }
         }
     }
 );
-
-// 取引タイプ指定で取得する場合に使用
 schema.index(
-    {
-        typeOf: 1,
-        _id: 1
-    }
+    { expires: 1 },
+    { name: 'searchByExpires' }
 );
-
-export default mongoose.model('Transaction', schema).on(
-    'index',
-    // tslint:disable-next-line:no-single-line-block-comment
-    /* istanbul ignore next */
-    (error) => {
-        if (error !== undefined) {
-            console.error(error);
+schema.index(
+    { tasksExportationStatus: 1 },
+    { name: 'searchByTasksExportationStatus' }
+);
+schema.index(
+    { tasksExportedAt: 1 },
+    {
+        name: 'searchByTasksExportedAt',
+        partialFilterExpression: {
+            tasksExportedAt: { $exists: true }
         }
     }
 );
+schema.index(
+    { 'agent.typeOf': 1 },
+    {
+        name: 'searchByAgentTypeOf',
+        partialFilterExpression: {
+            'agent.typeOf': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'agent.id': 1 },
+    {
+        name: 'searchByAgentId',
+        partialFilterExpression: {
+            'agent.id': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'agent.identifier': 1 },
+    {
+        name: 'searchByAgentIdentifier',
+        partialFilterExpression: {
+            'agent.identifier': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'recipient.typeOf': 1 },
+    {
+        name: 'searchByRecipientTypeOf',
+        partialFilterExpression: {
+            'recipient.typeOf': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'recipient.id': 1 },
+    {
+        name: 'searchByRecipientId',
+        partialFilterExpression: {
+            'recipient.id': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { typeOf: 1, status: 1, tasksExportationStatus: 1 },
+    {
+        name: 'startExportTasks'
+    }
+);
+schema.index(
+    { tasksExportationStatus: 1, updatedAt: 1 },
+    {
+        name: 'reexportTasks'
+    }
+);
+schema.index(
+    { status: 1, expires: 1 },
+    {
+        name: 'makeExpired'
+    }
+);
+
+export default mongoose.model(modelName, schema)
+    .on(
+        'index',
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore next */
+        (error) => {
+            if (error !== undefined) {
+                // tslint:disable-next-line:no-console
+                console.error(error);
+            }
+        }
+    );

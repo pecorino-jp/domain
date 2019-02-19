@@ -1,8 +1,8 @@
 // tslint:disable:no-implicit-dependencies
 /**
  * レポートサービステスト
- * @ignore
  */
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 
@@ -19,13 +19,16 @@ describe('取引レポートをダウンロードする', () => {
         sandbox.restore();
     });
 
-    it('リポジトリーが正常であれば開設できるはず', async () => {
+    it('リポジトリーが正常であればダウンロードできるはず', async () => {
         const transactions = [
             {
                 typeOf: pecorino.factory.transactionType.Deposit,
                 agent: {},
                 recipient: {},
-                object: {},
+                object: {
+                    toLocation: {},
+                    description: 'description'
+                },
                 expires: new Date(),
                 status: pecorino.factory.transactionStatusType.Confirmed,
                 result: {},
@@ -39,7 +42,10 @@ describe('取引レポートをダウンロードする', () => {
                 typeOf: pecorino.factory.transactionType.Deposit,
                 agent: {},
                 recipient: {},
-                object: {},
+                object: {
+                    toLocation: {},
+                    description: 'description'
+                },
                 expires: new Date(),
                 status: pecorino.factory.transactionStatusType.Expired,
                 startDate: new Date(),
@@ -52,7 +58,11 @@ describe('取引レポートをダウンロードする', () => {
                 typeOf: pecorino.factory.transactionType.Transfer,
                 agent: {},
                 recipient: {},
-                object: {},
+                object: {
+                    fromLocation: {},
+                    toLocation: {},
+                    description: 'description'
+                },
                 expires: new Date(),
                 status: pecorino.factory.transactionStatusType.Confirmed,
                 result: {},
@@ -66,7 +76,10 @@ describe('取引レポートをダウンロードする', () => {
                 typeOf: pecorino.factory.transactionType.Withdraw,
                 agent: {},
                 recipient: {},
-                object: {},
+                object: {
+                    fromLocation: {},
+                    description: 'description'
+                },
                 expires: new Date(),
                 status: pecorino.factory.transactionStatusType.Confirmed,
                 result: {},
@@ -76,8 +89,11 @@ describe('取引レポートをダウンロードする', () => {
                 tasksExportationStatus: pecorino.factory.transactionTasksExportationStatus.Exported,
                 potentialActions: {}
             }];
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('search').once().resolves(transactions);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        sandbox.mock(transactionRepo)
+            .expects('search')
+            .once()
+            .resolves(transactions);
 
         const result = await pecorino.service.report.download(<any>{}, 'csv')({
             transaction: transactionRepo
@@ -88,12 +104,16 @@ describe('取引レポートをダウンロードする', () => {
 
     it('非対応フォーマットを指定すれば、NotImplementedエラーとなるはず', async () => {
         const transactions = [];
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
-        sandbox.mock(transactionRepo).expects('search').once().resolves(transactions);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        sandbox.mock(transactionRepo)
+            .expects('search')
+            .once()
+            .resolves(transactions);
 
         const result = await pecorino.service.report.download(<any>{}, <any>'UnknownFormat')({
             transaction: transactionRepo
-        }).catch((err) => err);
+        })
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotImplemented);
         sandbox.verify();
     });

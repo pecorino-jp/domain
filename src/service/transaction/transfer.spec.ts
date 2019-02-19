@@ -1,8 +1,8 @@
 // tslint:disable:no-implicit-dependencies
 /**
  * 転送取引サービステスト
- * @ignore
  */
+import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 
@@ -25,13 +25,16 @@ describe('転送取引を開始する', () => {
             typeOf: pecorino.factory.transactionType.Transfer,
             agent: {},
             recipient: {},
-            object: {},
+            object: {
+                fromLocation: {},
+                toLocation: {}
+            },
             expires: new Date(),
             status: pecorino.factory.transactionStatusType.Confirmed,
             startDate: new Date()
         };
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(accountRepo).expects('findByAccountNumber').twice()
             .onFirstCall().resolves(account)
             .onSecondCall().resolves(account);
@@ -56,14 +59,17 @@ describe('転送取引を開始する', () => {
             typeOf: pecorino.factory.transactionType.Transfer,
             agent: {},
             recipient: {},
-            object: {},
+            object: {
+                fromLocation: {},
+                toLocation: {}
+            },
             expires: new Date(),
             status: pecorino.factory.transactionStatusType.Confirmed,
             startDate: new Date()
         };
         const startError = new Error('startError');
-        const accountRepo = new pecorino.repository.Account(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(accountRepo).expects('findByAccountNumber').twice()
             .onFirstCall().resolves(account)
             .onSecondCall().resolves(account);
@@ -100,7 +106,7 @@ describe('転送取引を確定する', () => {
             result: {},
             startDate: new Date()
         };
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
         sandbox.mock(transactionRepo).expects('confirm').once().resolves(transaction);
 
@@ -125,8 +131,8 @@ describe('取引のタスクをエクスポートする', () => {
             status: pecorino.factory.transactionStatusType.Canceled
         };
         const task = {};
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(transactionRepo).expects('startExportTasks').once().resolves(transaction);
         sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
         sandbox.mock(taskRepo).expects('save').atLeast(1).resolves(task);
@@ -141,8 +147,8 @@ describe('取引のタスクをエクスポートする', () => {
     });
 
     it('タスクエクスポート待ちの取引がなければ何もしないはず', async () => {
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(transactionRepo).expects('startExportTasks').once().resolves(null);
         sandbox.mock(transactionRepo).expects('findById').never();
         sandbox.mock(taskRepo).expects('save').never();
@@ -171,8 +177,8 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             }
         };
         const task = {};
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
         sandbox.mock(taskRepo).expects('save').atLeast(1).resolves(task);
 
@@ -195,8 +201,8 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
                 status: transactionStatus
             };
             const task = {};
-            const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
-            const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+            const taskRepo = new pecorino.repository.Task(mongoose.connection);
+            const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
             sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
             sandbox.mock(taskRepo).expects('save').atLeast(1).resolves(task);
 
@@ -214,8 +220,8 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             id: 'transactionId',
             status: 'UnknownStatus'
         };
-        const taskRepo = new pecorino.repository.Task(pecorino.mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(pecorino.mongoose.connection);
+        const taskRepo = new pecorino.repository.Task(mongoose.connection);
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
         sandbox.mock(taskRepo).expects('save').never();
 
