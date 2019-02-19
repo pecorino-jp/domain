@@ -1,6 +1,8 @@
 /**
  * 現金転送実行
  */
+const mongoose = require('mongoose');
+
 const pecorino = require('../');
 
 mongoose.connect(process.env.MONGOLAB_URI)
