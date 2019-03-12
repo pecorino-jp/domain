@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - 口座、アクション、タスク、取引コレクションのインデックス調整
+- 転送アクション検索条件を拡張
 
 ### Deprecated
 
