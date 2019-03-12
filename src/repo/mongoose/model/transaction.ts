@@ -112,83 +112,83 @@ schema.index(
     { name: 'searchByUpdatedAt' }
 );
 schema.index(
-    { typeOf: 1 },
-    { name: 'searchByTypeOf' }
+    { typeOf: 1, startDate: -1 },
+    { name: 'searchByTypeOfAndStartDate' }
 );
 schema.index(
-    { status: 1 },
-    { name: 'searchByStatus' }
+    { status: 1, startDate: -1 },
+    { name: 'searchByStatusAndStartDate' }
 );
 schema.index(
-    { startDate: 1 },
-    { name: 'searchByStartDate' }
+    { startDate: -1 },
+    { name: 'searchByStartDateDescending' }
 );
 schema.index(
-    { endDate: 1 },
+    { endDate: 1, startDate: -1 },
     {
-        name: 'searchByEndDate',
+        name: 'searchByEndDateAndStartDate',
         partialFilterExpression: {
             endDate: { $exists: true }
         }
     }
 );
 schema.index(
-    { expires: 1 },
-    { name: 'searchByExpires' }
+    { expires: 1, startDate: -1 },
+    { name: 'searchByExpiresAndStartDate' }
 );
 schema.index(
-    { tasksExportationStatus: 1 },
-    { name: 'searchByTasksExportationStatus' }
+    { tasksExportationStatus: 1, startDate: -1 },
+    { name: 'searchByTasksExportationStatusAndStartDate' }
 );
 schema.index(
-    { tasksExportedAt: 1 },
+    { tasksExportedAt: 1, startDate: -1 },
     {
-        name: 'searchByTasksExportedAt',
+        name: 'searchByTasksExportedAtAndStartDate',
         partialFilterExpression: {
             tasksExportedAt: { $exists: true }
         }
     }
 );
 schema.index(
-    { 'agent.typeOf': 1 },
+    { 'agent.typeOf': 1, startDate: -1 },
     {
-        name: 'searchByAgentTypeOf',
+        name: 'searchByAgentTypeOfAndStartDate',
         partialFilterExpression: {
             'agent.typeOf': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'agent.id': 1 },
+    { 'agent.id': 1, startDate: -1 },
     {
-        name: 'searchByAgentId',
+        name: 'searchByAgentIdAndStartDate',
         partialFilterExpression: {
             'agent.id': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'agent.identifier': 1 },
+    { 'agent.identifier': 1, startDate: -1 },
     {
-        name: 'searchByAgentIdentifier',
+        name: 'searchByAgentIdentifierAndStartDate',
         partialFilterExpression: {
             'agent.identifier': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'recipient.typeOf': 1 },
+    { 'recipient.typeOf': 1, startDate: -1 },
     {
-        name: 'searchByRecipientTypeOf',
+        name: 'searchByRecipientTypeOfAndStartDate',
         partialFilterExpression: {
             'recipient.typeOf': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'recipient.id': 1 },
+    { 'recipient.id': 1, startDate: -1 },
     {
-        name: 'searchByRecipientId',
+        name: 'searchByRecipientIdAndStartDate',
         partialFilterExpression: {
             'recipient.id': { $exists: true }
         }

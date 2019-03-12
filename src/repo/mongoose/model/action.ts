@@ -119,108 +119,110 @@ schema.index(
     { updatedAt: 1 },
     { name: 'searchByUpdatedAt' }
 );
+
 schema.index(
-    { typeOf: 1 },
-    { name: 'searchByTypeOf' }
+    { typeOf: 1, startDate: -1 },
+    { name: 'searchByTypeOf-v2' }
 );
 schema.index(
-    { actionStatus: 1 },
-    { name: 'searchByActionStatus' }
+    { actionStatus: 1, startDate: -1 },
+    { name: 'searchByActionStatus-v2' }
 );
 schema.index(
-    { startDate: 1 },
-    { name: 'searchByStartDate' }
+    { startDate: -1 },
+    { name: 'searchByStartDate-v2' }
 );
 schema.index(
-    { endDate: 1 },
+    { endDate: -1, startDate: -1 },
     {
-        name: 'searchByEndDate',
+        name: 'searchByEndDate-v2',
         partialFilterExpression: {
             endDate: { $exists: true }
         }
     }
 );
 schema.index(
-    { 'purpose.typeOf': 1 },
+    { 'purpose.typeOf': 1, startDate: -1 },
     {
-        name: 'searchByPurposeTypeOf',
+        name: 'searchByPurposeTypeOf-v2',
         partialFilterExpression: {
             'purpose.typeOf': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'purpose.id': 1 },
+    { 'purpose.id': 1, startDate: -1 },
     {
-        name: 'searchByPurposeId',
+        name: 'searchByPurposeId-v2',
         partialFilterExpression: {
             'purpose.id': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'object.typeOf': 1 },
+    { 'object.typeOf': 1, startDate: -1 },
     {
-        name: 'searchByObjectTypeOf',
+        name: 'searchByObjectTypeOf-v2',
         partialFilterExpression: {
             'object.typeOf': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'fromLocation.typeOf': 1 },
+    { 'fromLocation.typeOf': 1, startDate: -1 },
     {
-        name: 'searchByFromLocationTypeOf',
+        name: 'searchByFromLocationTypeOf-v2',
         partialFilterExpression: {
             'fromLocation.typeOf': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'fromLocation.accountNumber': 1 },
+    { 'fromLocation.accountNumber': 1, startDate: -1 },
     {
-        name: 'searchByFromLocationAccountNumber',
+        name: 'searchByFromLocationAccountNumber-v2',
         partialFilterExpression: {
             'fromLocation.accountNumber': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'fromLocation.accountType': 1 },
+    { 'fromLocation.accountType': 1, startDate: -1 },
     {
-        name: 'searchByFromLocationAccountType',
+        name: 'searchByFromLocationAccountType-v2',
         partialFilterExpression: {
             'fromLocation.accountType': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'toLocation.typeOf': 1 },
+    { 'toLocation.typeOf': 1, startDate: -1 },
     {
-        name: 'searchByToLocationTypeOf',
+        name: 'searchByToLocationTypeOf-v2',
         partialFilterExpression: {
             'toLocation.typeOf': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'toLocation.accountNumber': 1 },
+    { 'toLocation.accountNumber': 1, startDate: -1 },
     {
-        name: 'searchByToLocationAccountNumber',
+        name: 'searchByToLocationAccountNumber-v2',
         partialFilterExpression: {
             'toLocation.accountNumber': { $exists: true }
         }
     }
 );
 schema.index(
-    { 'toLocation.accountType': 1 },
+    { 'toLocation.accountType': 1, startDate: -1 },
     {
-        name: 'searchByToLocationAccountType',
+        name: 'searchByToLocationAccountType-v2',
         partialFilterExpression: {
             'toLocation.accountType': { $exists: true }
         }
     }
 );
+
 schema.index(
     { 'fromLocation.typeOf': 1, 'fromLocation.accountType': 1, 'fromLocation.accountNumber': 1, endDate: -1 },
     {

@@ -256,7 +256,11 @@ describe('口座に保留中の取引を中止する', () => {
     });
 
     it('転送元口座が存在すれば取引を中止できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.voidTransaction({
             accountType: 'accountType',
@@ -270,7 +274,11 @@ describe('口座に保留中の取引を中止する', () => {
     });
 
     it('転送先口座が存在すれば取引を中止できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.voidTransaction({
             accountType: 'accountType',
@@ -297,11 +305,14 @@ describe('口座をカウント', () => {
             limit: 1,
             page: 1,
             sort: {
-                accountNumber: pecorino.factory.sortType.Ascending
+                openDate: pecorino.factory.sortType.Ascending
             }
         };
-        sandbox.mock(accountRepo.accountModel).expects('countDocuments').once()
-            .chain('exec').resolves(1);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('countDocuments')
+            .once()
+            .chain('exec')
+            .resolves(1);
         const result = await accountRepo.count(searchConditions);
         assert(Number.isInteger(result));
         sandbox.verify();
@@ -321,11 +332,14 @@ describe('口座を検索する', () => {
             limit: 1,
             page: 1,
             sort: {
-                accountNumber: pecorino.factory.sortType.Ascending
+                openDate: pecorino.factory.sortType.Ascending
             }
         };
-        sandbox.mock(accountRepo.accountModel).expects('find').once()
-            .chain('exec').resolves([new accountRepo.accountModel()]);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('find')
+            .once()
+            .chain('exec')
+            .resolves([new accountRepo.accountModel()]);
         const result = await accountRepo.search(searchConditions);
         assert(Array.isArray(result));
         sandbox.verify();
