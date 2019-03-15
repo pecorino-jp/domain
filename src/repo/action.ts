@@ -22,45 +22,62 @@ export class MongoRepository {
         params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
     ) {
         const andConditions: any[] = [
-            {
-                typeOf: factory.actionType.MoneyTransfer
-            }
+            { typeOf: factory.actionType.MoneyTransfer }
         ];
-        andConditions.push({
-            $or: [
-                {
-                    'fromLocation.typeOf': {
-                        $exists: true,
-                        $eq: factory.account.TypeOf.Account
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof params.accountType === 'string') {
+            andConditions.push({
+                $or: [
+                    {
+                        'fromLocation.typeOf': {
+                            $exists: true,
+                            $eq: factory.account.TypeOf.Account
+                        },
+                        'fromLocation.accountType': {
+                            $exists: true,
+                            $eq: params.accountType
+                        }
                     },
-                    'fromLocation.accountType': {
-                        $exists: true,
-                        $eq: params.accountType
-                    },
-                    'fromLocation.accountNumber': {
-                        $exists: true,
-                        $eq: params.accountNumber
+                    {
+                        'toLocation.typeOf': {
+                            $exists: true,
+                            $eq: factory.account.TypeOf.Account
+                        },
+                        'toLocation.accountType': {
+                            $exists: true,
+                            $eq: params.accountType
+                        }
                     }
-                },
-                {
-                    'toLocation.typeOf': {
-                        $exists: true,
-                        $eq: factory.account.TypeOf.Account
+                ]
+            });
+        }
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof params.accountNumber === 'string') {
+            andConditions.push({
+                $or: [
+                    {
+                        'fromLocation.accountNumber': {
+                            $exists: true,
+                            $eq: params.accountNumber
+                        }
                     },
-                    'toLocation.accountType': {
-                        $exists: true,
-                        $eq: params.accountType
-                    },
-                    'toLocation.accountNumber': {
-                        $exists: true,
-                        $eq: params.accountNumber
+                    {
+                        'toLocation.accountNumber': {
+                            $exists: true,
+                            $eq: params.accountNumber
+                        }
                     }
-                }
-            ]
-        });
+                ]
+            });
+        }
 
         return andConditions;
     }
+
     /**
      * アクション開始
      */
@@ -74,6 +91,7 @@ export class MongoRepository {
                 (doc) => doc.toObject()
             );
     }
+
     /**
      * アクション完了
      */
@@ -103,6 +121,7 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
+
     /**
      * アクション中止
      */
@@ -128,6 +147,7 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
+
     /**
      * アクション失敗
      */
@@ -157,6 +177,7 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
+
     /**
      * アクション検索
      */
@@ -179,6 +200,7 @@ export class MongoRepository {
                 return doc.toObject();
             });
     }
+
     public async countTransferActions<T extends factory.account.AccountType>(
         params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
     ): Promise<number> {
@@ -188,6 +210,7 @@ export class MongoRepository {
             .setOptions({ maxTimeMS: 10000 })
             .exec();
     }
+
     /**
      * 転送アクションを検索する
      */
@@ -219,6 +242,7 @@ export class MongoRepository {
             .exec()
             .then((docs) => docs.map((doc) => doc.toObject()));
     }
+
     /**
      * アクションを検索する
      * @param searchConditions 検索条件

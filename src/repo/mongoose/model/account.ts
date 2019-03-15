@@ -58,30 +58,32 @@ schema.index(
     { updatedAt: 1 },
     { name: 'searchByUpdatedAt' }
 );
+
 schema.index(
-    { typeOf: 1 },
-    { name: 'searchByTypeOf' }
+    { typeOf: 1, openDate: -1 },
+    { name: 'searchByTypeOf-v2' }
 );
 schema.index(
-    { accountNumber: 1 },
-    { name: 'searchByAccountNumber' }
+    { accountNumber: 1, openDate: -1 },
+    { name: 'searchByAccountNumber-v2' }
 );
 schema.index(
-    { accountType: 1 },
-    { name: 'searchByAccountType' }
+    { accountType: 1, openDate: -1 },
+    { name: 'searchByAccountType-v2' }
 );
 schema.index(
-    { name: 1 },
-    { name: 'searchByName' }
+    { name: 1, openDate: -1 },
+    { name: 'searchByName-v2' }
 );
 schema.index(
-    { openDate: 1 },
-    { name: 'searchByOpenDate' }
+    { openDate: -1 },
+    { name: 'searchByOpenDate-v2' }
 );
 schema.index(
-    { status: 1 },
-    { name: 'searchByStatus' }
+    { status: 1, openDate: -1 },
+    { name: 'searchByStatus-v2' }
 );
+
 schema.index(
     { accountType: 1, accountNumber: 1, status: 1 },
     { name: 'authorizeAmount' }

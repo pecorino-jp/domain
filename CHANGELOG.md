@@ -18,6 +18,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Security
 
+## v2.0.1 - 2019-03-15
+
+### Changed
+
+- 口座、アクション、タスク、取引コレクションのインデックス調整
+- 転送アクション検索条件を拡張
+
 ## v2.0.0 - 2019-02-19
 
 ### Changed
