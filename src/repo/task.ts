@@ -6,7 +6,6 @@ import * as factory from '../factory';
 
 /**
  * タスク実行時のソート条件
- * @const
  */
 const sortOrder4executionOfTasks = {
     numberOfTried: 1, // トライ回数の少なさ優先
@@ -14,7 +13,7 @@ const sortOrder4executionOfTasks = {
 };
 
 /**
- * タスクレポジトリー
+ * タスクリポジトリ
  */
 export class MongoRepository {
     public readonly taskModel: typeof taskModel;
@@ -22,12 +21,14 @@ export class MongoRepository {
     constructor(connection: Connection) {
         this.taskModel = connection.model(taskModel.modelName);
     }
+
     public async save(taskAttributes: factory.task.IAttributes): Promise<factory.task.ITask> {
         return this.taskModel.create(taskAttributes)
             .then(
                 (doc) => <factory.task.ITask>doc.toObject()
             );
     }
+
     public async executeOneByName(taskName: factory.taskName): Promise<factory.task.ITask> {
         const doc = await this.taskModel.findOneAndUpdate(
             {
@@ -54,6 +55,7 @@ export class MongoRepository {
 
         return <factory.task.ITask>doc.toObject();
     }
+
     public async retry(intervalInMinutes: number) {
         const lastTriedAtShoudBeLessThan = moment()
             .add(-intervalInMinutes, 'minutes')
@@ -61,7 +63,10 @@ export class MongoRepository {
         await this.taskModel.update(
             {
                 status: factory.taskStatus.Running,
-                lastTriedAt: { $lt: lastTriedAtShoudBeLessThan },
+                lastTriedAt: {
+                    $type: 'date',
+                    $lt: lastTriedAtShoudBeLessThan
+                },
                 remainingNumberOfTries: { $gt: 0 }
             },
             {
@@ -71,6 +76,7 @@ export class MongoRepository {
         )
             .exec();
     }
+
     public async abortOne(intervalInMinutes: number): Promise<factory.task.ITask> {
         const lastTriedAtShoudBeLessThan = moment()
             .add(-intervalInMinutes, 'minutes')
@@ -79,7 +85,10 @@ export class MongoRepository {
         const doc = await this.taskModel.findOneAndUpdate(
             {
                 status: factory.taskStatus.Running,
-                lastTriedAt: { $lt: lastTriedAtShoudBeLessThan },
+                lastTriedAt: {
+                    $type: 'date',
+                    $lt: lastTriedAtShoudBeLessThan
+                },
                 remainingNumberOfTries: 0
             },
             {
@@ -95,6 +104,7 @@ export class MongoRepository {
 
         return <factory.task.ITask>doc.toObject();
     }
+
     public async pushExecutionResultById(
         id: string,
         status: factory.taskStatus,

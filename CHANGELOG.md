@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- インデックスが効くように、タスクコレクションに対するクエリを調整
+
 ### Deprecated
 
 ### Removed
