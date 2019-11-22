@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - アクションにプロジェクト属性を追加
 - タスクにプロジェクト属性を追加
 - 取引にプロジェクト属性を追加
+- 全コレクションにプロジェクト属性へのインデックスを追加
 
 ### Deprecated
 

@@ -60,6 +60,16 @@ schema.index(
 );
 
 schema.index(
+    { 'project.id': 1, openDate: -1 },
+    {
+        name: 'searchByProjectId',
+        partialFilterExpression: {
+            'project.id': { $exists: true }
+        }
+    }
+);
+
+schema.index(
     { typeOf: 1, openDate: -1 },
     { name: 'searchByTypeOf-v2' }
 );
