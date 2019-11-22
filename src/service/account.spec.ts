@@ -25,7 +25,7 @@ describe('口座を開設する', () => {
             .once()
             .resolves({});
 
-        const result = await pecorino.service.account.open(<any>{})({
+        const result = await pecorino.service.account.open(<any>{ project: {} })({
             account: accountRepo
         });
         assert.equal(typeof result, 'object');

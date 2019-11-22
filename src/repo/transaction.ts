@@ -6,7 +6,7 @@ import TransactionModel from './mongoose/model/transaction';
 import * as factory from '../factory';
 
 /**
- * 取引リポジトリー
+ * 取引リポジトリ
  */
 export class MongoRepository {
     public readonly transactionModel: typeof TransactionModel;

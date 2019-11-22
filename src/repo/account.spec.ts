@@ -26,7 +26,7 @@ describe('口座開設', () => {
     it('MongoDBが正常であれば開設できるはず', async () => {
         sandbox.mock(accountRepo.accountModel).expects('create').once().resolves(new accountRepo.accountModel());
 
-        const result = await accountRepo.open(<any>{});
+        const result = await accountRepo.open(<any>{ project: {} });
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });

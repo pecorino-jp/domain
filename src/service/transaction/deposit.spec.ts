@@ -40,6 +40,7 @@ describe('入金取引を開始する', () => {
         sandbox.mock(accountRepo).expects('startTransaction').once().resolves();
 
         const result = await pecorino.service.transaction.deposit.start(<any>{
+            project: {},
             agent: transaction.agent,
             object: transaction.object
         })({
@@ -72,6 +73,7 @@ describe('入金取引を開始する', () => {
         sandbox.mock(accountRepo).expects('startTransaction').never();
 
         const result = await pecorino.service.transaction.deposit.start(<any>{
+            project: {},
             agent: transaction.agent,
             object: transaction.object
         })({

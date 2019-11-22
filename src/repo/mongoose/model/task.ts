@@ -26,6 +26,7 @@ const dataSchema = new mongoose.Schema(
  */
 const schema = new mongoose.Schema(
     {
+        project: mongoose.SchemaTypes.Mixed,
         name: String,
         status: String,
         runsAt: Date,

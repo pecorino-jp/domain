@@ -63,6 +63,7 @@ const potentialActionsSchema = new mongoose.Schema(
  */
 const schema = new mongoose.Schema(
     {
+        project: mongoose.SchemaTypes.Mixed,
         status: String,
         typeOf: String,
         agent: agentSchema,
