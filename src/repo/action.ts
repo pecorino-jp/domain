@@ -15,15 +15,46 @@ export type IAction<T extends factory.actionType> =
  */
 export class MongoRepository {
     public readonly actionModel: typeof ActionModel;
+
     constructor(connection: Connection) {
         this.actionModel = connection.model(ActionModel.modelName);
     }
+
     public static CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS<T extends factory.account.AccountType>(
         params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
     ) {
         const andConditions: any[] = [
             { typeOf: factory.actionType.MoneyTransfer }
         ];
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.project !== undefined && params.project !== null) {
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (params.project.id !== undefined && params.project.id !== null) {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
+                if (typeof params.project.id.$eq === 'string') {
+                    andConditions.push({
+                        'project.id': {
+                            $exists: true,
+                            $eq: params.project.id.$eq
+                        }
+                    });
+                }
+
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
+                if (typeof params.project.id.$ne === 'string') {
+                    andConditions.push({
+                        'project.id': {
+                            $ne: params.project.id.$ne
+                        }
+                    });
+                }
+            }
+        }
 
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */

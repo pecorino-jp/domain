@@ -24,6 +24,36 @@ export class MongoRepository {
                 accountType: params.accountType
             }
         ];
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.project !== undefined && params.project !== null) {
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (params.project.id !== undefined && params.project.id !== null) {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
+                if (typeof params.project.id.$eq === 'string') {
+                    andConditions.push({
+                        'project.id': {
+                            $exists: true,
+                            $eq: params.project.id.$eq
+                        }
+                    });
+                }
+
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
+                if (typeof params.project.id.$ne === 'string') {
+                    andConditions.push({
+                        'project.id': {
+                            $ne: params.project.id.$ne
+                        }
+                    });
+                }
+            }
+        }
+
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
         if (Array.isArray(params.accountNumbers) && params.accountNumbers.length > 0) {

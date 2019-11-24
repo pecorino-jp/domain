@@ -24,7 +24,10 @@ describe('口座開設', () => {
     });
 
     it('MongoDBが正常であれば開設できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('create').once().resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('create')
+            .once()
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.open(<any>{ project: {} });
         assert.equal(typeof result, 'object');
@@ -39,7 +42,11 @@ describe('口座解約', () => {
     });
 
     it('開設状態の口座があれば解約できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.close(<any>{});
         assert.equal(result, undefined);
@@ -51,8 +58,16 @@ describe('口座解約', () => {
             status: pecorino.factory.accountStatusType.Closed,
             pendingTransactions: [{}]
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
         const result = await accountRepo.close(<any>{});
         assert.equal(result, undefined);
@@ -64,10 +79,19 @@ describe('口座解約', () => {
             status: pecorino.factory.accountStatusType.Opened,
             pendingTransactions: [{}]
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.close(<any>{}).catch((err) => err);
+        const result = await accountRepo.close(<any>{})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
     });
@@ -77,10 +101,19 @@ describe('口座解約', () => {
             status: pecorino.factory.accountStatusType.Opened,
             pendingTransactions: []
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.close(<any>{}).catch((err) => err);
+        const result = await accountRepo.close(<any>{})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -93,7 +126,11 @@ describe('口座番号で検索', () => {
     });
 
     it('口座が存在すればオブジェクトを取得できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOne').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOne')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.findByAccountNumber({
             accountType: 'accountType',
@@ -104,12 +141,18 @@ describe('口座番号で検索', () => {
     });
 
     it('存在しなければNotFoundエラーとなるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOne').once().chain('exec').resolves(null);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOne')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
         const result = await accountRepo.findByAccountNumber({
             accountType: 'accountType',
             accountNumber: 'accountNumber'
-        }).catch((err) => err);
+        })
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -122,7 +165,11 @@ describe('口座の金額を確保する', () => {
     });
 
     it('残高が足りていれば確保できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.authorizeAmount(<any>{});
         assert.equal(result, undefined);
@@ -134,10 +181,19 @@ describe('口座の金額を確保する', () => {
             status: pecorino.factory.accountStatusType.Closed,
             pendingTransactions: []
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.authorizeAmount(<any>{}).catch((err) => err);
+        const result = await accountRepo.authorizeAmount(<any>{})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
     });
@@ -148,10 +204,19 @@ describe('口座の金額を確保する', () => {
             availableBalance: 1233,
             pendingTransactions: []
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.authorizeAmount(<any>{ amount: 1234 }).catch((err) => err);
+        const result = await accountRepo.authorizeAmount(<any>{ amount: 1234 })
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
     });
@@ -162,10 +227,19 @@ describe('口座の金額を確保する', () => {
             availableBalance: 1234,
             pendingTransactions: []
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.authorizeAmount(<any>{ amount: 1234 }).catch((err) => err);
+        const result = await accountRepo.authorizeAmount(<any>{ amount: 1234 })
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -178,7 +252,11 @@ describe('口座内で取引を開始する', () => {
     });
 
     it('口座が存在すれば取引を開始できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.startTransaction(<any>{});
         assert.equal(result, undefined);
@@ -191,10 +269,19 @@ describe('口座内で取引を開始する', () => {
             availableBalance: 1234,
             pendingTransactions: []
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.startTransaction(<any>{}).catch((err) => err);
+        const result = await accountRepo.startTransaction(<any>{})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
     });
@@ -205,10 +292,19 @@ describe('口座内で取引を開始する', () => {
             availableBalance: 1234,
             pendingTransactions: []
         };
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(accountRepo).expects('findByAccountNumber').once().resolves(account);
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(accountRepo)
+            .expects('findByAccountNumber')
+            .once()
+            .resolves(account);
 
-        const result = await accountRepo.startTransaction(<any>{}).catch((err) => err);
+        const result = await accountRepo.startTransaction(<any>{})
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -221,7 +317,11 @@ describe('口座に保留中の取引を実行する', () => {
     });
 
     it('転送元口座が存在すれば取引を実行できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.settleTransaction({
             accountType: 'accountType',
@@ -235,7 +335,11 @@ describe('口座に保留中の取引を実行する', () => {
     });
 
     it('転送先口座が存在すれば取引を実行できるはず', async () => {
-        sandbox.mock(accountRepo.accountModel).expects('findOneAndUpdate').once().chain('exec').resolves(new accountRepo.accountModel());
+        sandbox.mock(accountRepo.accountModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.settleTransaction({
             accountType: 'accountType',
@@ -298,6 +402,7 @@ describe('口座をカウント', () => {
     });
     it('MongoDBが正常であれば数字を取得できるはず', async () => {
         const searchConditions = {
+            project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
             statuses: [pecorino.factory.accountStatusType.Opened],
@@ -325,6 +430,7 @@ describe('口座を検索する', () => {
     });
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
+            project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
             statuses: [pecorino.factory.accountStatusType.Opened],
