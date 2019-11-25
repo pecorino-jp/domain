@@ -178,7 +178,7 @@ describe('転送アクションをカウント', () => {
             limit: 1,
             page: 1,
             sort: {
-                endDate: pecorino.factory.sortType.Ascending
+                startDate: pecorino.factory.sortType.Ascending
             }
         };
         sandbox.mock(actionRepo.actionModel)
@@ -204,7 +204,7 @@ describe('転送アクションを検索する', () => {
             limit: 1,
             page: 1,
             sort: {
-                endDate: pecorino.factory.sortType.Ascending
+                startDate: pecorino.factory.sortType.Ascending
             }
         };
         sandbox.mock(actionRepo.actionModel)
