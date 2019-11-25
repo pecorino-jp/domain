@@ -21,6 +21,7 @@ export type IActionRepo<T> = (repos: { action: ActionRepo }) => Promise<T>;
  * 口座を開設する
  */
 export function open<T extends factory.account.AccountType>(params: {
+    project: { typeOf: 'Project'; id: string };
     /**
      * 口座タイプ
      */
@@ -43,6 +44,7 @@ export function open<T extends factory.account.AccountType>(params: {
         account: AccountRepo;
     }) => {
         return repos.account.open({
+            project: { typeOf: params.project.typeOf, id: params.project.id },
             name: params.name,
             accountType: params.accountType,
             accountNumber: params.accountNumber,

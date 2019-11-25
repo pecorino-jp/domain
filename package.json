@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "@pecorino/factory": "^2.0.1",
+    "@pecorino/factory": "^3.0.0",
     "@sendgrid/mail": "^6.3.1",
     "debug": "^3.1.0",
     "http-status": "^1.2.0",
@@ -39,7 +39,6 @@
     "rimraf": "^2.6.2",
     "sinon": "^4.5.0",
     "sinon-mongoose": "^2.2.1",
-    "snyk": "^1.89.1",
     "ts-node": "^8.0.2",
     "tslint": "^5.12.1",
     "tslint-microsoft-contrib": "^6.0.0",
@@ -90,5 +89,5 @@
     "postversion": "git push origin --tags",
     "prepublishOnly": "npm run clean && npm run build && npm test && npm run doc"
   },
-  "version": "2.0.2"
+  "version": "3.0.0"
 }

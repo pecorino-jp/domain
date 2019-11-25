@@ -8,13 +8,15 @@ import * as factory from '../factory';
 const debug = createDebug('pecorino-domain:*');
 
 /**
- * 口座リポジトリー
+ * 口座リポジトリ
  */
 export class MongoRepository {
     public readonly accountModel: typeof AccountModel;
+
     constructor(connection: Connection) {
         this.accountModel = connection.model(AccountModel.modelName);
     }
+
     public static CREATE_MONGO_CONDITIONS<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>) {
         const andConditions: any[] = [
             {
@@ -22,6 +24,36 @@ export class MongoRepository {
                 accountType: params.accountType
             }
         ];
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (params.project !== undefined && params.project !== null) {
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (params.project.id !== undefined && params.project.id !== null) {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
+                if (typeof params.project.id.$eq === 'string') {
+                    andConditions.push({
+                        'project.id': {
+                            $exists: true,
+                            $eq: params.project.id.$eq
+                        }
+                    });
+                }
+
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore else */
+                if (typeof params.project.id.$ne === 'string') {
+                    andConditions.push({
+                        'project.id': {
+                            $ne: params.project.id.$ne
+                        }
+                    });
+                }
+            }
+        }
+
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
         if (Array.isArray(params.accountNumbers) && params.accountNumbers.length > 0) {
@@ -46,11 +78,12 @@ export class MongoRepository {
 
         return andConditions;
     }
+
     /**
      * 口座を開設する
-     * @param params 口座開設初期設定
      */
     public async open<T extends factory.account.AccountType>(params: {
+        project: { typeOf: 'Project'; id: string };
         /**
          * 口座タイプ
          */
@@ -72,8 +105,8 @@ export class MongoRepository {
          */
         openDate: Date;
     }): Promise<factory.account.IAccount<T>> {
-        debug('opening account...');
         const account: factory.account.IAccount<T> = {
+            project: { typeOf: params.project.typeOf, id: params.project.id },
             typeOf: factory.account.TypeOf.Account,
             accountType: params.accountType,
             accountNumber: params.accountNumber,
@@ -89,10 +122,9 @@ export class MongoRepository {
 
         return doc.toObject();
     }
+
     /**
      * 口座を解約する
-     * @param params.accountNumber 口座番号
-     * @param params.closeDate 解約日時
      */
     public async close<T extends factory.account.AccountType>(params: {
         /**
@@ -143,6 +175,7 @@ export class MongoRepository {
             }
         }
     }
+
     /**
      * 口座番号で検索する
      */
@@ -167,6 +200,7 @@ export class MongoRepository {
 
         return doc.toObject();
     }
+
     /**
      * 金額を確保する
      * @see https://en.wikipedia.org/wiki/Authorization_hold
@@ -221,6 +255,7 @@ export class MongoRepository {
             }
         }
     }
+
     /**
      * 取引を開始する
      */
@@ -262,6 +297,7 @@ export class MongoRepository {
             }
         }
     }
+
     /**
      * 決済処理を実行する
      * 口座上で進行中の取引について、実際に金額移動処理を実行します。
@@ -313,6 +349,7 @@ export class MongoRepository {
                 .exec();
         }
     }
+
     /**
      * 取引を取り消す
      * 口座上で進行中の取引を中止します。
@@ -361,6 +398,7 @@ export class MongoRepository {
                 .exec();
         }
     }
+
     public async count<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>): Promise<number> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
 
@@ -368,6 +406,7 @@ export class MongoRepository {
             .setOptions({ maxTimeMS: 10000 })
             .exec();
     }
+
     /**
      * 口座を検索する
      */

@@ -26,7 +26,9 @@ describe('save()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('create').once()
+        sandbox.mock(repository.taskModel)
+            .expects('create')
+            .once()
             .resolves(new repository.taskModel());
 
         const result = await repository.save(<any>ownershipInfo);
@@ -46,8 +48,11 @@ describe('executeOneByName()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new repository.taskModel());
+        sandbox.mock(repository.taskModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new repository.taskModel());
 
         const result = await repository.executeOneByName(taskName);
 
@@ -60,10 +65,15 @@ describe('executeOneByName()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(null);
+        sandbox.mock(repository.taskModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await repository.executeOneByName(taskName).catch((err) => err);
+        const result = await repository.executeOneByName(taskName)
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -79,8 +89,11 @@ describe('retry()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('update').once()
-            .chain('exec').resolves();
+        sandbox.mock(repository.taskModel)
+            .expects('update')
+            .once()
+            .chain('exec')
+            .resolves();
 
         const result = await repository.retry(intervalInMinutes);
 
@@ -99,8 +112,11 @@ describe('abortOne()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new repository.taskModel());
+        sandbox.mock(repository.taskModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new repository.taskModel());
 
         const result = await repository.abortOne(intervalInMinutes);
 
@@ -113,10 +129,15 @@ describe('abortOne()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(null);
+        sandbox.mock(repository.taskModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await repository.abortOne(intervalInMinutes).catch((err) => err);
+        const result = await repository.abortOne(intervalInMinutes)
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -134,8 +155,11 @@ describe('pushExecutionResultById()', () => {
 
         const repository = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(repository.taskModel).expects('findByIdAndUpdate').once()
-            .chain('exec').resolves(new repository.taskModel());
+        sandbox.mock(repository.taskModel)
+            .expects('findByIdAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new repository.taskModel());
 
         const result = await repository.pushExecutionResultById(taskId, status, <any>executionResult);
 

@@ -42,6 +42,7 @@ export function start<T extends factory.account.AccountType>(
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const startParams: factory.transaction.IStartParams<factory.transactionType.Withdraw, T> = {
+            project: { typeOf: params.project.typeOf, id: params.project.id },
             typeOf: factory.transactionType.Withdraw,
             agent: params.agent,
             recipient: params.recipient,
@@ -110,6 +111,7 @@ export function confirm<T extends factory.account.AccountType>(params: {
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes<T> = {
+            project: transaction.project,
             typeOf: factory.actionType.MoneyTransfer,
             description: transaction.object.description,
             result: {
@@ -189,6 +191,7 @@ export function exportTasksById<T extends factory.account.AccountType>(
                     /* istanbul ignore else */
                     if (potentialActions.moneyTransfer !== undefined) {
                         const moneyTransferTask: factory.task.moneyTransfer.IAttributes<T> = {
+                            project: transaction.project,
                             name: factory.taskName.MoneyTransfer,
                             status: factory.taskStatus.Ready,
                             runsAt: new Date(), // なるはやで実行
@@ -207,6 +210,7 @@ export function exportTasksById<T extends factory.account.AccountType>(
             case factory.transactionStatusType.Canceled:
             case factory.transactionStatusType.Expired:
                 const cancelMoneyTransferTask: factory.task.cancelMoneyTransfer.IAttributes = {
+                    project: transaction.project,
                     name: factory.taskName.CancelMoneyTransfer,
                     status: factory.taskStatus.Ready,
                     runsAt: new Date(), // なるはやで実行

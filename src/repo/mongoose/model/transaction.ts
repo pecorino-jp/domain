@@ -63,6 +63,7 @@ const potentialActionsSchema = new mongoose.Schema(
  */
 const schema = new mongoose.Schema(
     {
+        project: mongoose.SchemaTypes.Mixed,
         status: String,
         typeOf: String,
         agent: agentSchema,
@@ -111,6 +112,17 @@ schema.index(
     { updatedAt: 1 },
     { name: 'searchByUpdatedAt' }
 );
+
+schema.index(
+    { 'project.id': 1, startDate: -1 },
+    {
+        name: 'searchByProjectId',
+        partialFilterExpression: {
+            'project.id': { $exists: true }
+        }
+    }
+);
+
 schema.index(
     { typeOf: 1, startDate: -1 },
     { name: 'searchByTypeOfAndStartDate' }

@@ -24,7 +24,10 @@ describe('取引を開始する', () => {
     });
 
     it('MongoDBが正常であれば開始できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('create').once().resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('create')
+            .once()
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.start(pecorino.factory.transactionType.Deposit, <any>{});
         assert.equal(typeof result, 'object');
@@ -39,8 +42,11 @@ describe('IDで取引を検索する', () => {
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOne').once()
-            .chain('exec').resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOne')
+            .once()
+            .chain('exec')
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.findById(pecorino.factory.transactionType.Deposit, 'transactionId');
         assert.equal(typeof result, 'object');
@@ -48,9 +54,15 @@ describe('IDで取引を検索する', () => {
     });
 
     it('存在しなければNotFoundエラーとなるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOne').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOne')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
-        const result = await transactionRepo.findById(pecorino.factory.transactionType.Deposit, 'transactionId').catch((err) => err);
+        const result = await transactionRepo.findById(pecorino.factory.transactionType.Deposit, 'transactionId')
+            .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
@@ -63,8 +75,11 @@ describe('取引を確定する', () => {
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{});
         assert.equal(typeof result, 'object');
@@ -75,8 +90,16 @@ describe('取引を確定する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.Confirmed
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{});
         assert.equal(typeof result, 'object');
@@ -87,8 +110,16 @@ describe('取引を確定する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.Expired
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
             .catch((err) => err);
@@ -100,8 +131,16 @@ describe('取引を確定する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.Canceled
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
             .catch((err) => err);
@@ -113,8 +152,16 @@ describe('取引を確定する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.InProgress
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
             .catch((err) => err);
@@ -130,8 +177,11 @@ describe('取引を中止する', () => {
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId');
         assert.equal(typeof result, 'object');
@@ -142,8 +192,16 @@ describe('取引を中止する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.Canceled
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId');
         assert.equal(typeof result, 'object');
@@ -154,8 +212,16 @@ describe('取引を中止する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.Expired
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
             .catch((err) => err);
@@ -167,8 +233,16 @@ describe('取引を中止する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.Confirmed
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
             .catch((err) => err);
@@ -180,8 +254,16 @@ describe('取引を中止する', () => {
         const transaction = {
             status: pecorino.factory.transactionStatusType.InProgress
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
-        sandbox.mock(transactionRepo).expects('findById').once().resolves(transaction);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
 
         const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
             .catch((err) => err);
@@ -197,8 +279,11 @@ describe('取引タスクエクスポートを開始する', () => {
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.startExportTasks(
             pecorino.factory.transactionType.Deposit,
@@ -209,12 +294,18 @@ describe('取引タスクエクスポートを開始する', () => {
     });
 
     it('取引が存在しなければnullが返されるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once().chain('exec').resolves(null);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            // tslint:disable-next-line:no-null-keyword
+            .resolves(null);
 
         const result = await transactionRepo.startExportTasks(
             pecorino.factory.transactionType.Deposit,
             pecorino.factory.transactionStatusType.Canceled
         );
+        // tslint:disable-next-line:no-null-keyword
         assert.equal(result, null);
         sandbox.verify();
     });
@@ -227,8 +318,11 @@ describe('取引タスクエクスポートリトライ', () => {
     });
 
     it('MongoDBが正常であればエクスポートステータスを変更できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.reexportTasks(1);
         assert.equal(result, undefined);
@@ -243,8 +337,11 @@ describe('IDでタスクをエクスポート済に変更する', () => {
     });
 
     it('MongoDBが正常であればエクスポートステータスを変更できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('findOneAndUpdate').once()
-            .chain('exec').resolves(new transactionRepo.transactionModel());
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('findOneAndUpdate')
+            .once()
+            .chain('exec')
+            .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.setTasksExportedById('transactionId');
         assert.equal(result, undefined);
@@ -259,8 +356,11 @@ describe('取引を期限切れにする', () => {
     });
 
     it('MongoDBが正常であればエクスポートステータスを変更できるはず', async () => {
-        sandbox.mock(transactionRepo.transactionModel).expects('update').once()
-            .chain('exec').resolves();
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('update')
+            .once()
+            .chain('exec')
+            .resolves();
 
         const result = await transactionRepo.makeExpired(<any>{});
         assert.equal(result, undefined);
@@ -280,8 +380,11 @@ describe('取引を検索する', () => {
             startFrom: new Date(),
             startThrough: new Date()
         };
-        sandbox.mock(transactionRepo.transactionModel).expects('find').once()
-            .chain('exec').resolves([new transactionRepo.transactionModel()]);
+        sandbox.mock(transactionRepo.transactionModel)
+            .expects('find')
+            .once()
+            .chain('exec')
+            .resolves([new transactionRepo.transactionModel()]);
 
         const result = await transactionRepo.search(searchConditions);
         assert(Array.isArray(result));

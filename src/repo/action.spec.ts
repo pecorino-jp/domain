@@ -172,12 +172,13 @@ describe('転送アクションをカウント', () => {
     });
     it('MongoDBが正常であれば数字を取得できるはず', async () => {
         const searchConditions = {
+            project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumber: 'accountNumber',
             limit: 1,
             page: 1,
             sort: {
-                endDate: pecorino.factory.sortType.Ascending
+                startDate: pecorino.factory.sortType.Ascending
             }
         };
         sandbox.mock(actionRepo.actionModel)
@@ -197,12 +198,13 @@ describe('転送アクションを検索する', () => {
     });
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
+            project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumber: 'accountNumber',
             limit: 1,
             page: 1,
             sort: {
-                endDate: pecorino.factory.sortType.Ascending
+                startDate: pecorino.factory.sortType.Ascending
             }
         };
         sandbox.mock(actionRepo.actionModel)

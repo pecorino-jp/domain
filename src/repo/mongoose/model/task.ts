@@ -26,6 +26,7 @@ const dataSchema = new mongoose.Schema(
  */
 const schema = new mongoose.Schema(
     {
+        project: mongoose.SchemaTypes.Mixed,
         name: String,
         status: String,
         runsAt: Date,
@@ -68,6 +69,16 @@ schema.index(
 schema.index(
     { updatedAt: 1 },
     { name: 'searchByUpdatedAt' }
+);
+
+schema.index(
+    { 'project.id': 1, runsAt: -1 },
+    {
+        name: 'searchByProjectId',
+        partialFilterExpression: {
+            'project.id': { $exists: true }
+        }
+    }
 );
 
 schema.index(
