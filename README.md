@@ -23,12 +23,12 @@ npm install @pecorino/domain
 
 ### Environment variables
 
-| Name                                 | Required | Value             | Purpose                        |
-| ------------------------------------ | -------- | ----------------- | ------------------------------ |
-| `DEBUG`                              | false    | pecorino-domain:* | Debug                          |
-| `NODE_ENV`                           | true     |                   | environment name               |
-| `SENDGRID_API_KEY`                   | false    |                   | SendGridAPIキー                |
-| `DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN` | false    |                   | 開発者LINE通知アクセストークン |
+| Name                       | Required | Value             | Purpose                        |
+| -------------------------- | -------- | ----------------- | ------------------------------ |
+| `DEBUG`                    | false    | pecorino-domain:* | Debug                          |
+| `NODE_ENV`                 | true     |                   | environment name               |
+| `SENDGRID_API_KEY`         | false    |                   | SendGridAPIキー                |
+| `LINE_NOTIFY_ACCESS_TOKEN` | false    |                   | 開発者LINE通知アクセストークン |
 
 ## Code Samples
 

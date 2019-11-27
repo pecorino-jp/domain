@@ -16,7 +16,7 @@ import { MongoRepository as ActionRepo } from '../repo/action';
 
 export type Operation<T> = () => Promise<T>;
 
-const debug = createDebug('pecorino-domain:*');
+const debug = createDebug('pecorino-domain:service');
 
 export const LINE_NOTIFY_URL = 'https://notify-api.line.me/api/notify';
 
@@ -93,7 +93,7 @@ export function sendEmailMessage(actionAttributes: factory.action.transfer.send.
  */
 export function report2developers(subject: string, content: string, imageThumbnail?: string, imageFullsize?: string): Operation<void> {
     return async () => {
-        if (process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN === undefined) {
+        if (process.env.LINE_NOTIFY_ACCESS_TOKEN === undefined) {
             throw new Error('access token for LINE Notify undefined');
         }
 
@@ -126,7 +126,7 @@ ${content}`
             request.post(
                 {
                     url: LINE_NOTIFY_URL,
-                    auth: { bearer: process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN },
+                    auth: { bearer: process.env.LINE_NOTIFY_ACCESS_TOKEN },
                     form: formData,
                     json: true
                 },

@@ -7,7 +7,7 @@ import * as json2csv from 'json2csv';
 import * as factory from '../factory';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
-const debug = createDebug('pecorino-domain:*');
+const debug = createDebug('pecorino-domain:service');
 
 /**
  * 取引ダウンロードフォーマット

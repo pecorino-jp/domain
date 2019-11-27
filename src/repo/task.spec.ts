@@ -136,9 +136,9 @@ describe('abortOne()', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await repository.abortOne(intervalInMinutes)
-            .catch((err) => err);
-        assert(result instanceof pecorino.factory.errors.NotFound);
+        const result = await repository.abortOne(intervalInMinutes);
+        // tslint:disable-next-line:no-null-keyword
+        assert(result === null);
         sandbox.verify();
     });
 });
