@@ -17,7 +17,7 @@ export type TaskAndConnectionOperation<T> = (settings: {
     connection: mongoose.Connection;
 }) => Promise<T>;
 
-const debug = createDebug('pecorino-domain:*');
+const debug = createDebug('pecorino-domain:service');
 
 export const ABORT_REPORT_SUBJECT = 'Task aborted !!!';
 
@@ -93,6 +93,12 @@ export function retry(intervalInMinutes: number): TaskOperation<void> {
 export function abort(intervalInMinutes: number): TaskOperation<void> {
     return async (repos: { task: TaskRepo }) => {
         const abortedTask = await repos.task.abortOne(intervalInMinutes);
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore if */
+        if (abortedTask === null) {
+            return;
+        }
         debug('abortedTask found', abortedTask);
 
         // 開発者へ報告

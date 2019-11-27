@@ -77,7 +77,7 @@ export class MongoRepository {
             .exec();
     }
 
-    public async abortOne(intervalInMinutes: number): Promise<factory.task.ITask> {
+    public async abortOne(intervalInMinutes: number): Promise<factory.task.ITask | null> {
         const lastTriedAtShoudBeLessThan = moment()
             .add(-intervalInMinutes, 'minutes')
             .toDate();
@@ -99,7 +99,8 @@ export class MongoRepository {
             .exec();
 
         if (doc === null) {
-            throw new factory.errors.NotFound('abortable task');
+            // tslint:disable-next-line:no-null-keyword
+            return null;
         }
 
         return <factory.task.ITask>doc.toObject();

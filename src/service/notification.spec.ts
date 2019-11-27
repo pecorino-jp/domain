@@ -19,17 +19,17 @@ before(() => {
 
 describe('report2developers()', () => {
     beforeEach(() => {
-        process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN = 'accessToken';
+        process.env.LINE_NOTIFY_ACCESS_TOKEN = 'accessToken';
     });
 
     afterEach(() => {
-        process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN = 'accessToken';
+        process.env.LINE_NOTIFY_ACCESS_TOKEN = 'accessToken';
         nock.cleanAll();
         sandbox.restore();
     });
 
     it('LINE Notifyのアクセストークンを環境変数に未設定であれば、エラーになるはず', async () => {
-        delete process.env.DEVELOPER_LINE_NOTIFY_ACCESS_TOKEN;
+        delete process.env.LINE_NOTIFY_ACCESS_TOKEN;
 
         const scope = nock('https://notify-api.line.me').post('/api/notify').reply(OK, {});
         const imageThumbnail = 'https://example.com';

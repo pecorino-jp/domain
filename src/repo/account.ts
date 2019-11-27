@@ -5,7 +5,7 @@ import AccountModel from './mongoose/model/account';
 
 import * as factory from '../factory';
 
-const debug = createDebug('pecorino-domain:*');
+const debug = createDebug('pecorino-domain:repository');
 
 /**
  * 口座リポジトリ

@@ -10,7 +10,7 @@ import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
-const debug = createDebug('pecorino-domain:*');
+const debug = createDebug('pecorino-domain:service');
 
 export type IOpenOperation<T> = (repos: {
     account: AccountRepo;
