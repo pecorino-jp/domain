@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- 取引タイプごとの転送アクション属性作成処理を統一
+
 ### Deprecated
 
 ### Removed

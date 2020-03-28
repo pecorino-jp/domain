@@ -1,5 +1,5 @@
 /**
- * 支払取引サービス
+ * 出金取引サービス
  */
 import * as createDebug from 'debug';
 
@@ -7,6 +7,8 @@ import * as factory from '../../factory';
 import { MongoRepository as AccountRepo } from '../../repo/account';
 import { MongoRepository as TaskRepository } from '../../repo/task';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
+
+import { createMoneyTransferActionAttributes } from './factory';
 
 const debug = createDebug('pecorino-domain:service');
 
@@ -102,41 +104,13 @@ export function confirm<T extends factory.account.AccountType>(params: {
     return async (repos: {
         transaction: TransactionRepo;
     }) => {
-        debug(`confirming withdraw transaction ${params.transactionId}...`);
-
         // 取引存在確認
         const transaction = await repos.transaction.findById<factory.transactionType.Withdraw, T>(
             factory.transactionType.Withdraw, params.transactionId
         );
 
         // 現金転送アクション属性作成
-        const moneyTransferActionAttributes: factory.action.transfer.moneyTransfer.IAttributes<T> = {
-            project: transaction.project,
-            typeOf: factory.actionType.MoneyTransfer,
-            description: transaction.object.description,
-            result: {
-                amount: transaction.object.amount
-            },
-            object: {
-            },
-            agent: transaction.agent,
-            recipient: transaction.recipient,
-            amount: transaction.object.amount,
-            fromLocation: {
-                ...transaction.object.fromLocation,
-                name: transaction.agent.name
-            },
-            toLocation: transaction.object.toLocation !== undefined
-                ? transaction.object.fromLocation
-                : /* istanbul ignore next */ {
-                    typeOf: transaction.recipient.typeOf,
-                    name: transaction.recipient.name
-                },
-            purpose: {
-                typeOf: transaction.typeOf,
-                id: transaction.id
-            }
-        };
+        const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
         const potentialActions: factory.transaction.withdraw.IPotentialActions<T> = {
             moneyTransfer: moneyTransferActionAttributes
         };
@@ -227,7 +201,6 @@ export function exportTasksById<T extends factory.account.AccountType>(
             default:
                 throw new factory.errors.NotImplemented(`Transaction status "${transaction.status}" not implemented.`);
         }
-        debug('taskAttributes prepared', taskAttributes);
 
         return Promise.all(taskAttributes.map(async (a) => repos.task.save(a)));
     };
