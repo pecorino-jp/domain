@@ -107,6 +107,14 @@ export class MongoRepository {
             });
         }
 
+        const actionStatusIn = params.actionStatus?.$in;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (Array.isArray(actionStatusIn)) {
+            andConditions.push({
+                actionStatus: { $in: actionStatusIn }
+            });
+        }
         const purposeTypeOfEq = params.purpose?.typeOf?.$eq;
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
@@ -128,6 +136,24 @@ export class MongoRepository {
                     $exists: true,
                     $eq: purposeIdEq
                 }
+            });
+        }
+
+        const startDateGte = params.startDate?.$gte;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (startDateGte instanceof Date) {
+            andConditions.push({
+                startDate: { $gte: startDateGte }
+            });
+        }
+
+        const startDateLte = params.startDate?.$lte;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (startDateLte instanceof Date) {
+            andConditions.push({
+                startDate: { $lte: startDateLte }
             });
         }
 

@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - 取引タイプごとの転送アクション属性作成処理を統一
 - 取引開始時に転送アクションを開始するように変更
+- 口座検索条件拡張
+- アクション検索条件拡張
 
 ### Deprecated
 

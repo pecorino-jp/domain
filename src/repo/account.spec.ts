@@ -402,11 +402,8 @@ describe('口座をカウント', () => {
     });
     it('MongoDBが正常であれば数字を取得できるはず', async () => {
         const searchConditions = {
-            project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
-            statuses: [pecorino.factory.accountStatusType.Opened],
-            name: '',
             limit: 1,
             page: 1,
             sort: {
@@ -433,8 +430,17 @@ describe('口座を検索する', () => {
             project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
+            accountNumber: {
+                $eq: '',
+                $in: [],
+                $regex: ''
+            },
+            openDate: {
+                $gte: new Date(),
+                $lte: new Date()
+            },
             statuses: [pecorino.factory.accountStatusType.Opened],
-            name: '',
+            name: { $regex: '' },
             limit: 1,
             page: 1,
             sort: {

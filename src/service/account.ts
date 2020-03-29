@@ -90,15 +90,22 @@ export function transferMoney(
     }) => {
         debug(`transfering money... ${actionAttributes.purpose.typeOf} ${actionAttributes.purpose.id}`);
 
-        // アクション開始
-        // const action = await repos.action.start<factory.actionType.MoneyTransfer>(actionAttributes);
         // アクション取得
-        const actions = await repos.action.searchTransferActions({
+        let actions: factory.action.transfer.moneyTransfer.IAction[];
+        actions = await repos.action.searchTransferActions({
             purpose: {
                 typeOf: { $eq: actionAttributes.purpose.typeOf },
                 id: { $eq: actionAttributes.purpose.id }
             }
         });
+
+        // 互換性維持のため
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore if */
+        if (actions.length === 0) {
+            // アクション開始
+            actions = [await repos.action.start<factory.actionType.MoneyTransfer>(actionAttributes)];
+        }
 
         await Promise.all(actions.map(async (action) => {
             try {

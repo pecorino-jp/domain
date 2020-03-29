@@ -17,6 +17,7 @@ export class MongoRepository {
         this.accountModel = connection.model(AccountModel.modelName);
     }
 
+    // tslint:disable-next-line:max-func-body-length
     public static CREATE_MONGO_CONDITIONS(params: factory.account.ISearchConditions) {
         const andConditions: any[] = [
             {
@@ -62,6 +63,33 @@ export class MongoRepository {
             }
         }
 
+        const accountNumberEq = params.accountNumber?.$eq;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof accountNumberEq === 'string') {
+            andConditions.push({
+                accountNumber: { $eq: accountNumberEq }
+            });
+        }
+
+        const accountNumberIn = params.accountNumber?.$in;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (Array.isArray(accountNumberIn)) {
+            andConditions.push({
+                accountNumber: { $in: accountNumberIn }
+            });
+        }
+
+        const accountNumberRegex = params.accountNumber?.$regex;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof accountNumberRegex === 'string') {
+            andConditions.push({
+                accountNumber: { $regex: new RegExp(accountNumberRegex) }
+            });
+        }
+
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
         if (Array.isArray(params.accountNumbers) && params.accountNumbers.length > 0) {
@@ -76,11 +104,39 @@ export class MongoRepository {
                 status: { $in: params.statuses }
             });
         }
+
+        const nameRegex = params.name?.$regex;
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
+        if (typeof nameRegex === 'string') {
+            andConditions.push({
+                name: { $regex: new RegExp(nameRegex) }
+            });
+        }
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore if */
         if (typeof params.name === 'string') {
             andConditions.push({
-                name: new RegExp(params.name, 'gi')
+                name: new RegExp(params.name)
+            });
+        }
+
+        const openDateGte = params.openDate?.$gte;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (openDateGte instanceof Date) {
+            andConditions.push({
+                openDate: { $gte: openDateGte }
+            });
+        }
+
+        const openDateLte = params.openDate?.$lte;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (openDateLte instanceof Date) {
+            andConditions.push({
+                openDate: { $lte: openDateLte }
             });
         }
 

@@ -201,6 +201,7 @@ describe('転送アクションを検索する', () => {
             project: { id: { $eq: 'eq', $ne: 'ne' } },
             accountType: 'accountType',
             accountNumber: 'accountNumber',
+            actionStatus: { $in: [] },
             limit: 1,
             page: 1,
             sort: {
@@ -209,6 +210,10 @@ describe('転送アクションを検索する', () => {
             purpose: {
                 typeOf: { $eq: 'typeOf' },
                 id: { $eq: 'id' }
+            },
+            startDate: {
+                $gte: new Date(),
+                $lte: new Date()
             }
         };
         sandbox.mock(actionRepo.actionModel)
