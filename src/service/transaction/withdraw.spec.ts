@@ -33,6 +33,7 @@ describe('出金取引を開始する', () => {
             startDate: new Date()
         };
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
         const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(accountRepo)
             .expects('findByAccountNumber')
@@ -46,6 +47,10 @@ describe('出金取引を開始する', () => {
             .expects('authorizeAmount')
             .once()
             .resolves();
+        sandbox.mock(actionRepo)
+            .expects('start')
+            .once()
+            .resolves();
 
         const result = await pecorino.service.transaction.withdraw.start(<any>{
             project: {},
@@ -53,6 +58,7 @@ describe('出金取引を開始する', () => {
             object: transaction.object
         })({
             account: accountRepo,
+            action: actionRepo,
             transaction: transactionRepo
         });
         assert.equal(typeof result, 'object');
@@ -74,6 +80,7 @@ describe('出金取引を開始する', () => {
         };
         const startError = new Error('startError');
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
+        const actionRepo = new pecorino.repository.Action(mongoose.connection);
         const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
         sandbox.mock(accountRepo)
             .expects('findByAccountNumber')
@@ -93,6 +100,7 @@ describe('出金取引を開始する', () => {
             object: transaction.object
         })({
             account: accountRepo,
+            action: actionRepo,
             transaction: transactionRepo
         })
             .catch((err) => err);

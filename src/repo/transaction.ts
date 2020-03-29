@@ -17,10 +17,10 @@ export class MongoRepository {
     /**
      * 取引を開始する
      */
-    public async start<T extends factory.transactionType, T1 extends factory.account.AccountType>(
+    public async start<T extends factory.transactionType>(
         typeOf: T,
-        params: factory.transaction.IStartParams<T, T1>
-    ): Promise<factory.transaction.ITransaction<T, T1>> {
+        params: factory.transaction.IStartParams<T>
+    ): Promise<factory.transaction.ITransaction<T>> {
         return this.transactionModel.create({
             typeOf: typeOf,
             ...<Object>params,
@@ -34,13 +34,13 @@ export class MongoRepository {
     /**
      * 取引検索
      */
-    public async findById<T extends factory.transactionType, T1 extends factory.account.AccountType>(
+    public async findById<T extends factory.transactionType>(
         typeOf: T,
         /**
          * 取引ID
          */
         transactionId: string
-    ): Promise<factory.transaction.ITransaction<T, T1>> {
+    ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOne({
             _id: transactionId,
             typeOf: typeOf
@@ -56,12 +56,12 @@ export class MongoRepository {
     /**
      * 取引を確定する
      */
-    public async confirm<T extends factory.transactionType, T1 extends factory.account.AccountType>(
+    public async confirm<T extends factory.transactionType>(
         typeOf: T,
         transactionId: string,
         result: factory.transaction.IResult<T>,
-        potentialActions: factory.transaction.IPotentialActions<T, T1>
-    ): Promise<factory.transaction.ITransaction<T, T1>> {
+        potentialActions: factory.transaction.IPotentialActions<T>
+    ): Promise<factory.transaction.ITransaction<T>> {
         const doc = await this.transactionModel.findOneAndUpdate(
             {
                 _id: transactionId,
@@ -80,7 +80,7 @@ export class MongoRepository {
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
-            const transaction = await this.findById<T, T1>(typeOf, transactionId);
+            const transaction = await this.findById<T>(typeOf, transactionId);
             if (transaction.status === factory.transactionStatusType.Confirmed) {
                 // すでに確定済の場合
                 return transaction;
@@ -98,10 +98,10 @@ export class MongoRepository {
     /**
      * 取引を中止する
      */
-    public async cancel<T extends factory.transactionType, T1 extends factory.account.AccountType>(
+    public async cancel<T extends factory.transactionType>(
         typeOf: T,
         transactionId: string
-    ): Promise<factory.transaction.ITransaction<T, T1>> {
+    ): Promise<factory.transaction.ITransaction<T>> {
         // 進行中ステータスの取引を中止する
         const doc = await this.transactionModel.findOneAndUpdate(
             {
@@ -119,7 +119,7 @@ export class MongoRepository {
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
-            const transaction = await this.findById<T, T1>(typeOf, transactionId);
+            const transaction = await this.findById<T>(typeOf, transactionId);
             if (transaction.status === factory.transactionStatusType.Canceled) {
                 // すでに中止済の場合
                 return transaction;
@@ -139,9 +139,9 @@ export class MongoRepository {
      * @param typeOf 取引タイプ
      * @param status 取引ステータス
      */
-    public async startExportTasks<T extends factory.transactionType, T1 extends factory.account.AccountType>(
+    public async startExportTasks<T extends factory.transactionType>(
         typeOf: T, status: factory.transactionStatusType
-    ): Promise<factory.transaction.ITransaction<T, T1> | null> {
+    ): Promise<factory.transaction.ITransaction<T> | null> {
         return this.transactionModel.findOneAndUpdate(
             {
                 typeOf: typeOf,
@@ -214,11 +214,11 @@ export class MongoRepository {
      * 取引を検索する
      * @param conditions 検索条件
      */
-    public async search<T extends factory.transactionType, T1 extends factory.account.AccountType>(params: {
+    public async search<T extends factory.transactionType>(params: {
         typeOf?: T;
         startFrom: Date;
         startThrough: Date;
-    }): Promise<factory.transaction.ITransaction<T, T1>[]> {
+    }): Promise<factory.transaction.ITransaction<T>[]> {
         const conditions: any = {
             startDate: {
                 $gte: params.startFrom,

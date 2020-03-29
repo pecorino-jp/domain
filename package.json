@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "@pecorino/factory": "^3.0.0",
+    "@pecorino/factory": "4.0.0-alpha.0",
     "@sendgrid/mail": "^6.3.1",
     "debug": "^3.1.0",
     "http-status": "^1.2.0",
@@ -43,7 +43,7 @@
     "tslint": "^5.12.1",
     "tslint-microsoft-contrib": "^6.0.0",
     "typedoc": "^0.11.1",
-    "typescript": "^3.3.3"
+    "typescript": "^3.8.3"
   },
   "peerDependencies": {
     "mongoose": "5.4.9"

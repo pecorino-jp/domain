@@ -205,6 +205,10 @@ describe('転送アクションを検索する', () => {
             page: 1,
             sort: {
                 startDate: pecorino.factory.sortType.Ascending
+            },
+            purpose: {
+                typeOf: { $eq: 'typeOf' },
+                id: { $eq: 'id' }
             }
         };
         sandbox.mock(actionRepo.actionModel)

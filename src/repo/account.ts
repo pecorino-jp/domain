@@ -17,13 +17,21 @@ export class MongoRepository {
         this.accountModel = connection.model(AccountModel.modelName);
     }
 
-    public static CREATE_MONGO_CONDITIONS<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>) {
+    public static CREATE_MONGO_CONDITIONS(params: factory.account.ISearchConditions) {
         const andConditions: any[] = [
             {
-                typeOf: factory.account.TypeOf.Account,
-                accountType: params.accountType
+                typeOf: factory.account.TypeOf.Account
             }
         ];
+
+        const accountTypeEq = params.accountType;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof accountTypeEq === 'string') {
+            andConditions.push({
+                accountType: accountTypeEq
+            });
+        }
 
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
@@ -104,8 +112,8 @@ export class MongoRepository {
          * 開設日時
          */
         openDate: Date;
-    }): Promise<factory.account.IAccount<T>> {
-        const account: factory.account.IAccount<T> = {
+    }): Promise<factory.account.IAccount> {
+        const account: factory.account.IAccount = {
             project: { typeOf: params.project.typeOf, id: params.project.id },
             typeOf: factory.account.TypeOf.Account,
             accountType: params.accountType,
@@ -179,16 +187,16 @@ export class MongoRepository {
     /**
      * 口座番号で検索する
      */
-    public async findByAccountNumber<T extends factory.account.AccountType>(params: {
+    public async findByAccountNumber(params: {
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         /**
          * 口座番号
          */
         accountNumber: string;
-    }): Promise<factory.account.IAccount<T>> {
+    }): Promise<factory.account.IAccount> {
         const doc = await this.accountModel.findOne({
             accountType: params.accountType,
             accountNumber: params.accountNumber
@@ -205,11 +213,11 @@ export class MongoRepository {
      * 金額を確保する
      * @see https://en.wikipedia.org/wiki/Authorization_hold
      */
-    public async authorizeAmount<T extends factory.account.AccountType>(params: {
+    public async authorizeAmount(params: {
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         /**
          * 口座番号
          */
@@ -259,11 +267,11 @@ export class MongoRepository {
     /**
      * 取引を開始する
      */
-    public async startTransaction<T extends factory.account.AccountType>(params: {
+    public async startTransaction(params: {
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         /**
          * 口座番号
          */
@@ -302,11 +310,11 @@ export class MongoRepository {
      * 決済処理を実行する
      * 口座上で進行中の取引について、実際に金額移動処理を実行します。
      */
-    public async settleTransaction<T extends factory.account.AccountType>(params: {
+    public async settleTransaction(params: {
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
@@ -399,7 +407,7 @@ export class MongoRepository {
         }
     }
 
-    public async count<T extends factory.account.AccountType>(params: factory.account.ISearchConditions<T>): Promise<number> {
+    public async count(params: factory.account.ISearchConditions): Promise<number> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
 
         return this.accountModel.countDocuments({ $and: conditions })
@@ -410,9 +418,9 @@ export class MongoRepository {
     /**
      * 口座を検索する
      */
-    public async search<T extends factory.account.AccountType>(
-        params: factory.account.ISearchConditions<T>
-    ): Promise<factory.account.IAccount<T>[]> {
+    public async search(
+        params: factory.account.ISearchConditions
+    ): Promise<factory.account.IAccount[]> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
         const query = this.accountModel.find(
             { $and: conditions },

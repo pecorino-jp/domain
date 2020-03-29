@@ -59,7 +59,7 @@ export function execute(task: factory.task.ITask): TaskAndConnectionOperation<vo
     }) => {
         try {
             // タスク名の関数が定義されていなければ、TypeErrorとなる
-            await (<any>TaskFunctionsService)[task.name](task.data)(settings);
+            await (<any>TaskFunctionsService)[task.name](task)(settings);
 
             const result = {
                 executedAt: now,

@@ -5,6 +5,7 @@ import * as createDebug from 'debug';
 
 import * as factory from '../../factory';
 import { MongoRepository as AccountRepo } from '../../repo/account';
+import { MongoRepository as ActionRepo } from '../../repo/action';
 import { MongoRepository as TaskRepository } from '../../repo/task';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
@@ -14,36 +15,38 @@ const debug = createDebug('pecorino-domain:service');
 
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
+    action: ActionRepo;
     transaction: TransactionRepo;
 }) => Promise<T>;
 export type ITaskAndTransactionOperation<T> = (repos: {
     task: TaskRepository;
     transaction: TransactionRepo;
 }) => Promise<T>;
-export type ITransactionOperation<T> = (repos: {
+export type IConfirmOperation<T> = (repos: {
     transaction: TransactionRepo;
 }) => Promise<T>;
 
 /**
  * 取引開始
  */
-export function start<T extends factory.account.AccountType>(
-    params: factory.transaction.IStartParams<factory.transactionType.Withdraw, T>
-): IStartOperation<factory.transaction.withdraw.ITransaction<T>> {
+export function start(
+    params: factory.transaction.IStartParams<factory.transactionType.Withdraw>
+): IStartOperation<factory.transaction.withdraw.ITransaction> {
     return async (repos: {
         account: AccountRepo;
+        action: ActionRepo;
         transaction: TransactionRepo;
     }) => {
         debug(`${params.agent.name} is starting withdraw transaction... amount:${params.object.amount}`);
 
         // 口座存在確認
-        const account = await repos.account.findByAccountNumber<T>({
+        const account = await repos.account.findByAccountNumber({
             accountType: params.object.fromLocation.accountType,
             accountNumber: params.object.fromLocation.accountNumber
         });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const startParams: factory.transaction.IStartParams<factory.transactionType.Withdraw, T> = {
+        const startParams: factory.transaction.IStartParams<factory.transactionType.Withdraw> = {
             project: { typeOf: params.project.typeOf, id: params.project.id },
             typeOf: factory.transactionType.Withdraw,
             agent: params.agent,
@@ -63,9 +66,9 @@ export function start<T extends factory.account.AccountType>(
         };
 
         // 取引作成
-        let transaction: factory.transaction.withdraw.ITransaction<T>;
+        let transaction: factory.transaction.withdraw.ITransaction;
         try {
-            transaction = await repos.transaction.start<factory.transactionType.Withdraw, T>(factory.transactionType.Withdraw, startParams);
+            transaction = await repos.transaction.start<factory.transactionType.Withdraw>(factory.transactionType.Withdraw, startParams);
         } catch (error) {
             // tslint:disable-next-line:no-single-line-block-comment
             /* istanbul ignore next */
@@ -83,12 +86,16 @@ export function start<T extends factory.account.AccountType>(
         };
 
         // 残高確保
-        await repos.account.authorizeAmount<T>({
+        await repos.account.authorizeAmount({
             accountType: params.object.fromLocation.accountType,
             accountNumber: params.object.fromLocation.accountNumber,
             amount: params.object.amount,
             transaction: pendingTransaction
         });
+
+        // アクション開始
+        const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
+        await repos.action.start(moneyTransferActionAttributes);
 
         // 結果返却
         return transaction;
@@ -98,20 +105,21 @@ export function start<T extends factory.account.AccountType>(
 /**
  * 取引確定
  */
-export function confirm<T extends factory.account.AccountType>(params: {
+export function confirm(params: {
     transactionId: string;
-}): ITransactionOperation<factory.transaction.withdraw.IResult> {
+}): IConfirmOperation<factory.transaction.withdraw.IResult> {
     return async (repos: {
+        action: ActionRepo;
         transaction: TransactionRepo;
     }) => {
         // 取引存在確認
-        const transaction = await repos.transaction.findById<factory.transactionType.Withdraw, T>(
+        const transaction = await repos.transaction.findById<factory.transactionType.Withdraw>(
             factory.transactionType.Withdraw, params.transactionId
         );
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        const potentialActions: factory.transaction.withdraw.IPotentialActions<T> = {
+        const potentialActions: factory.transaction.withdraw.IPotentialActions = {
             moneyTransfer: moneyTransferActionAttributes
         };
 
@@ -143,14 +151,14 @@ export function exportTasks(status: factory.transactionStatusType) {
 /**
  * 取引のタスク出力
  */
-export function exportTasksById<T extends factory.account.AccountType>(
+export function exportTasksById(
     transactionId: string
 ): ITaskAndTransactionOperation<factory.task.ITask[]> {
     return async (repos: {
         task: TaskRepository;
         transaction: TransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById<factory.transactionType.Withdraw, T>(
+        const transaction = await repos.transaction.findById<factory.transactionType.Withdraw>(
             factory.transactionType.Withdraw, transactionId
         );
         const potentialActions = transaction.potentialActions;
@@ -164,7 +172,7 @@ export function exportTasksById<T extends factory.account.AccountType>(
                     // tslint:disable-next-line:no-single-line-block-comment
                     /* istanbul ignore else */
                     if (potentialActions.moneyTransfer !== undefined) {
-                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes<T> = {
+                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes = {
                             project: transaction.project,
                             name: factory.taskName.MoneyTransfer,
                             status: factory.taskStatus.Ready,

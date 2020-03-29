@@ -122,7 +122,7 @@ export interface ITransactionReport {
  * @param transaction 取引オブジェクト
  */
 export function transaction2report(params: {
-    transaction: factory.transaction.ITransaction<factory.transactionType, factory.account.AccountType>;
+    transaction: factory.transaction.ITransaction<factory.transactionType>;
 }): ITransactionReport {
     const fromLocation = { ...params.transaction.agent, accountNumber: '' };
     const toLocation = { ...params.transaction.recipient, accountNumber: '' };

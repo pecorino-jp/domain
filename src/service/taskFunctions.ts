@@ -17,29 +17,31 @@ export type IOperation<T> = (settings: {
 }) => Promise<T>;
 
 export function cancelMoneyTransfer(
-    data: factory.task.cancelMoneyTransfer.IData
-): IOperation<void> {
-    return async (settings: {
-        connection: mongoose.Connection;
-    }) => {
-        const accountRepo = new AccountRepo(settings.connection);
-        const transactionRepo = new TransactionRepo(settings.connection);
-        await AccountService.cancelMoneyTransfer({ transaction: data.transaction })({
-            account: accountRepo,
-            transaction: transactionRepo
-        });
-    };
-}
-
-export function moneyTransfer<T extends factory.account.AccountType>(
-    data: factory.task.moneyTransfer.IData<T>
+    task: factory.task.cancelMoneyTransfer.ITask
 ): IOperation<void> {
     return async (settings: {
         connection: mongoose.Connection;
     }) => {
         const accountRepo = new AccountRepo(settings.connection);
         const actionRepo = new ActionRepo(settings.connection);
-        await AccountService.transferMoney<T>(data.actionAttributes)({
+        const transactionRepo = new TransactionRepo(settings.connection);
+        await AccountService.cancelMoneyTransfer({ transaction: task.data.transaction })({
+            account: accountRepo,
+            action: actionRepo,
+            transaction: transactionRepo
+        });
+    };
+}
+
+export function moneyTransfer(
+    task: factory.task.moneyTransfer.ITask
+): IOperation<void> {
+    return async (settings: {
+        connection: mongoose.Connection;
+    }) => {
+        const accountRepo = new AccountRepo(settings.connection);
+        const actionRepo = new ActionRepo(settings.connection);
+        await AccountService.transferMoney(task.data.actionAttributes)({
             action: actionRepo,
             account: accountRepo
         });

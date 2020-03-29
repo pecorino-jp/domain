@@ -21,10 +21,12 @@ describe('金額転送を中止する', () => {
     });
 
     it('リポジトリーが正常であれば開設できるはず', async () => {
-        sandbox.mock(pecorino.service.account).expects('cancelMoneyTransfer').once()
+        sandbox.mock(pecorino.service.account)
+            .expects('cancelMoneyTransfer')
+            .once()
             .returns(async () => Promise.resolve());
 
-        const result = await taskFunctions.cancelMoneyTransfer(<any>{})({
+        const result = await taskFunctions.cancelMoneyTransfer(<any>{ data: {} })({
             connection: mongoose.connection
         });
         assert.equal(result, undefined);
@@ -38,10 +40,12 @@ describe('金額を転送する', () => {
     });
 
     it('リポジトリーが正常であれば開設できるはず', async () => {
-        sandbox.mock(pecorino.service.account).expects('transferMoney').once()
+        sandbox.mock(pecorino.service.account)
+            .expects('transferMoney')
+            .once()
             .returns(async () => Promise.resolve());
 
-        const result = await taskFunctions.moneyTransfer(<any>{})({
+        const result = await taskFunctions.moneyTransfer(<any>{ data: {} })({
             connection: mongoose.connection
         });
         assert.equal(result, undefined);
