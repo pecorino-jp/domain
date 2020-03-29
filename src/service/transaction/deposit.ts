@@ -6,7 +6,6 @@ import * as createDebug from 'debug';
 import * as factory from '../../factory';
 import { MongoRepository as AccountRepo } from '../../repo/account';
 import { MongoRepository as ActionRepo } from '../../repo/action';
-import { MongoRepository as TaskRepository } from '../../repo/task';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
 import { createMoneyTransferActionAttributes } from './factory';
@@ -16,10 +15,6 @@ const debug = createDebug('pecorino-domain:service');
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
     action: ActionRepo;
-    transaction: TransactionRepo;
-}) => Promise<T>;
-export type ITaskAndTransactionOperation<T> = (repos: {
-    task: TaskRepository;
     transaction: TransactionRepo;
 }) => Promise<T>;
 export type IConfirmOperation<T> = (repos: {
@@ -120,92 +115,6 @@ export function confirm(params: {
         };
 
         // 取引確定
-        await repos.transaction.confirm(factory.transactionType.Deposit, transaction.id, {}, potentialActions);
-    };
-}
-
-/**
- * ひとつの取引のタスクをエクスポートする
- */
-export function exportTasks(status: factory.transactionStatusType) {
-    return async (repos: {
-        task: TaskRepository;
-        transaction: TransactionRepo;
-    }) => {
-        const transaction = await repos.transaction.startExportTasks(factory.transactionType.Deposit, status);
-        if (transaction === null) {
-            return;
-        }
-
-        // 失敗してもここでは戻さない(RUNNINGのまま待機)
-        await exportTasksById(transaction.id)(repos);
-
-        await repos.transaction.setTasksExportedById(transaction.id);
-    };
-}
-
-/**
- * 取引のタスク出力
- */
-export function exportTasksById(
-    transactionId: string
-): ITaskAndTransactionOperation<factory.task.ITask[]> {
-    return async (repos: {
-        task: TaskRepository;
-        transaction: TransactionRepo;
-    }) => {
-        const transaction = await repos.transaction.findById<factory.transactionType.Deposit>(
-            factory.transactionType.Deposit, transactionId
-        );
-        const potentialActions = transaction.potentialActions;
-
-        const taskAttributes: factory.task.IAttributes[] = [];
-        switch (transaction.status) {
-            case factory.transactionStatusType.Confirmed:
-                // tslint:disable-next-line:no-single-line-block-comment
-                /* istanbul ignore else */
-                if (potentialActions !== undefined) {
-                    // tslint:disable-next-line:no-single-line-block-comment
-                    /* istanbul ignore else */
-                    if (potentialActions.moneyTransfer !== undefined) {
-                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes = {
-                            project: transaction.project,
-                            name: factory.taskName.MoneyTransfer,
-                            status: factory.taskStatus.Ready,
-                            runsAt: new Date(), // なるはやで実行
-                            remainingNumberOfTries: 10,
-                            numberOfTried: 0,
-                            executionResults: [],
-                            data: {
-                                actionAttributes: potentialActions.moneyTransfer
-                            }
-                        };
-                        taskAttributes.push(moneyTransferTask);
-                    }
-                }
-                break;
-
-            case factory.transactionStatusType.Canceled:
-            case factory.transactionStatusType.Expired:
-                const cancelMoneyTransferTask: factory.task.cancelMoneyTransfer.IAttributes = {
-                    project: transaction.project,
-                    name: factory.taskName.CancelMoneyTransfer,
-                    status: factory.taskStatus.Ready,
-                    runsAt: new Date(), // なるはやで実行
-                    remainingNumberOfTries: 10,
-                    numberOfTried: 0,
-                    executionResults: [],
-                    data: {
-                        transaction: { typeOf: transaction.typeOf, id: transaction.id }
-                    }
-                };
-                taskAttributes.push(cancelMoneyTransferTask);
-                break;
-
-            default:
-                throw new factory.errors.NotImplemented(`Transaction status "${transaction.status}" not implemented.`);
-        }
-
-        return Promise.all(taskAttributes.map(async (a) => repos.task.save(a)));
+        await repos.transaction.confirm(transaction.typeOf, transaction.id, {}, potentialActions);
     };
 }

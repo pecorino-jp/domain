@@ -9,20 +9,14 @@ import * as AccountService from './service/account';
 import * as NotificationService from './service/notification';
 import * as ReportService from './service/report';
 import * as TaskService from './service/task';
-import * as DepositTransactionService from './service/transaction/deposit';
-import * as TransferTransactionService from './service/transaction/transfer';
-import * as WithdrawTransactionService from './service/transaction/withdraw';
+import * as TransactionService from './service/transaction';
 
 export namespace service {
     export import account = AccountService;
     export import notification = NotificationService;
     export import report = ReportService;
     export import task = TaskService;
-    export namespace transaction {
-        export import deposit = DepositTransactionService;
-        export import transfer = TransferTransactionService;
-        export import withdraw = WithdrawTransactionService;
-    }
+    export import transaction = TransactionService;
 }
 
 export import factory = factory;
