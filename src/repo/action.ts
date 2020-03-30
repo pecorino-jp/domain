@@ -7,7 +7,7 @@ import ActionModel from './mongoose/model/action';
 const debug = createDebug('pecorino-domain:repository');
 
 export type IAction<T extends factory.actionType> =
-    T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction<factory.account.AccountType> :
+    T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction :
     factory.action.IAction<factory.action.IAttributes<any, any>>;
 
 /**
@@ -20,8 +20,9 @@ export class MongoRepository {
         this.actionModel = connection.model(ActionModel.modelName);
     }
 
-    public static CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS<T extends factory.account.AccountType>(
-        params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
+    // tslint:disable-next-line:max-func-body-length
+    public static CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(
+        params: factory.action.transfer.moneyTransfer.ISearchConditions
     ) {
         const andConditions: any[] = [
             { typeOf: factory.actionType.MoneyTransfer }
@@ -103,6 +104,56 @@ export class MongoRepository {
                         }
                     }
                 ]
+            });
+        }
+
+        const actionStatusIn = params.actionStatus?.$in;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (Array.isArray(actionStatusIn)) {
+            andConditions.push({
+                actionStatus: { $in: actionStatusIn }
+            });
+        }
+        const purposeTypeOfEq = params.purpose?.typeOf?.$eq;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof purposeTypeOfEq === 'string') {
+            andConditions.push({
+                'purpose.typeOf': {
+                    $exists: true,
+                    $eq: purposeTypeOfEq
+                }
+            });
+        }
+
+        const purposeIdEq = params.purpose?.id?.$eq;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof purposeIdEq === 'string') {
+            andConditions.push({
+                'purpose.id': {
+                    $exists: true,
+                    $eq: purposeIdEq
+                }
+            });
+        }
+
+        const startDateGte = params.startDate?.$gte;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (startDateGte instanceof Date) {
+            andConditions.push({
+                startDate: { $gte: startDateGte }
+            });
+        }
+
+        const startDateLte = params.startDate?.$lte;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (startDateLte instanceof Date) {
+            andConditions.push({
+                startDate: { $lte: startDateLte }
             });
         }
 
@@ -232,8 +283,8 @@ export class MongoRepository {
             });
     }
 
-    public async countTransferActions<T extends factory.account.AccountType>(
-        params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
+    public async countTransferActions(
+        params: factory.action.transfer.moneyTransfer.ISearchConditions
     ): Promise<number> {
         const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
 
@@ -245,9 +296,9 @@ export class MongoRepository {
     /**
      * 転送アクションを検索する
      */
-    public async searchTransferActions<T extends factory.account.AccountType>(
-        params: factory.action.transfer.moneyTransfer.ISearchConditions<T>
-    ): Promise<factory.action.transfer.moneyTransfer.IAction<T>[]> {
+    public async searchTransferActions(
+        params: factory.action.transfer.moneyTransfer.ISearchConditions
+    ): Promise<factory.action.transfer.moneyTransfer.IAction[]> {
         const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
         const query = this.actionModel.find(
             { $and: conditions },
