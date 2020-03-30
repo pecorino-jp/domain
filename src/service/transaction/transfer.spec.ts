@@ -20,14 +20,15 @@ describe('転送取引を開始する', () => {
     });
 
     it('リポジトリーが正常であれば開始できるはず', async () => {
-        const account = {};
+        const fromAccount = { accountNumber: 'fromAccountNumber' };
+        const toAccount = { accountNumber: 'toAccountNumber' };
         const transaction = {
             typeOf: pecorino.factory.transactionType.Transfer,
             agent: {},
             recipient: {},
             object: {
-                fromLocation: {},
-                toLocation: {}
+                fromLocation: fromAccount,
+                toLocation: toAccount
             },
             expires: new Date(),
             status: pecorino.factory.transactionStatusType.Confirmed,
@@ -40,9 +41,9 @@ describe('転送取引を開始する', () => {
             .expects('findByAccountNumber')
             .twice()
             .onFirstCall()
-            .resolves(account)
+            .resolves(fromAccount)
             .onSecondCall()
-            .resolves(account);
+            .resolves(toAccount);
         sandbox.mock(transactionRepo)
             .expects('start')
             .once()
@@ -74,14 +75,15 @@ describe('転送取引を開始する', () => {
     });
 
     it('開始時リポジトリーに問題があれば、そのままエラーとなるはず', async () => {
-        const account = {};
+        const fromAccount = { accountNumber: 'fromAccountNumber' };
+        const toAccount = { accountNumber: 'toAccountNumber' };
         const transaction = {
             typeOf: pecorino.factory.transactionType.Transfer,
             agent: {},
             recipient: {},
             object: {
-                fromLocation: {},
-                toLocation: {}
+                fromLocation: fromAccount,
+                toLocation: toAccount
             },
             expires: new Date(),
             status: pecorino.factory.transactionStatusType.Confirmed,
@@ -95,9 +97,9 @@ describe('転送取引を開始する', () => {
             .expects('findByAccountNumber')
             .twice()
             .onFirstCall()
-            .resolves(account)
+            .resolves(fromAccount)
             .onSecondCall()
-            .resolves(account);
+            .resolves(toAccount);
         sandbox.mock(transactionRepo)
             .expects('start')
             .once()

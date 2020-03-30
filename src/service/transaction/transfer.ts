@@ -41,6 +41,18 @@ export function start(
             accountNumber: params.object.toLocation.accountNumber
         });
 
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore if */
+        if (fromAccount.accountType !== toAccount.accountType) {
+            throw new factory.errors.Argument('accountType', 'FromLocation accountType must be the same as ToLocation');
+        }
+
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore if */
+        if (fromAccount.accountNumber === toAccount.accountNumber) {
+            throw new factory.errors.Argument('accountNumber', 'FromLocation accountType must be different from ToLocation');
+        }
+
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
         const startParams: factory.transaction.IStartParams<factory.transactionType.Transfer> = {
             project: { typeOf: params.project.typeOf, id: params.project.id },

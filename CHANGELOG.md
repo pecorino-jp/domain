@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 取引開始時に転送アクションを開始するように変更
 - 口座検索条件拡張
 - アクション検索条件拡張
+- 転送取引開始時の口座間比較バリデーションを追加
 
 ### Deprecated
 
