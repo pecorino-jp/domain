@@ -91,21 +91,12 @@ export function transferMoney(
         debug(`transfering money... ${actionAttributes.purpose.typeOf} ${actionAttributes.purpose.id}`);
 
         // アクション取得
-        let actions: factory.action.transfer.moneyTransfer.IAction[];
-        actions = await repos.action.searchTransferActions({
+        const actions = await repos.action.searchTransferActions({
             purpose: {
                 typeOf: { $eq: actionAttributes.purpose.typeOf },
                 id: { $eq: actionAttributes.purpose.id }
             }
         });
-
-        // 互換性維持のため
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore if */
-        if (actions.length === 0) {
-            // アクション開始
-            actions = [await repos.action.start<factory.actionType.MoneyTransfer>(actionAttributes)];
-        }
 
         await Promise.all(actions.map(async (action) => {
             try {
@@ -142,9 +133,7 @@ export function transferMoney(
                 // actionにエラー結果を追加
                 try {
                     const actionError = { ...error, message: error.message, name: error.name };
-                    debug('actionError:', actionError);
-                    // 一時的に保留
-                    // await repos.action.giveUp(action.typeOf, action.id, actionError);
+                    await repos.action.giveUp(action.typeOf, action.id, actionError);
                 } catch (__) {
                     // 失敗したら仕方ない
                 }

@@ -169,10 +169,10 @@ describe('金額を転送する', () => {
             .expects('settleTransaction')
             .once()
             .rejects(settleError);
-        // sandbox.mock(actionRepo)
-        //     .expects('giveUp')
-        //     .once()
-        //     .resolves({});
+        sandbox.mock(actionRepo)
+            .expects('giveUp')
+            .once()
+            .resolves({});
         sandbox.mock(actionRepo)
             .expects('complete')
             .never();
