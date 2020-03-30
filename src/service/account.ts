@@ -112,21 +112,21 @@ export function transferMoney(
                 let accountType: string;
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore else */
-                if (actionAttributes.fromLocation.typeOf === factory.account.TypeOf.Account) {
-                    accountType = (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).accountType;
-                } else if (actionAttributes.toLocation.typeOf === factory.account.TypeOf.Account) {
-                    accountType = (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).accountType;
+                if (action.fromLocation.typeOf === factory.account.TypeOf.Account) {
+                    accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountType;
+                } else if (action.toLocation.typeOf === factory.account.TypeOf.Account) {
+                    accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountType;
                 } else {
                     throw new factory.errors.NotImplemented('No Account Location');
                 }
 
-                const fromAccountNumber = (actionAttributes.fromLocation.typeOf === factory.account.TypeOf.Account)
-                    ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.fromLocation).accountNumber
+                const fromAccountNumber = (action.fromLocation.typeOf === factory.account.TypeOf.Account)
+                    ? (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountNumber
                     // tslint:disable-next-line:no-single-line-block-comment
                     /* istanbul ignore next */
                     : undefined;
-                const toAccountNumber = (actionAttributes.toLocation.typeOf === factory.account.TypeOf.Account)
-                    ? (<factory.action.transfer.moneyTransfer.IAccount>actionAttributes.toLocation).accountNumber
+                const toAccountNumber = (action.toLocation.typeOf === factory.account.TypeOf.Account)
+                    ? (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountNumber
                     // tslint:disable-next-line:no-single-line-block-comment
                     /* istanbul ignore next */
                     : undefined;
@@ -135,13 +135,13 @@ export function transferMoney(
                     accountType: accountType,
                     fromAccountNumber: fromAccountNumber,
                     toAccountNumber: toAccountNumber,
-                    amount: actionAttributes.amount,
-                    transactionId: actionAttributes.purpose.id
+                    amount: action.amount,
+                    transactionId: action.purpose.id
                 });
             } catch (error) {
                 // actionにエラー結果を追加
                 try {
-                    const actionError = { ...error, ...{ message: error.message, name: error.name } };
+                    const actionError = { ...error, message: error.message, name: error.name };
                     debug('actionError:', actionError);
                     // 一時的に保留
                     // await repos.action.giveUp(action.typeOf, action.id, actionError);

@@ -86,7 +86,7 @@ describe('金額を転送する', () => {
         sandbox.mock(actionRepo)
             .expects('searchTransferActions')
             .once()
-            .resolves([{}]);
+            .resolves([actionAttributes]);
         sandbox.mock(actionRepo)
             .expects('complete')
             .once()
@@ -121,7 +121,7 @@ describe('金額を転送する', () => {
         sandbox.mock(actionRepo)
             .expects('searchTransferActions')
             .once()
-            .resolves([{}]);
+            .resolves([actionAttributes]);
         // sandbox.mock(actionRepo)
         //     .expects('start')
         //     .once()
@@ -164,7 +164,7 @@ describe('金額を転送する', () => {
         sandbox.mock(actionRepo)
             .expects('searchTransferActions')
             .once()
-            .resolves([{}]);
+            .resolves([actionAttributes]);
         sandbox.mock(accountRepo)
             .expects('settleTransaction')
             .once()

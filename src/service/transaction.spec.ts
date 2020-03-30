@@ -14,6 +14,47 @@ before(() => {
     sandbox = sinon.sandbox.create();
 });
 
+describe('取引を確定する', () => {
+    beforeEach(() => {
+        sandbox.restore();
+    });
+
+    it('リポジトリーが正常であれば確定できるはず', async () => {
+        const transaction = {
+            id: 'transactionId',
+            typeOf: pecorino.factory.transactionType.Deposit,
+            agent: {},
+            recipient: {},
+            object: {
+                fromLocation: {},
+                toLocation: {}
+            },
+            expires: new Date(),
+            status: pecorino.factory.transactionStatusType.Confirmed,
+            result: {},
+            startDate: new Date()
+        };
+        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        sandbox.mock(transactionRepo)
+            .expects('findById')
+            .once()
+            .resolves(transaction);
+        sandbox.mock(transactionRepo)
+            .expects('confirm')
+            .once()
+            .resolves(transaction);
+
+        const result = await pecorino.service.transaction.confirm({
+            id: transaction.id,
+            typeOf: transaction.typeOf
+        })({
+            transaction: transactionRepo
+        });
+        assert.equal(result, undefined);
+        sandbox.verify();
+    });
+});
+
 describe('取引のタスクをエクスポートする', () => {
     beforeEach(() => {
         sandbox.restore();

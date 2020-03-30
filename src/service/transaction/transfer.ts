@@ -17,9 +17,6 @@ export type IStartOperation<T> = (repos: {
     action: ActionRepo;
     transaction: TransactionRepo;
 }) => Promise<T>;
-export type IConfirmOperation<T> = (repos: {
-    transaction: TransactionRepo;
-}) => Promise<T>;
 
 /**
  * 取引開始
@@ -111,29 +108,5 @@ export function start(
 
         // 結果返却
         return transaction;
-    };
-}
-
-/**
- * 取引確定
- */
-export function confirm(params: {
-    transactionId: string;
-}): IConfirmOperation<void> {
-    return async (repos: {
-        action: ActionRepo;
-        transaction: TransactionRepo;
-    }) => {
-        // 取引存在確認
-        const transaction = await repos.transaction.findById(factory.transactionType.Transfer, params.transactionId);
-
-        // 現金転送アクション属性作成
-        const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        const potentialActions: factory.transaction.transfer.IPotentialActions = {
-            moneyTransfer: moneyTransferActionAttributes
-        };
-
-        // 取引確定
-        await repos.transaction.confirm(transaction.typeOf, transaction.id, {}, potentialActions);
     };
 }

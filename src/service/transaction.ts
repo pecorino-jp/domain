@@ -10,6 +10,11 @@ import * as DepositTransactionService from './transaction/deposit';
 import * as TransferTransactionService from './transaction/transfer';
 import * as WithdrawTransactionService from './transaction/withdraw';
 
+import { createMoneyTransferActionAttributes } from './transaction/factory';
+
+export type IConfirmOperation<T> = (repos: {
+    transaction: TransactionRepo;
+}) => Promise<T>;
 export type ITaskAndTransactionOperation<T> = (repos: {
     task: TaskRepository;
     transaction: TransactionRepo;
@@ -18,6 +23,30 @@ export type ITaskAndTransactionOperation<T> = (repos: {
 export import deposit = DepositTransactionService;
 export import transfer = TransferTransactionService;
 export import withdraw = WithdrawTransactionService;
+
+/**
+ * 取引確定
+ */
+export function confirm(params: {
+    id: string;
+    typeOf: factory.transactionType;
+}): IConfirmOperation<void> {
+    return async (repos: {
+        transaction: TransactionRepo;
+    }) => {
+        // 取引存在確認
+        const transaction = await repos.transaction.findById(params.typeOf, params.id);
+
+        // 現金転送アクション属性作成
+        const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
+        const potentialActions: factory.transaction.IPotentialActions<typeof params.typeOf> = {
+            moneyTransfer: moneyTransferActionAttributes
+        };
+
+        // 取引確定
+        await repos.transaction.confirm(transaction.typeOf, transaction.id, {}, potentialActions);
+    };
+}
 
 /**
  * ひとつの取引のタスクをエクスポートする
