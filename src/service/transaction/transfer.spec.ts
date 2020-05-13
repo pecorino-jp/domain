@@ -62,6 +62,7 @@ describe('転送取引を開始する', () => {
             .resolves();
 
         const result = await pecorino.service.transaction.transfer.start(<any>{
+            transactionNumber: 'transactionNumber',
             project: {},
             agent: transaction.agent,
             object: transaction.object

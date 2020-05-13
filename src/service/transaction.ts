@@ -28,14 +28,32 @@ export import withdraw = WithdrawTransactionService;
  * 取引確定
  */
 export function confirm(params: {
-    id: string;
+    id?: string;
+    transactionNumber?: string;
     typeOf: factory.transactionType;
 }): IConfirmOperation<void> {
     return async (repos: {
         transaction: TransactionRepo;
     }) => {
+        let transaction: factory.transaction.ITransaction<any>;
+
         // 取引存在確認
-        const transaction = await repos.transaction.findById(params.typeOf, params.id);
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof params.id === 'string') {
+            transaction = await repos.transaction.findById(params.typeOf, params.id);
+        } else if (typeof params.transactionNumber === 'string') {
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore next */
+            transaction = await repos.transaction.findByTransactionNumber({
+                typeOf: params.typeOf,
+                transactionNumber: params.transactionNumber
+            });
+        } else {
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore next */
+            throw new factory.errors.ArgumentNull('Transaction ID or Transaction Number');
+        }
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });

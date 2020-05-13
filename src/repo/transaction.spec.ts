@@ -183,7 +183,10 @@ describe('取引を中止する', () => {
             .chain('exec')
             .resolves(new transactionRepo.transactionModel());
 
-        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId');
+        const result = await transactionRepo.cancel({
+            typeOf: pecorino.factory.transactionType.Deposit,
+            id: 'transactionId'
+        });
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -203,7 +206,10 @@ describe('取引を中止する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId');
+        const result = await transactionRepo.cancel({
+            typeOf: pecorino.factory.transactionType.Deposit,
+            id: 'transactionId'
+        });
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -223,7 +229,10 @@ describe('取引を中止する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
+        const result = await transactionRepo.cancel({
+            typeOf: pecorino.factory.transactionType.Deposit,
+            id: 'transactionId'
+        })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
@@ -244,7 +253,10 @@ describe('取引を中止する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
+        const result = await transactionRepo.cancel({
+            typeOf: pecorino.factory.transactionType.Deposit,
+            id: 'transactionId'
+        })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
@@ -265,7 +277,10 @@ describe('取引を中止する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.cancel(pecorino.factory.transactionType.Deposit, 'transactionId')
+        const result = await transactionRepo.cancel({
+            typeOf: pecorino.factory.transactionType.Deposit,
+            id: 'transactionId'
+        })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();

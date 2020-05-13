@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "@pecorino/factory": "^4.0.0",
+    "@pecorino/factory": "^4.1.0",
     "@sendgrid/mail": "^6.3.1",
     "debug": "^3.1.0",
     "http-status": "^1.2.0",
