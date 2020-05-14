@@ -76,7 +76,8 @@ export function start(
                 },
                 description: params.object.description
             },
-            expires: params.expires
+            expires: params.expires,
+            ...(typeof params.transactionNumber === 'string') ? { transactionNumber: params.transactionNumber } : undefined
         };
 
         // 取引作成

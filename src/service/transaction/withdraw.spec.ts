@@ -53,6 +53,7 @@ describe('出金取引を開始する', () => {
             .resolves();
 
         const result = await pecorino.service.transaction.withdraw.start(<any>{
+            transactionNumber: 'transactionNumber',
             project: {},
             agent: transaction.agent,
             object: transaction.object

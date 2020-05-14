@@ -53,6 +53,26 @@ export class MongoRepository {
 
         return doc.toObject();
     }
+
+    // tslint:disable-next-line:no-single-line-block-comment
+    /* istanbul ignore next */
+    public async findByTransactionNumber<T extends factory.transactionType>(params: {
+        typeOf: T;
+        transactionNumber: string;
+    }): Promise<factory.transaction.ITransaction<T>> {
+        const doc = await this.transactionModel.findOne({
+            transactionNumber: { $exists: true, $eq: params.transactionNumber },
+            typeOf: params.typeOf
+        })
+            .exec();
+
+        if (doc === null) {
+            throw new factory.errors.NotFound('Transaction');
+        }
+
+        return doc.toObject();
+    }
+
     /**
      * 取引を確定する
      */
@@ -95,18 +115,25 @@ export class MongoRepository {
 
         return doc.toObject();
     }
+
     /**
      * 取引を中止する
      */
-    public async cancel<T extends factory.transactionType>(
-        typeOf: T,
-        transactionId: string
-    ): Promise<factory.transaction.ITransaction<T>> {
+    public async cancel<T extends factory.transactionType>(params: {
+        typeOf: T;
+        id?: string;
+        transactionNumber?: string;
+    }): Promise<factory.transaction.ITransaction<T>> {
         // 進行中ステータスの取引を中止する
         const doc = await this.transactionModel.findOneAndUpdate(
             {
-                typeOf: typeOf,
-                _id: transactionId,
+                typeOf: params.typeOf,
+                ...(typeof params.id === 'string') ? { _id: params.id } : /* istanbul ignore next */ undefined,
+                ...(typeof params.transactionNumber === 'string')
+                    // tslint:disable-next-line:no-single-line-block-comment
+                    /* istanbul ignore next */
+                    ? { transactionNumber: { $exists: true, $eq: params.transactionNumber } }
+                    : undefined,
                 status: factory.transactionStatusType.InProgress
             },
             {
@@ -119,7 +146,24 @@ export class MongoRepository {
 
         // NotFoundであれば取引状態確認
         if (doc === null) {
-            const transaction = await this.findById<T>(typeOf, transactionId);
+            let transaction: factory.transaction.ITransaction<T>;
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (typeof params.id === 'string') {
+                transaction = await this.findById<T>(params.typeOf, params.id);
+            } else if (typeof params.transactionNumber === 'string') {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                transaction = await this.findByTransactionNumber<T>({
+                    typeOf: params.typeOf,
+                    transactionNumber: params.transactionNumber
+                });
+            } else {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                throw new factory.errors.ArgumentNull('Transaction ID or Transaction Number');
+            }
+
             if (transaction.status === factory.transactionStatusType.Canceled) {
                 // すでに中止済の場合
                 return transaction;
@@ -134,6 +178,7 @@ export class MongoRepository {
 
         return doc.toObject();
     }
+
     /**
      * タスク未エクスポートの取引をひとつ取得してエクスポートを開始する
      * @param typeOf 取引タイプ

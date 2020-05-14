@@ -23,6 +23,7 @@ describe('入金取引を開始する', () => {
         const account = {};
         const transaction = {
             typeOf: pecorino.factory.transactionType.Deposit,
+            transactionNumber: 'transactionNumber',
             agent: {},
             recipient: {},
             object: {
@@ -54,6 +55,7 @@ describe('入金取引を開始する', () => {
             .resolves();
 
         const result = await pecorino.service.transaction.deposit.start(<any>{
+            transactionNumber: 'transactionNumber',
             project: {},
             agent: transaction.agent,
             object: transaction.object

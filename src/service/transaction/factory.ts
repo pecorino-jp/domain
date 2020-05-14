@@ -47,7 +47,10 @@ export function createMoneyTransferActionAttributes(params: {
         toLocation: toLocation,
         purpose: {
             typeOf: transaction.typeOf,
-            id: transaction.id
+            id: transaction.id,
+            ...(typeof transaction.transactionNumber === 'string')
+                ? { transactionNumber: transaction.transactionNumber }
+                : /* istanbul ignore next */ undefined
         }
     };
 }
