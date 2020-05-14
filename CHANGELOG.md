@@ -8,11 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- 取引に取引番号を追加
-
 ### Changed
-
-- 取引番号にて取引ステータスを変更できるように調整
 
 ### Deprecated
 
@@ -21,6 +17,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 ### Security
+
+## v4.1.0 - 2020-05-14
+
+### Added
+
+- 取引に取引番号を追加
+
+### Changed
+
+- 取引番号にて取引ステータスを変更できるように調整
 
 ## v4.0.0 - 2020-03-30
 
