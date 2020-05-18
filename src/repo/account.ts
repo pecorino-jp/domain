@@ -463,6 +463,53 @@ export class MongoRepository {
         }
     }
 
+    /**
+     * 通貨転送返金
+     */
+    public async returnTransaction(params: {
+        accountType: string;
+        fromAccountNumber?: string;
+        toAccountNumber?: string;
+        amount: number;
+        transactionId: string;
+    }) {
+        if (params.fromAccountNumber !== undefined) {
+            await this.accountModel.findOneAndUpdate(
+                {
+                    accountType: params.accountType,
+                    accountNumber: params.fromAccountNumber,
+                    'retunedTransaction.id': { $ne: params.transactionId }
+                },
+                {
+                    $inc: {
+                        balance: params.amount,
+                        availableBalance: params.amount
+                    },
+                    $push: { retunedTransaction: { id: params.transactionId } }
+                }
+            )
+                .exec();
+        }
+
+        if (params.toAccountNumber !== undefined) {
+            await this.accountModel.findOneAndUpdate(
+                {
+                    accountType: params.accountType,
+                    accountNumber: params.toAccountNumber,
+                    'retunedTransaction.id': { $ne: params.transactionId }
+                },
+                {
+                    $inc: {
+                        balance: -params.amount,
+                        availableBalance: -params.amount
+                    },
+                    $push: { retunedTransaction: { id: params.transactionId } }
+                }
+            )
+                .exec();
+        }
+    }
+
     public async count(params: factory.account.ISearchConditions): Promise<number> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
 

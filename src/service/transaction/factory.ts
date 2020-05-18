@@ -35,6 +35,7 @@ export function createMoneyTransferActionAttributes(params: {
     return {
         project: transaction.project,
         typeOf: factory.actionType.MoneyTransfer,
+        identifier: `${factory.actionType.MoneyTransfer}-${transaction.typeOf}-${transaction.id}`,
         description: transaction.object.description,
         result: {
             amount: transaction.object.amount

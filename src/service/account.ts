@@ -10,6 +10,8 @@ import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
+import { createMoneyTransferActionAttributes } from './transaction/factory';
+
 const debug = createDebug('pecorino-domain:service');
 
 export type IOpenOperation<T> = (repos: {
@@ -219,5 +221,85 @@ export function cancelMoneyTransfer(params: {
         await Promise.all(actions.map(async (action) => {
             await repos.action.cancel(action.typeOf, action.id);
         }));
+    };
+}
+
+/**
+ * 通貨転送返金
+ */
+export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITask) {
+    return async (repos: {
+        account: AccountRepo;
+        action: ActionRepo;
+        transaction: TransactionRepo;
+    }) => {
+        let accountType: string;
+        let fromAccountNumber: string | undefined;
+        let toAccountNumber: string | undefined;
+
+        // 取引存在確認
+        const transaction = await repos.transaction.findById(params.data.purpose.typeOf, params.data.purpose.id);
+        const moneyTransferAction = createMoneyTransferActionAttributes({ transaction });
+
+        // アクション開始
+        const actionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
+            project: transaction.project,
+            typeOf: factory.actionType.MoneyTransfer,
+            agent: moneyTransferAction.recipient,
+            recipient: moneyTransferAction.agent,
+            description: `Return ${moneyTransferAction.description}`,
+            amount: moneyTransferAction.amount,
+            fromLocation: moneyTransferAction.toLocation,
+            toLocation: moneyTransferAction.fromLocation,
+            object: {},
+            purpose: moneyTransferAction.purpose
+        };
+
+        const action = await repos.action.start(actionAttributes);
+
+        try {
+            switch (transaction.typeOf) {
+                case factory.transactionType.Deposit:
+                    accountType = (<factory.account.IAccount>actionAttributes.toLocation).accountType;
+                    toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
+                    break;
+
+                case factory.transactionType.Withdraw:
+                    accountType = (<factory.account.IAccount>actionAttributes.fromLocation).accountType;
+                    fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
+                    break;
+
+                case factory.transactionType.Transfer:
+                    accountType = (<factory.account.IAccount>actionAttributes.fromLocation).accountType;
+                    fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
+                    toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
+                    break;
+
+                default:
+                    throw new factory.errors.Argument('typeOf', `transaction type ${params.data.purpose.typeOf} unknown`);
+            }
+
+            await repos.account.returnTransaction({
+                accountType: accountType,
+                fromAccountNumber: fromAccountNumber,
+                toAccountNumber: toAccountNumber,
+                amount: actionAttributes.amount,
+                transactionId: transaction.id
+            });
+        } catch (error) {
+            // actionにエラー結果を追加
+            try {
+                const actionError = { ...error, message: error.message, name: error.name };
+                await repos.action.giveUp(action.typeOf, action.id, actionError);
+            } catch (__) {
+                // 失敗したら仕方ない
+            }
+
+            throw error;
+        }
+
+        // アクション完了
+        const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
+        await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }

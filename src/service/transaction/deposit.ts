@@ -87,7 +87,8 @@ export function start(
 
         // アクション開始
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        await repos.action.start(moneyTransferActionAttributes);
+        // await repos.action.start(moneyTransferActionAttributes);
+        await repos.action.startByIdentifier(moneyTransferActionAttributes);
 
         // 結果返却
         return transaction;
