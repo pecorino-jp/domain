@@ -191,6 +191,7 @@ export class MongoRepository {
                     }
                 },
                 {
+                    new: true,
                     upsert: true
                 }
             )
