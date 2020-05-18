@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - アクションにidentifierを追加
+- 取引の返金処理を追加
 
 ### Changed
 

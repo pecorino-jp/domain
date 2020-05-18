@@ -147,27 +147,6 @@ describe('取引を確定する', () => {
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
     });
-
-    it('万が一確定時に存在せず、状態確認時に存在した場合NotFoundエラーとなるはず', async () => {
-        const transaction = {
-            status: pecorino.factory.transactionStatusType.InProgress
-        };
-        sandbox.mock(transactionRepo.transactionModel)
-            .expects('findOneAndUpdate')
-            .once()
-            .chain('exec')
-            // tslint:disable-next-line:no-null-keyword
-            .resolves(null);
-        sandbox.mock(transactionRepo)
-            .expects('findById')
-            .once()
-            .resolves(transaction);
-
-        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
-            .catch((err) => err);
-        assert(result instanceof pecorino.factory.errors.NotFound);
-        sandbox.verify();
-    });
 });
 
 describe('取引を中止する', () => {
@@ -259,30 +238,6 @@ describe('取引を中止する', () => {
         })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
-        sandbox.verify();
-    });
-
-    it('万が一中止時に存在せず、状態確認時に存在した場合NotFoundエラーとなるはず', async () => {
-        const transaction = {
-            status: pecorino.factory.transactionStatusType.InProgress
-        };
-        sandbox.mock(transactionRepo.transactionModel)
-            .expects('findOneAndUpdate')
-            .once()
-            .chain('exec')
-            // tslint:disable-next-line:no-null-keyword
-            .resolves(null);
-        sandbox.mock(transactionRepo)
-            .expects('findById')
-            .once()
-            .resolves(transaction);
-
-        const result = await transactionRepo.cancel({
-            typeOf: pecorino.factory.transactionType.Deposit,
-            id: 'transactionId'
-        })
-            .catch((err) => err);
-        assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
     });
 });

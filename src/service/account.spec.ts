@@ -79,14 +79,10 @@ describe('金額を転送する', () => {
             .expects('settleTransaction')
             .once()
             .resolves();
-        // sandbox.mock(actionRepo)
-        //     .expects('start')
-        //     .once()
-        //     .resolves({});
         sandbox.mock(actionRepo)
-            .expects('searchTransferActions')
+            .expects('startByIdentifier')
             .once()
-            .resolves([actionAttributes]);
+            .resolves(actionAttributes);
         sandbox.mock(actionRepo)
             .expects('complete')
             .once()
@@ -119,13 +115,9 @@ describe('金額を転送する', () => {
             .once()
             .resolves();
         sandbox.mock(actionRepo)
-            .expects('searchTransferActions')
+            .expects('startByIdentifier')
             .once()
-            .resolves([actionAttributes]);
-        // sandbox.mock(actionRepo)
-        //     .expects('start')
-        //     .once()
-        //     .resolves({});
+            .resolves(actionAttributes);
         sandbox.mock(actionRepo)
             .expects('complete')
             .once()
@@ -157,14 +149,10 @@ describe('金額を転送する', () => {
         const actionRepo = new pecorino.repository.Action(mongoose.connection);
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
 
-        // sandbox.mock(actionRepo)
-        //     .expects('start')
-        //     .once()
-        //     .resolves({});
         sandbox.mock(actionRepo)
-            .expects('searchTransferActions')
+            .expects('startByIdentifier')
             .once()
-            .resolves([actionAttributes]);
+            .resolves(actionAttributes);
         sandbox.mock(accountRepo)
             .expects('settleTransaction')
             .once()

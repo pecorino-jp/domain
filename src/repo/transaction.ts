@@ -14,6 +14,7 @@ export class MongoRepository {
     constructor(connection: Connection) {
         this.transactionModel = connection.model(TransactionModel.modelName);
     }
+
     /**
      * 取引を開始する
      */
@@ -31,6 +32,7 @@ export class MongoRepository {
         })
             .then((doc) => doc.toObject());
     }
+
     /**
      * 取引検索
      */
@@ -89,7 +91,7 @@ export class MongoRepository {
                 status: factory.transactionStatusType.InProgress
             },
             {
-                status: factory.transactionStatusType.Confirmed, // ステータス変更
+                status: factory.transactionStatusType.Confirmed,
                 endDate: new Date(),
                 result: result, // resultを更新
                 potentialActions: potentialActions
@@ -102,14 +104,9 @@ export class MongoRepository {
         if (doc === null) {
             const transaction = await this.findById<T>(typeOf, transactionId);
             if (transaction.status === factory.transactionStatusType.Confirmed) {
-                // すでに確定済の場合
                 return transaction;
-            } else if (transaction.status === factory.transactionStatusType.Expired) {
-                throw new factory.errors.Argument('accountNumber', 'Transaction already expired');
-            } else if (transaction.status === factory.transactionStatusType.Canceled) {
-                throw new factory.errors.Argument('accountNumber', 'Transaction already canceled');
             } else {
-                throw new factory.errors.NotFound('Transaction');
+                throw new factory.errors.Argument('transactionId', `Transaction ${transaction.status}`);
             }
         }
 
@@ -165,14 +162,67 @@ export class MongoRepository {
             }
 
             if (transaction.status === factory.transactionStatusType.Canceled) {
-                // すでに中止済の場合
                 return transaction;
-            } else if (transaction.status === factory.transactionStatusType.Expired) {
-                throw new factory.errors.Argument('accountNumber', 'Transaction already expired');
-            } else if (transaction.status === factory.transactionStatusType.Confirmed) {
-                throw new factory.errors.Argument('accountNumber', 'Confirmed transaction unable to cancel');
             } else {
-                throw new factory.errors.NotFound('Transaction');
+                throw new factory.errors.Argument('transactionId', `Transaction ${transaction.status}`);
+            }
+        }
+
+        return doc.toObject();
+    }
+
+    /**
+     * 取引を返金する
+     */
+    public async returnMoneyTransfer<T extends factory.transactionType>(params: {
+        typeOf: T;
+        id?: string;
+        transactionNumber?: string;
+    }): Promise<factory.transaction.ITransaction<T>> {
+        // 進行中ステータスの取引を中止する
+        const doc = await this.transactionModel.findOneAndUpdate(
+            {
+                typeOf: params.typeOf,
+                ...(typeof params.id === 'string') ? { _id: params.id } : /* istanbul ignore next */ undefined,
+                ...(typeof params.transactionNumber === 'string')
+                    // tslint:disable-next-line:no-single-line-block-comment
+                    /* istanbul ignore next */
+                    ? { transactionNumber: { $exists: true, $eq: params.transactionNumber } }
+                    : undefined,
+                status: factory.transactionStatusType.Confirmed
+            },
+            {
+                status: factory.transactionStatusType.Returned,
+                dateReturned: new Date()
+            },
+            { new: true }
+        )
+            .exec();
+
+        // NotFoundであれば取引状態確認
+        if (doc === null) {
+            let transaction: factory.transaction.ITransaction<T>;
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (typeof params.id === 'string') {
+                transaction = await this.findById<T>(params.typeOf, params.id);
+            } else if (typeof params.transactionNumber === 'string') {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                transaction = await this.findByTransactionNumber<T>({
+                    typeOf: params.typeOf,
+                    transactionNumber: params.transactionNumber
+                });
+            } else {
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                throw new factory.errors.ArgumentNull('Transaction ID or Transaction Number');
+            }
+
+            if (transaction.status === factory.transactionStatusType.Returned) {
+                return transaction;
+            } else {
+                throw new factory.errors.Argument('transactionId', `Transaction ${transaction.status}`);
             }
         }
 
@@ -181,8 +231,6 @@ export class MongoRepository {
 
     /**
      * タスク未エクスポートの取引をひとつ取得してエクスポートを開始する
-     * @param typeOf 取引タイプ
-     * @param status 取引ステータス
      */
     public async startExportTasks<T extends factory.transactionType>(
         typeOf: T, status: factory.transactionStatusType
@@ -200,6 +248,7 @@ export class MongoRepository {
             // tslint:disable-next-line:no-null-keyword
             .then((doc) => (doc === null) ? null : doc.toObject());
     }
+
     /**
      * タスクエクスポートリトライ
      * todo updatedAtを基準にしているが、タスクエクスポートトライ日時を持たせた方が安全か？
@@ -220,9 +269,9 @@ export class MongoRepository {
         )
             .exec();
     }
+
     /**
      * タスクをエクスポート済に変更する
-     * @param transactionId transaction id
      */
     public async setTasksExportedById(transactionId: string): Promise<void> {
         await this.transactionModel.findByIdAndUpdate(
@@ -235,6 +284,7 @@ export class MongoRepository {
         )
             .exec();
     }
+
     /**
      * 取引を期限切れにする
      */
@@ -255,9 +305,9 @@ export class MongoRepository {
         )
             .exec();
     }
+
     /**
      * 取引を検索する
-     * @param conditions 検索条件
      */
     public async search<T extends factory.transactionType>(params: {
         typeOf?: T;
