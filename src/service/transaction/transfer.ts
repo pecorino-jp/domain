@@ -21,6 +21,7 @@ export type IStartOperation<T> = (repos: {
 /**
  * 取引開始
  */
+// tslint:disable-next-line:max-func-body-length
 export function start(
     params: factory.transaction.IStartParams<factory.transactionType.Transfer>
 ): IStartOperation<factory.transaction.transfer.ITransaction> {
@@ -117,7 +118,8 @@ export function start(
 
         // アクション開始
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        await repos.action.start(moneyTransferActionAttributes);
+        // await repos.action.start(moneyTransferActionAttributes);
+        await repos.action.startByIdentifier(moneyTransferActionAttributes);
 
         // 結果返却
         return transaction;

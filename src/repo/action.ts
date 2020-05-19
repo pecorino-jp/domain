@@ -174,6 +174,47 @@ export class MongoRepository {
             );
     }
 
+    public async startByIdentifier<T extends factory.actionType>(params: factory.action.IAttributes<any, any>): Promise<IAction<T>> {
+        if (typeof params.identifier === 'string') {
+            return this.actionModel.findOneAndUpdate(
+                {
+                    identifier: {
+                        $exists: true,
+                        $eq: params.identifier
+                    }
+                },
+                {
+                    $setOnInsert: {
+                        ...params,
+                        actionStatus: factory.actionStatusType.ActiveActionStatus,
+                        startDate: new Date()
+                    }
+                },
+                {
+                    new: true,
+                    upsert: true
+                }
+            )
+                .exec()
+                .then((doc) => {
+                    if (doc === null) {
+                        throw new factory.errors.NotFound(this.actionModel.modelName);
+                    }
+
+                    return doc.toObject();
+                });
+        } else {
+            return this.actionModel.create({
+                ...params,
+                actionStatus: factory.actionStatusType.ActiveActionStatus,
+                startDate: new Date()
+            })
+                .then(
+                    (doc) => doc.toObject()
+                );
+        }
+    }
+
     /**
      * アクション完了
      */

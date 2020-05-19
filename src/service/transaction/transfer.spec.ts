@@ -57,7 +57,7 @@ describe('転送取引を開始する', () => {
             .once()
             .resolves();
         sandbox.mock(actionRepo)
-            .expects('start')
+            .expects('startByIdentifier')
             .once()
             .resolves();
 

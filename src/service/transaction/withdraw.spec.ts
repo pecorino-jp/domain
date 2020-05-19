@@ -48,7 +48,7 @@ describe('出金取引を開始する', () => {
             .once()
             .resolves();
         sandbox.mock(actionRepo)
-            .expects('start')
+            .expects('startByIdentifier')
             .once()
             .resolves();
 

@@ -21,6 +21,7 @@ const schema = new mongoose.Schema(
         expires: Date,
         startDate: Date,
         endDate: Date,
+        dateReturned: Date,
         tasksExportedAt: Date,
         tasksExportationStatus: String,
         potentialActions: mongoose.SchemaTypes.Mixed

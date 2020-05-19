@@ -12,6 +12,7 @@ const schema = new mongoose.Schema(
         project: mongoose.SchemaTypes.Mixed,
         actionStatus: String,
         typeOf: String,
+        identifier: String,
         description: String,
         agent: mongoose.SchemaTypes.Mixed,
         recipient: mongoose.SchemaTypes.Mixed,
@@ -60,6 +61,25 @@ schema.index(
 schema.index(
     { updatedAt: 1 },
     { name: 'searchByUpdatedAt' }
+);
+
+schema.index(
+    { identifier: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            identifier: { $exists: true }
+        }
+    }
+);
+
+schema.index(
+    { identifier: 1, startDate: -1 },
+    {
+        partialFilterExpression: {
+            identifier: { $exists: true }
+        }
+    }
 );
 
 schema.index(

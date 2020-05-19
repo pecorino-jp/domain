@@ -47,3 +47,18 @@ export function moneyTransfer(
         });
     };
 }
+
+export function returnMoneyTransfer(task: factory.task.returnMoneyTransfer.ITask): IOperation<void> {
+    return async (settings: {
+        connection: mongoose.Connection;
+    }) => {
+        const accountRepo = new AccountRepo(settings.connection);
+        const actionRepo = new ActionRepo(settings.connection);
+        const transactionRepo = new TransactionRepo(settings.connection);
+        await AccountService.returnMoneyTransfer(task)({
+            account: accountRepo,
+            action: actionRepo,
+            transaction: transactionRepo
+        });
+    };
+}

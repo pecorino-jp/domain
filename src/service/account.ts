@@ -2,15 +2,13 @@
  * 口座サービス
  * 開設、閉鎖等、口座に対するアクションを定義します。
  */
-import * as createDebug from 'debug';
-
 import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
-const debug = createDebug('pecorino-domain:service');
+import { createMoneyTransferActionAttributes } from './transaction/factory';
 
 export type IOpenOperation<T> = (repos: {
     account: AccountRepo;
@@ -88,64 +86,58 @@ export function transferMoney(
         action: ActionRepo;
         account: AccountRepo;
     }) => {
-        debug(`transfering money... ${actionAttributes.purpose.typeOf} ${actionAttributes.purpose.id}`);
+        const action = await repos.action.startByIdentifier<factory.actionType.MoneyTransfer>(actionAttributes);
 
-        // アクション取得
-        const actions = await repos.action.searchTransferActions({
-            purpose: {
-                typeOf: { $eq: actionAttributes.purpose.typeOf },
-                id: { $eq: actionAttributes.purpose.id }
+        // すでに完了していれば何もしない
+        if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
+            return;
+        }
+
+        try {
+            let accountType: string;
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore else */
+            if (action.fromLocation.typeOf === factory.account.TypeOf.Account) {
+                accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountType;
+            } else if (action.toLocation.typeOf === factory.account.TypeOf.Account) {
+                accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountType;
+            } else {
+                throw new factory.errors.NotImplemented('No Account Location');
             }
-        });
 
-        await Promise.all(actions.map(async (action) => {
-            try {
-                let accountType: string;
+            const fromAccountNumber = (action.fromLocation.typeOf === factory.account.TypeOf.Account)
+                ? (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
-                /* istanbul ignore else */
-                if (action.fromLocation.typeOf === factory.account.TypeOf.Account) {
-                    accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountType;
-                } else if (action.toLocation.typeOf === factory.account.TypeOf.Account) {
-                    accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountType;
-                } else {
-                    throw new factory.errors.NotImplemented('No Account Location');
-                }
+                /* istanbul ignore next */
+                : undefined;
+            const toAccountNumber = (action.toLocation.typeOf === factory.account.TypeOf.Account)
+                ? (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountNumber
+                // tslint:disable-next-line:no-single-line-block-comment
+                /* istanbul ignore next */
+                : undefined;
 
-                const fromAccountNumber = (action.fromLocation.typeOf === factory.account.TypeOf.Account)
-                    ? (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountNumber
-                    // tslint:disable-next-line:no-single-line-block-comment
-                    /* istanbul ignore next */
-                    : undefined;
-                const toAccountNumber = (action.toLocation.typeOf === factory.account.TypeOf.Account)
-                    ? (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountNumber
-                    // tslint:disable-next-line:no-single-line-block-comment
-                    /* istanbul ignore next */
-                    : undefined;
-
-                await repos.account.settleTransaction({
-                    accountType: accountType,
-                    fromAccountNumber: fromAccountNumber,
-                    toAccountNumber: toAccountNumber,
-                    amount: action.amount,
-                    transactionId: action.purpose.id
-                });
-            } catch (error) {
-                // actionにエラー結果を追加
-                try {
-                    const actionError = { ...error, message: error.message, name: error.name };
-                    await repos.action.giveUp(action.typeOf, action.id, actionError);
-                } catch (__) {
-                    // 失敗したら仕方ない
-                }
-
-                throw error;
+            await repos.account.settleTransaction({
+                accountType: accountType,
+                fromAccountNumber: fromAccountNumber,
+                toAccountNumber: toAccountNumber,
+                amount: action.amount,
+                transactionId: action.purpose.id
+            });
+        } catch (error) {
+            // actionにエラー結果を追加
+            try {
+                const actionError = { ...error, message: error.message, name: error.name };
+                await repos.action.giveUp(action.typeOf, action.id, actionError);
+            } catch (__) {
+                // 失敗したら仕方ない
             }
 
-            // アクション完了
-            debug('ending action...');
-            const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
-            await repos.action.complete(action.typeOf, action.id, actionResult);
-        }));
+            throw error;
+        }
+
+        // アクション完了
+        const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
+        await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }
 
@@ -164,7 +156,6 @@ export function cancelMoneyTransfer(params: {
         action: ActionRepo;
         transaction: TransactionRepo;
     }) => {
-        debug(`canceling money transfer... ${params.transaction.typeOf} ${params.transaction.id}`);
         let accountType: string;
         let fromAccountNumber: string | undefined;
         let toAccountNumber: string | undefined;
@@ -219,5 +210,96 @@ export function cancelMoneyTransfer(params: {
         await Promise.all(actions.map(async (action) => {
             await repos.action.cancel(action.typeOf, action.id);
         }));
+    };
+}
+
+/**
+ * 通貨転送返金
+ */
+export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITask) {
+    return async (repos: {
+        account: AccountRepo;
+        action: ActionRepo;
+        transaction: TransactionRepo;
+    }) => {
+        let accountType: string;
+        let fromAccountNumber: string | undefined;
+        let toAccountNumber: string | undefined;
+
+        // 取引存在確認
+        const transaction = await repos.transaction.findById(params.data.purpose.typeOf, params.data.purpose.id);
+        const moneyTransferAction = createMoneyTransferActionAttributes({ transaction });
+
+        // アクション開始
+        const actionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
+            project: transaction.project,
+            typeOf: factory.actionType.MoneyTransfer,
+            identifier: `${moneyTransferAction.identifier}-${factory.transactionStatusType.Returned}`,
+            agent: moneyTransferAction.recipient,
+            recipient: moneyTransferAction.agent,
+            description: `Return ${moneyTransferAction.description}`,
+            amount: moneyTransferAction.amount,
+            fromLocation: moneyTransferAction.toLocation,
+            toLocation: moneyTransferAction.fromLocation,
+            object: {},
+            purpose: {
+                ...moneyTransferAction.purpose,
+                ...{
+                    status: factory.transactionStatusType.Returned
+                }
+            }
+        };
+
+        const action = await repos.action.startByIdentifier(actionAttributes);
+
+        // すでに完了していれば何もしない
+        if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
+            return;
+        }
+
+        try {
+            switch (transaction.typeOf) {
+                case factory.transactionType.Deposit:
+                    accountType = (<factory.account.IAccount>actionAttributes.toLocation).accountType;
+                    toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
+                    break;
+
+                case factory.transactionType.Withdraw:
+                    accountType = (<factory.account.IAccount>actionAttributes.fromLocation).accountType;
+                    fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
+                    break;
+
+                case factory.transactionType.Transfer:
+                    accountType = (<factory.account.IAccount>actionAttributes.fromLocation).accountType;
+                    fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
+                    toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
+                    break;
+
+                default:
+                    throw new factory.errors.Argument('typeOf', `transaction type ${params.data.purpose.typeOf} unknown`);
+            }
+
+            await repos.account.returnTransaction({
+                accountType: accountType,
+                fromAccountNumber: fromAccountNumber,
+                toAccountNumber: toAccountNumber,
+                amount: actionAttributes.amount,
+                transactionId: transaction.id
+            });
+        } catch (error) {
+            // actionにエラー結果を追加
+            try {
+                const actionError = { ...error, message: error.message, name: error.name };
+                await repos.action.giveUp(action.typeOf, action.id, actionError);
+            } catch (__) {
+                // 失敗したら仕方ない
+            }
+
+            throw error;
+        }
+
+        // アクション完了
+        const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
+        await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }
