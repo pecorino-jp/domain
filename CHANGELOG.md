@@ -8,9 +8,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- アクションにidentifierを追加
-- 取引の返金処理を追加
-
 ### Changed
 
 ### Deprecated
@@ -20,6 +17,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 ### Security
+
+## v4.2.0 - 2020-05-19
+
+### Added
+
+- アクションにidentifierを追加
+- 取引の返金処理を追加
 
 ## v4.1.0 - 2020-05-14
 
