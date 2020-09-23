@@ -56,10 +56,6 @@ export function open(params: {
  */
 export function close(params: {
     /**
-     * 口座タイプ
-     */
-    accountType: string;
-    /**
      * 口座番号
      */
     accountNumber: string;
@@ -68,7 +64,6 @@ export function close(params: {
         account: AccountRepo;
     }) => {
         await repos.account.close({
-            accountType: params.accountType,
             accountNumber: params.accountNumber,
             closeDate: new Date()
         });
@@ -94,13 +89,12 @@ export function transferMoney(
         }
 
         try {
-            let accountType: string;
             // tslint:disable-next-line:no-single-line-block-comment
             /* istanbul ignore else */
             if (action.fromLocation.typeOf === factory.account.TypeOf.Account) {
-                accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountType;
+                // no op
             } else if (action.toLocation.typeOf === factory.account.TypeOf.Account) {
-                accountType = (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountType;
+                // no op
             } else {
                 throw new factory.errors.NotImplemented('No Account Location');
             }
@@ -117,7 +111,6 @@ export function transferMoney(
                 : undefined;
 
             await repos.account.settleTransaction({
-                accountType: accountType,
                 fromAccountNumber: fromAccountNumber,
                 toAccountNumber: toAccountNumber,
                 amount: action.amount,
@@ -156,7 +149,6 @@ export function cancelMoneyTransfer(params: {
         action: ActionRepo;
         transaction: TransactionRepo;
     }) => {
-        let accountType: string;
         let fromAccountNumber: string | undefined;
         let toAccountNumber: string | undefined;
 
@@ -165,22 +157,16 @@ export function cancelMoneyTransfer(params: {
 
         switch (params.transaction.typeOf) {
             case factory.transactionType.Deposit:
-                accountType =
-                    (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toLocation.accountType;
                 toAccountNumber =
                     (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toLocation.accountNumber;
                 break;
 
             case factory.transactionType.Withdraw:
-                accountType =
-                    (<factory.transaction.ITransaction<factory.transactionType.Withdraw>>transaction).object.fromLocation.accountType;
                 fromAccountNumber =
                     (<factory.transaction.ITransaction<factory.transactionType.Withdraw>>transaction).object.fromLocation.accountNumber;
                 break;
 
             case factory.transactionType.Transfer:
-                accountType =
-                    (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromLocation.accountType;
                 fromAccountNumber =
                     (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromLocation.accountNumber;
                 toAccountNumber =
@@ -192,7 +178,6 @@ export function cancelMoneyTransfer(params: {
         }
 
         await repos.account.voidTransaction({
-            accountType: accountType,
             fromAccountNumber: fromAccountNumber,
             toAccountNumber: toAccountNumber,
             amount: transaction.object.amount,
@@ -222,7 +207,6 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
         action: ActionRepo;
         transaction: TransactionRepo;
     }) => {
-        let accountType: string;
         let fromAccountNumber: string | undefined;
         let toAccountNumber: string | undefined;
 
@@ -260,17 +244,14 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
         try {
             switch (transaction.typeOf) {
                 case factory.transactionType.Deposit:
-                    accountType = (<factory.account.IAccount>actionAttributes.toLocation).accountType;
                     toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
                     break;
 
                 case factory.transactionType.Withdraw:
-                    accountType = (<factory.account.IAccount>actionAttributes.fromLocation).accountType;
                     fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
                     break;
 
                 case factory.transactionType.Transfer:
-                    accountType = (<factory.account.IAccount>actionAttributes.fromLocation).accountType;
                     fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
                     toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
                     break;
@@ -280,7 +261,6 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
             }
 
             await repos.account.returnTransaction({
-                accountType: accountType,
                 fromAccountNumber: fromAccountNumber,
                 toAccountNumber: toAccountNumber,
                 amount: actionAttributes.amount,

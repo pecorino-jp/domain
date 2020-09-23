@@ -133,7 +133,6 @@ describe('口座番号で検索', () => {
             .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.findByAccountNumber({
-            accountType: 'accountType',
             accountNumber: 'accountNumber'
         });
         assert.equal(typeof result, 'object');
@@ -149,7 +148,6 @@ describe('口座番号で検索', () => {
             .resolves(null);
 
         const result = await accountRepo.findByAccountNumber({
-            accountType: 'accountType',
             accountNumber: 'accountNumber'
         })
             .catch((err) => err);
@@ -324,7 +322,6 @@ describe('口座に保留中の取引を実行する', () => {
             .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.settleTransaction({
-            accountType: 'accountType',
             fromAccountNumber: 'fromAccountNumber',
             // toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -342,7 +339,6 @@ describe('口座に保留中の取引を実行する', () => {
             .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.settleTransaction({
-            accountType: 'accountType',
             // fromAccountNumber: 'fromAccountNumber',
             toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -367,7 +363,6 @@ describe('口座に保留中の取引を中止する', () => {
             .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.voidTransaction({
-            accountType: 'accountType',
             fromAccountNumber: 'fromAccountNumber',
             // toAccountNumber: 'toAccountNumber',
             amount: 1234,
@@ -385,8 +380,6 @@ describe('口座に保留中の取引を中止する', () => {
             .resolves(new accountRepo.accountModel());
 
         const result = await accountRepo.voidTransaction({
-            accountType: 'accountType',
-            // fromAccountNumber: 'fromAccountNumber',
             toAccountNumber: 'toAccountNumber',
             amount: 1234,
             transactionId: 'transactionId'

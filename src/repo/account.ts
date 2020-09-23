@@ -192,10 +192,6 @@ export class MongoRepository {
      */
     public async close(params: {
         /**
-         * 口座タイプ
-         */
-        accountType: string;
-        /**
          * 口座番号
          */
         accountNumber: string;
@@ -207,7 +203,6 @@ export class MongoRepository {
         debug('closing account...');
         const doc = await this.accountModel.findOneAndUpdate(
             {
-                accountType: params.accountType,
                 accountNumber: params.accountNumber,
                 pendingTransactions: { $size: 0 },
                 status: factory.accountStatusType.Opened
@@ -225,7 +220,6 @@ export class MongoRepository {
         // NotFoundであれば口座状態確認
         if (doc === null) {
             const account = await this.findByAccountNumber({
-                accountType: params.accountType,
                 accountNumber: params.accountNumber
             });
             if (account.status === factory.accountStatusType.Closed) {
@@ -245,16 +239,11 @@ export class MongoRepository {
      */
     public async findByAccountNumber(params: {
         /**
-         * 口座タイプ
-         */
-        accountType: string;
-        /**
          * 口座番号
          */
         accountNumber: string;
     }): Promise<factory.account.IAccount> {
         const doc = await this.accountModel.findOne({
-            accountType: params.accountType,
             accountNumber: params.accountNumber
         })
             .exec();
@@ -271,10 +260,6 @@ export class MongoRepository {
      */
     public async authorizeAmount(params: {
         /**
-         * 口座タイプ
-         */
-        accountType: string;
-        /**
          * 口座番号
          */
         accountNumber: string;
@@ -289,7 +274,6 @@ export class MongoRepository {
     }) {
         const doc = await this.accountModel.findOneAndUpdate(
             {
-                accountType: params.accountType,
                 accountNumber: params.accountNumber,
                 availableBalance: { $gte: params.amount }, // 利用可能金額確認
                 status: factory.accountStatusType.Opened // 開いている口座
@@ -305,7 +289,6 @@ export class MongoRepository {
         // NotFoundであれば口座状態確認
         if (doc === null) {
             const account = await this.findByAccountNumber({
-                accountType: params.accountType,
                 accountNumber: params.accountNumber
             });
             if (account.status === factory.accountStatusType.Closed) {
@@ -325,10 +308,6 @@ export class MongoRepository {
      */
     public async startTransaction(params: {
         /**
-         * 口座タイプ
-         */
-        accountType: string;
-        /**
          * 口座番号
          */
         accountNumber: string;
@@ -339,7 +318,6 @@ export class MongoRepository {
     }) {
         const doc = await this.accountModel.findOneAndUpdate(
             {
-                accountType: params.accountType,
                 accountNumber: params.accountNumber,
                 status: factory.accountStatusType.Opened // 開いている口座
             },
@@ -350,7 +328,6 @@ export class MongoRepository {
         // NotFoundであれば口座状態確認
         if (doc === null) {
             const account = await this.findByAccountNumber({
-                accountType: params.accountType,
                 accountNumber: params.accountNumber
             });
             if (account.status === factory.accountStatusType.Closed) {
@@ -367,10 +344,6 @@ export class MongoRepository {
      * 口座上で進行中の取引について、実際に金額移動処理を実行します。
      */
     public async settleTransaction(params: {
-        /**
-         * 口座タイプ
-         */
-        accountType: string;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
@@ -380,7 +353,6 @@ export class MongoRepository {
         if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    accountType: params.accountType,
                     accountNumber: params.fromAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -398,7 +370,6 @@ export class MongoRepository {
         if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    accountType: params.accountType,
                     accountNumber: params.toAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -420,10 +391,6 @@ export class MongoRepository {
      * @see https://www.investopedia.com/terms/v/void-transaction.asp
      */
     public async voidTransaction(params: {
-        /**
-         * 口座タイプ
-         */
-        accountType: string;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
@@ -433,7 +400,6 @@ export class MongoRepository {
         if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    accountType: params.accountType,
                     accountNumber: params.fromAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -451,7 +417,6 @@ export class MongoRepository {
         if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    accountType: params.accountType,
                     accountNumber: params.toAccountNumber,
                     'pendingTransactions.id': params.transactionId
                 },
@@ -467,7 +432,6 @@ export class MongoRepository {
      * 通貨転送返金
      */
     public async returnTransaction(params: {
-        accountType: string;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
@@ -476,7 +440,6 @@ export class MongoRepository {
         if (params.fromAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    accountType: params.accountType,
                     accountNumber: params.fromAccountNumber,
                     'retunedTransaction.id': { $ne: params.transactionId }
                 },
@@ -494,7 +457,6 @@ export class MongoRepository {
         if (params.toAccountNumber !== undefined) {
             await this.accountModel.findOneAndUpdate(
                 {
-                    accountType: params.accountType,
                     accountNumber: params.toAccountNumber,
                     'retunedTransaction.id': { $ne: params.transactionId }
                 },

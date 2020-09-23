@@ -33,7 +33,6 @@ export function start(
 
         // 口座存在確認
         const account = await repos.account.findByAccountNumber({
-            accountType: params.object.fromLocation.accountType,
             accountNumber: params.object.fromLocation.accountNumber
         });
 
@@ -80,7 +79,6 @@ export function start(
 
         // 残高確保
         await repos.account.authorizeAmount({
-            accountType: params.object.fromLocation.accountType,
             accountNumber: params.object.fromLocation.accountNumber,
             amount: params.object.amount,
             transaction: pendingTransaction
