@@ -168,7 +168,7 @@ export class MongoRepository {
     }): Promise<factory.account.IAccount> {
         const account: factory.account.IAccount = {
             project: { typeOf: params.project.typeOf, id: params.project.id },
-            typeOf: <factory.account.TypeOf.Account>params.typeOf,
+            typeOf: params.typeOf,
             accountType: params.accountType,
             accountNumber: params.accountNumber,
             name: params.name,
