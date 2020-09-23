@@ -62,13 +62,13 @@ export function start(
                 clientUser: params.object.clientUser,
                 amount: params.object.amount,
                 fromLocation: {
-                    typeOf: factory.account.TypeOf.Account,
+                    typeOf: fromAccount.typeOf,
                     accountType: fromAccount.accountType,
                     accountNumber: fromAccount.accountNumber,
                     name: fromAccount.name
                 },
                 toLocation: {
-                    typeOf: factory.account.TypeOf.Account,
+                    typeOf: toAccount.typeOf,
                     accountType: toAccount.accountType,
                     accountNumber: toAccount.accountNumber,
                     name: toAccount.name

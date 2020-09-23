@@ -63,20 +63,12 @@ export class MongoRepository {
             andConditions.push({
                 $or: [
                     {
-                        'fromLocation.typeOf': {
-                            $exists: true,
-                            $eq: factory.account.TypeOf.Account
-                        },
                         'fromLocation.accountType': {
                             $exists: true,
                             $eq: params.accountType
                         }
                     },
                     {
-                        'toLocation.typeOf': {
-                            $exists: true,
-                            $eq: factory.account.TypeOf.Account
-                        },
                         'toLocation.accountType': {
                             $exists: true,
                             $eq: params.accountType

@@ -19,6 +19,7 @@ export type IOpenOperation<T> = (repos: {
  */
 export function open(params: {
     project: { typeOf: 'Project'; id: string };
+    typeOf: string;
     /**
      * 口座タイプ
      */
@@ -42,6 +43,7 @@ export function open(params: {
     }) => {
         return repos.account.open({
             project: { typeOf: params.project.typeOf, id: params.project.id },
+            typeOf: params.typeOf,
             name: params.name,
             accountType: params.accountType,
             accountNumber: params.accountNumber,
@@ -89,22 +91,12 @@ export function transferMoney(
         }
 
         try {
-            // tslint:disable-next-line:no-single-line-block-comment
-            /* istanbul ignore else */
-            if (action.fromLocation.typeOf === factory.account.TypeOf.Account) {
-                // no op
-            } else if (action.toLocation.typeOf === factory.account.TypeOf.Account) {
-                // no op
-            } else {
-                throw new factory.errors.NotImplemented('No Account Location');
-            }
-
-            const fromAccountNumber = (action.fromLocation.typeOf === factory.account.TypeOf.Account)
+            const fromAccountNumber = (typeof (<any>action.fromLocation).accountNumber === 'string')
                 ? (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore next */
                 : undefined;
-            const toAccountNumber = (action.toLocation.typeOf === factory.account.TypeOf.Account)
+            const toAccountNumber = (typeof (<any>action.toLocation).accountNumber === 'string')
                 ? (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore next */

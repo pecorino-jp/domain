@@ -19,11 +19,7 @@ export class MongoRepository {
 
     // tslint:disable-next-line:max-func-body-length
     public static CREATE_MONGO_CONDITIONS(params: factory.account.ISearchConditions) {
-        const andConditions: any[] = [
-            {
-                typeOf: factory.account.TypeOf.Account
-            }
-        ];
+        const andConditions: any[] = [];
 
         const accountTypeEq = params.accountType;
         // tslint:disable-next-line:no-single-line-block-comment
@@ -148,6 +144,7 @@ export class MongoRepository {
      */
     public async open(params: {
         project: { typeOf: 'Project'; id: string };
+        typeOf: string;
         /**
          * 口座タイプ
          */
@@ -171,7 +168,7 @@ export class MongoRepository {
     }): Promise<factory.account.IAccount> {
         const account: factory.account.IAccount = {
             project: { typeOf: params.project.typeOf, id: params.project.id },
-            typeOf: factory.account.TypeOf.Account,
+            typeOf: <factory.account.TypeOf.Account>params.typeOf,
             accountType: params.accountType,
             accountNumber: params.accountNumber,
             name: params.name,
@@ -475,7 +472,7 @@ export class MongoRepository {
     public async count(params: factory.account.ISearchConditions): Promise<number> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
 
-        return this.accountModel.countDocuments({ $and: conditions })
+        return this.accountModel.countDocuments((conditions.length > 0) ? { $and: conditions } : {})
             .setOptions({ maxTimeMS: 10000 })
             .exec();
     }
@@ -488,7 +485,7 @@ export class MongoRepository {
     ): Promise<factory.account.IAccount[]> {
         const conditions = MongoRepository.CREATE_MONGO_CONDITIONS(params);
         const query = this.accountModel.find(
-            { $and: conditions },
+            (conditions.length > 0) ? { $and: conditions } : {},
             {
                 __v: 0,
                 createdAt: 0,
