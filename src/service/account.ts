@@ -17,12 +17,12 @@ export type IOpenOperation<T> = (repos: {
 /**
  * 口座を開設する
  */
-export function open<T extends factory.account.AccountType>(params: {
+export function open(params: {
     project: { typeOf: 'Project'; id: string };
     /**
      * 口座タイプ
      */
-    accountType: T;
+    accountType: string;
     /**
      * 口座番号
      * ユニークになるように、Pecorinoサービス利用側で番号を生成すること
@@ -54,11 +54,11 @@ export function open<T extends factory.account.AccountType>(params: {
 /**
  * 口座を解約する
  */
-export function close<T extends factory.account.AccountType>(params: {
+export function close(params: {
     /**
      * 口座タイプ
      */
-    accountType: T;
+    accountType: string;
     /**
      * 口座番号
      */

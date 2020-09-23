@@ -146,12 +146,12 @@ export class MongoRepository {
     /**
      * 口座を開設する
      */
-    public async open<T extends factory.account.AccountType>(params: {
+    public async open(params: {
         project: { typeOf: 'Project'; id: string };
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         /**
          * 口座名義
          */
@@ -190,11 +190,11 @@ export class MongoRepository {
     /**
      * 口座を解約する
      */
-    public async close<T extends factory.account.AccountType>(params: {
+    public async close(params: {
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         /**
          * 口座番号
          */
@@ -419,11 +419,11 @@ export class MongoRepository {
      * 口座上で進行中の取引を中止します。
      * @see https://www.investopedia.com/terms/v/void-transaction.asp
      */
-    public async voidTransaction<T extends factory.account.AccountType>(params: {
+    public async voidTransaction(params: {
         /**
          * 口座タイプ
          */
-        accountType: T;
+        accountType: string;
         fromAccountNumber?: string;
         toAccountNumber?: string;
         amount: number;
