@@ -53,7 +53,7 @@ schema.index(
 // 口座番号はグローバルユニーク
 schema.index(
     { accountNumber: 1 },
-    { unique: true }
+    { name: 'uniqueAccountNumber', unique: true }
 );
 
 schema.index(

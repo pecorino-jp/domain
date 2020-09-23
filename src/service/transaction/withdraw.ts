@@ -22,7 +22,7 @@ export type IStartOperation<T> = (repos: {
  * 取引開始
  */
 export function start(
-    params: factory.transaction.IStartParams<factory.transactionType.Withdraw>
+    params: factory.transaction.withdraw.IStartParamsWithoutDetail
 ): IStartOperation<factory.transaction.withdraw.ITransaction> {
     return async (repos: {
         account: AccountRepo;

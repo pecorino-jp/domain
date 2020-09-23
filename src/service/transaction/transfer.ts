@@ -23,7 +23,7 @@ export type IStartOperation<T> = (repos: {
  */
 // tslint:disable-next-line:max-func-body-length
 export function start(
-    params: factory.transaction.IStartParams<factory.transactionType.Transfer>
+    params: factory.transaction.transfer.IStartParamsWithoutDetail
 ): IStartOperation<factory.transaction.transfer.ITransaction> {
     return async (repos: {
         account: AccountRepo;
