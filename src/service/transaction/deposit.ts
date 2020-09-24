@@ -22,7 +22,7 @@ export type IStartOperation<T> = (repos: {
  * 取引開始
  */
 export function start(
-    params: factory.transaction.IStartParams<factory.transactionType.Deposit>
+    params: factory.transaction.deposit.IStartParamsWithoutDetail
 ): IStartOperation<factory.transaction.deposit.ITransaction> {
     return async (repos: {
         account: AccountRepo;
@@ -33,7 +33,6 @@ export function start(
 
         // 口座存在確認
         const account = await repos.account.findByAccountNumber({
-            accountType: params.object.toLocation.accountType,
             accountNumber: params.object.toLocation.accountNumber
         });
 
@@ -47,7 +46,7 @@ export function start(
                 clientUser: params.object.clientUser,
                 amount: params.object.amount,
                 toLocation: {
-                    typeOf: factory.account.TypeOf.Account,
+                    typeOf: account.typeOf,
                     accountType: account.accountType,
                     accountNumber: account.accountNumber,
                     name: account.name
@@ -80,7 +79,6 @@ export function start(
 
         // 入金先口座に進行中取引を追加
         await repos.account.startTransaction({
-            accountType: params.object.toLocation.accountType,
             accountNumber: params.object.toLocation.accountNumber,
             transaction: pendingTransaction
         });

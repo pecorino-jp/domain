@@ -23,7 +23,7 @@ export type IStartOperation<T> = (repos: {
  */
 // tslint:disable-next-line:max-func-body-length
 export function start(
-    params: factory.transaction.IStartParams<factory.transactionType.Transfer>
+    params: factory.transaction.transfer.IStartParamsWithoutDetail
 ): IStartOperation<factory.transaction.transfer.ITransaction> {
     return async (repos: {
         account: AccountRepo;
@@ -34,11 +34,9 @@ export function start(
 
         // 口座存在確認
         const fromAccount = await repos.account.findByAccountNumber({
-            accountType: params.object.fromLocation.accountType,
             accountNumber: params.object.fromLocation.accountNumber
         });
         const toAccount = await repos.account.findByAccountNumber({
-            accountType: params.object.toLocation.accountType,
             accountNumber: params.object.toLocation.accountNumber
         });
 
@@ -64,13 +62,13 @@ export function start(
                 clientUser: params.object.clientUser,
                 amount: params.object.amount,
                 fromLocation: {
-                    typeOf: factory.account.TypeOf.Account,
+                    typeOf: fromAccount.typeOf,
                     accountType: fromAccount.accountType,
                     accountNumber: fromAccount.accountNumber,
                     name: fromAccount.name
                 },
                 toLocation: {
-                    typeOf: factory.account.TypeOf.Account,
+                    typeOf: toAccount.typeOf,
                     accountType: toAccount.accountType,
                     accountNumber: toAccount.accountNumber,
                     name: toAccount.name
@@ -103,7 +101,6 @@ export function start(
 
         // 残高確認
         await repos.account.authorizeAmount({
-            accountType: params.object.fromLocation.accountType,
             accountNumber: params.object.fromLocation.accountNumber,
             amount: params.object.amount,
             transaction: pendingTransaction
@@ -111,7 +108,6 @@ export function start(
 
         // 転送先口座に進行中取引を追加
         await repos.account.startTransaction({
-            accountType: params.object.toLocation.accountType,
             accountNumber: params.object.toLocation.accountNumber,
             transaction: pendingTransaction
         });

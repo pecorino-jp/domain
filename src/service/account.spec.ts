@@ -64,11 +64,11 @@ describe('金額を転送する', () => {
             purpose: {},
             amount: 1234,
             fromLocation: {
-                typeOf: pecorino.factory.account.TypeOf.Account,
+                typeOf: 'Account',
                 accountNumber: 'accountNumber'
             },
             toLocation: {
-                typeOf: pecorino.factory.account.TypeOf.Account,
+                typeOf: 'Account',
                 accountNumber: 'accountNumber'
             }
         };
@@ -103,7 +103,7 @@ describe('金額を転送する', () => {
             amount: 1234,
             fromLocation: {},
             toLocation: {
-                typeOf: pecorino.factory.account.TypeOf.Account,
+                typeOf: 'Account',
                 accountNumber: 'accountNumber'
             }
         };
@@ -137,11 +137,11 @@ describe('金額を転送する', () => {
             purpose: {},
             amount: 1234,
             fromLocation: {
-                typeOf: pecorino.factory.account.TypeOf.Account,
+                typeOf: 'Account',
                 accountNumber: 'accountNumber'
             },
             toLocation: {
-                typeOf: pecorino.factory.account.TypeOf.Account,
+                typeOf: 'Account',
                 accountNumber: 'accountNumber'
             }
         };

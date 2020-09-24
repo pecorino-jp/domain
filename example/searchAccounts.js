@@ -23,5 +23,5 @@ main().then(() => {
     console.log('success!');
 }).catch(console.error)
     .then(() => {
-        mongoose.disconnect();
+        // mongoose.disconnect();
     });

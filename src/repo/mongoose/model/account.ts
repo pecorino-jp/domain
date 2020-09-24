@@ -50,6 +50,12 @@ schema.index(
     }
 );
 
+// 口座番号はグローバルユニーク
+schema.index(
+    { accountNumber: 1 },
+    { name: 'uniqueAccountNumber', unique: true }
+);
+
 schema.index(
     { createdAt: 1 },
     { name: 'searchByCreatedAt' }
