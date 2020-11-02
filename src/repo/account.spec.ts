@@ -421,6 +421,7 @@ describe('口座を検索する', () => {
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
             project: { id: { $eq: 'eq', $ne: 'ne' } },
+            typeof: { $eq: 'Account', $in: ['Account'] },
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
             accountNumber: {

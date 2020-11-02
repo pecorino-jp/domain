@@ -17,7 +17,7 @@ export class MongoRepository {
         this.accountModel = connection.model(AccountModel.modelName);
     }
 
-    // tslint:disable-next-line:max-func-body-length
+    // tslint:disable-next-line:cyclomatic-complexity max-func-body-length
     public static CREATE_MONGO_CONDITIONS(params: factory.account.ISearchConditions) {
         const andConditions: any[] = [];
 
@@ -136,6 +136,20 @@ export class MongoRepository {
             });
         }
 
+        const typeOfEq = params.typeOf?.$eq;
+        if (typeof typeOfEq === 'string') {
+            andConditions.push({
+                typeOf: { $eq: typeOfEq }
+            });
+        }
+
+        const typeOfIn = params.typeOf?.$in;
+        if (Array.isArray(typeOfIn)) {
+            andConditions.push({
+                typeOf: { $in: typeOfIn }
+            });
+        }
+
         return andConditions;
     }
 
@@ -144,6 +158,9 @@ export class MongoRepository {
      */
     public async open(params: {
         project: { typeOf: 'Project'; id: string };
+        /**
+         * 口座種別
+         */
         typeOf: string;
         /**
          * 口座タイプ
@@ -226,7 +243,7 @@ export class MongoRepository {
                 // 進行中取引が存在する場合の場合
                 throw new factory.errors.Argument('accountNumber', 'Pending transactions exist');
             } else {
-                throw new factory.errors.NotFound('Account');
+                throw new factory.errors.NotFound(this.accountModel.modelName);
             }
         }
     }
@@ -245,7 +262,7 @@ export class MongoRepository {
         })
             .exec();
         if (doc === null) {
-            throw new factory.errors.NotFound('Account');
+            throw new factory.errors.NotFound(this.accountModel.modelName);
         }
 
         return doc.toObject();
@@ -295,7 +312,7 @@ export class MongoRepository {
                 // 残高不足の場合
                 throw new factory.errors.Argument('accountNumber', 'Insufficient balance');
             } else {
-                throw new factory.errors.NotFound('Account');
+                throw new factory.errors.NotFound(this.accountModel.modelName);
             }
         }
     }
@@ -331,7 +348,7 @@ export class MongoRepository {
                 // 口座解約済の場合
                 throw new factory.errors.Argument('accountNumber', 'Account already closed');
             } else {
-                throw new factory.errors.NotFound('Account');
+                throw new factory.errors.NotFound(this.accountModel.modelName);
             }
         }
     }
