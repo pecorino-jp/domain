@@ -182,23 +182,37 @@ export class MongoRepository {
          * 開設日時
          */
         openDate: Date;
-    }): Promise<factory.account.IAccount> {
-        const account: factory.account.IAccount = {
-            project: { typeOf: params.project.typeOf, id: params.project.id },
-            typeOf: params.typeOf,
-            accountType: params.accountType,
-            accountNumber: params.accountNumber,
-            name: params.name,
-            balance: params.initialBalance,
-            availableBalance: params.initialBalance,
-            pendingTransactions: [],
-            openDate: params.openDate,
-            status: factory.accountStatusType.Opened
-        };
+    }[]): Promise<factory.account.IAccount[]> {
+        if (params.length > 0) {
+            const accounts: factory.account.IAccount[] = params.map((p) => {
+                return {
+                    project: { typeOf: p.project.typeOf, id: p.project.id },
+                    typeOf: p.typeOf,
+                    accountType: p.accountType,
+                    accountNumber: p.accountNumber,
+                    name: p.name,
+                    balance: p.initialBalance,
+                    availableBalance: p.initialBalance,
+                    pendingTransactions: [],
+                    openDate: p.openDate,
+                    status: factory.accountStatusType.Opened
+                };
+            });
 
-        const doc = await this.accountModel.create(account);
+            // const doc = await this.accountModel.create(account);
 
-        return doc.toObject();
+            // return doc.toObject();
+
+            const result = <any>await this.accountModel.insertMany(accounts, { ordered: false, rawResult: true });
+
+            if (result.insertedCount !== accounts.length) {
+                throw new factory.errors.ServiceUnavailable('all accounts not saved');
+            }
+
+            return result.ops;
+        } else {
+            return [];
+        }
     }
 
     /**

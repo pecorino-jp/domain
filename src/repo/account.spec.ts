@@ -25,11 +25,11 @@ describe('口座開設', () => {
 
     it('MongoDBが正常であれば開設できるはず', async () => {
         sandbox.mock(accountRepo.accountModel)
-            .expects('create')
+            .expects('insertMany')
             .once()
-            .resolves(new accountRepo.accountModel());
+            .resolves({ insertedCount: 1, ops: [] });
 
-        const result = await accountRepo.open(<any>{ project: {} });
+        const result = await accountRepo.open(<any[]>[{ project: {} }]);
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
