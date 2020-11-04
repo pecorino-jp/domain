@@ -25,11 +25,11 @@ describe('口座開設', () => {
 
     it('MongoDBが正常であれば開設できるはず', async () => {
         sandbox.mock(accountRepo.accountModel)
-            .expects('create')
+            .expects('insertMany')
             .once()
-            .resolves(new accountRepo.accountModel());
+            .resolves({ insertedCount: 1, ops: [] });
 
-        const result = await accountRepo.open(<any>{ project: {} });
+        const result = await accountRepo.open(<any[]>[{ project: {} }]);
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -421,6 +421,7 @@ describe('口座を検索する', () => {
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
             project: { id: { $eq: 'eq', $ne: 'ne' } },
+            typeof: { $eq: 'Account', $in: ['Account'] },
             accountType: 'accountType',
             accountNumbers: ['accountNumber'],
             accountNumber: {

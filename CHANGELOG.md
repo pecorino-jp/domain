@@ -18,6 +18,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Security
 
+## v4.4.0 - 2020-11-04
+
+### Changed
+
+- 口座検索条件拡張
+- 口座開設を複数口座に対応
+- update mongoose
+
+### Removed
+
+- 不要な通知サービスを削除
+
 ## v4.3.0 - 2020-09-24
 
 ### Changed

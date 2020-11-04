@@ -37,19 +37,23 @@ export function open(params: {
      * 初期金額
      */
     initialBalance: number;
-}): IOpenOperation<factory.account.IAccount> {
+}[]): IOpenOperation<factory.account.IAccount[]> {
     return async (repos: {
         account: AccountRepo;
     }) => {
-        return repos.account.open({
-            project: { typeOf: params.project.typeOf, id: params.project.id },
-            typeOf: params.typeOf,
-            name: params.name,
-            accountType: params.accountType,
-            accountNumber: params.accountNumber,
-            initialBalance: params.initialBalance,
-            openDate: new Date()
-        });
+        const openDate = new Date();
+
+        return repos.account.open(params.map((p) => {
+            return {
+                project: { typeOf: p.project.typeOf, id: p.project.id },
+                typeOf: p.typeOf,
+                name: p.name,
+                accountType: p.accountType,
+                accountNumber: p.accountNumber,
+                initialBalance: p.initialBalance,
+                openDate: openDate
+            };
+        }));
     };
 }
 
