@@ -1,90 +1,15 @@
 /**
  * 通知サービス
  */
-
-// tslint:disable-next-line:no-require-imports
-import sgMail = require('@sendgrid/mail');
 import * as createDebug from 'debug';
 import * as httpStatus from 'http-status';
 import * as request from 'request';
-import * as util from 'util';
-import * as validator from 'validator';
-
-import * as factory from '../factory';
-
-import { MongoRepository as ActionRepo } from '../repo/action';
 
 export type Operation<T> = () => Promise<T>;
 
 const debug = createDebug('pecorino-domain:service');
 
 export const LINE_NOTIFY_URL = 'https://notify-api.line.me/api/notify';
-
-/**
- * Eメールメッセージを送信する
- * @param actionAttributes Eメール送信アクション属性
- * @see https://sendgrid.com/docs/API_Reference/Web_API_v3/Mail/errors.html
- */
-export function sendEmailMessage(actionAttributes: factory.action.transfer.send.message.email.IAttributes) {
-    return async (repos: {
-        action: ActionRepo;
-    }) => {
-        // アクション開始
-        const action = await repos.action.start<factory.actionType.SendAction>(actionAttributes);
-        let result: any = {};
-
-        try {
-            sgMail.setApiKey(<string>process.env.SENDGRID_API_KEY);
-            const emailMessage = actionAttributes.object;
-            const msg = {
-                to: {
-                    name: emailMessage.toRecipient.name,
-                    email: emailMessage.toRecipient.email
-                },
-                from: {
-                    name: emailMessage.sender.name,
-                    email: emailMessage.sender.email
-                },
-                subject: emailMessage.about,
-                text: emailMessage.text,
-                // html: '<strong>and easy to do anywhere, even with Node.js</strong>',
-                // categories: ['Transactional', 'My category'],
-                // 送信予定を追加することもできるが、タスクの実行予定日時でコントロールする想定
-                // sendAt: moment(email.send_at).unix(),
-                // 追跡用に通知IDをカスタムフィールドとしてセットする
-                customArgs: {
-                    emailMessage: emailMessage.identifier
-                }
-            };
-
-            debug('requesting sendgrid api...', msg);
-            const response = await sgMail.send(msg);
-            debug('email sent. status code:', response[0].statusCode);
-
-            // check the response.
-            if (response[0].statusCode !== httpStatus.ACCEPTED) {
-                throw new Error(`sendgrid request not accepted. response is ${util.inspect(response)}`);
-            }
-
-            result = response[0].body;
-        } catch (error) {
-            // actionにエラー結果を追加
-            try {
-                // tslint:disable-next-line:max-line-length no-single-line-block-comment
-                const actionError = (error instanceof Error) ? { ...error, ...{ message: error.message } } : /* istanbul ignore next*/ error;
-                await repos.action.giveUp(actionAttributes.typeOf, action.id, actionError);
-            } catch (__) {
-                // 失敗したら仕方ない
-            }
-
-            throw new Error(error);
-        }
-
-        // アクション完了
-        debug('ending action...');
-        await repos.action.complete(actionAttributes.typeOf, action.id, result);
-    };
-}
 
 /**
  * report to developers
@@ -106,21 +31,11 @@ ${content}`
             ;
 
         // LINE通知APIにPOST
-        const formData: any = { message: message };
-        if (imageThumbnail !== undefined) {
-            if (!validator.isURL(imageThumbnail)) {
-                throw new factory.errors.Argument('imageThumbnail', 'imageThumbnail should be URL');
-            }
-
-            formData.imageThumbnail = imageThumbnail;
-        }
-        if (imageFullsize !== undefined) {
-            if (!validator.isURL(imageFullsize)) {
-                throw new factory.errors.Argument('imageFullsize', 'imageFullsize should be URL');
-            }
-
-            formData.imageFullsize = imageFullsize;
-        }
+        const formData: any = {
+            message: message,
+            ...(typeof imageThumbnail === 'string') ? { imageThumbnail } : undefined,
+            ...(typeof imageFullsize === 'string') ? { imageFullsize } : undefined
+        };
 
         return new Promise<void>((resolve, reject) => {
             request.post(

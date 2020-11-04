@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Removed
 
+- 不要な通知サービスを削除
+
 ### Fixed
 
 ### Security

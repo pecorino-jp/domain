@@ -10,13 +10,11 @@
   ],
   "dependencies": {
     "@pecorino/factory": "^4.6.0",
-    "@sendgrid/mail": "^6.3.1",
     "debug": "^3.1.0",
     "http-status": "^1.2.0",
     "json2csv": "^4.1.6",
     "moment": "^2.22.2",
-    "request": "^2.87.0",
-    "validator": "^9.4.1"
+    "request": "^2.87.0"
   },
   "description": "Pecorino Domain Library for Node.js",
   "devDependencies": {
