@@ -109,7 +109,7 @@ export function transferMoney(
             await repos.account.settleTransaction({
                 fromAccountNumber: fromAccountNumber,
                 toAccountNumber: toAccountNumber,
-                amount: action.amount,
+                amount: (typeof action.amount === 'number') ? action.amount : Number(action.amount.value),
                 transactionId: action.purpose.id
             });
         } catch (error) {
@@ -259,7 +259,7 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
             await repos.account.returnTransaction({
                 fromAccountNumber: fromAccountNumber,
                 toAccountNumber: toAccountNumber,
-                amount: actionAttributes.amount,
+                amount: (typeof actionAttributes.amount === 'number') ? actionAttributes.amount : Number(actionAttributes.amount.value),
                 transactionId: transaction.id
             });
         } catch (error) {

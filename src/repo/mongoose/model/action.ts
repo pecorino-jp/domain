@@ -23,7 +23,7 @@ const schema = new mongoose.Schema(
         endDate: Date,
         purpose: mongoose.SchemaTypes.Mixed,
         potentialActions: mongoose.SchemaTypes.Mixed,
-        amount: Number,
+        amount: mongoose.SchemaTypes.Mixed,
         fromLocation: mongoose.SchemaTypes.Mixed,
         toLocation: mongoose.SchemaTypes.Mixed,
         instrument: mongoose.SchemaTypes.Mixed
