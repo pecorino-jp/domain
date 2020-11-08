@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - MoneyTransferアクションのamountをMoneytaryAmount型に拡張
+- アクション検索条件拡張
 
 ### Deprecated
 

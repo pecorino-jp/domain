@@ -114,6 +114,15 @@ schema.index(
     }
 );
 schema.index(
+    { 'amount.currency': 1, startDate: -1 },
+    {
+        name: 'searchByAmountCurrency',
+        partialFilterExpression: {
+            'amount.currency': { $exists: true }
+        }
+    }
+);
+schema.index(
     { 'purpose.typeOf': 1, startDate: -1 },
     {
         name: 'searchByPurposeTypeOf-v2',

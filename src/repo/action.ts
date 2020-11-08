@@ -59,27 +59,6 @@ export class MongoRepository {
 
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
-        if (typeof params.accountType === 'string') {
-            andConditions.push({
-                $or: [
-                    {
-                        'fromLocation.accountType': {
-                            $exists: true,
-                            $eq: params.accountType
-                        }
-                    },
-                    {
-                        'toLocation.accountType': {
-                            $exists: true,
-                            $eq: params.accountType
-                        }
-                    }
-                ]
-            });
-        }
-
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore else */
         if (typeof params.accountNumber === 'string') {
             andConditions.push({
                 $or: [
@@ -107,6 +86,57 @@ export class MongoRepository {
                 actionStatus: { $in: actionStatusIn }
             });
         }
+
+        const amountCurrencyEq = params.amount?.currency?.$eq;
+        if (typeof amountCurrencyEq === 'string') {
+            andConditions.push({
+                'amount.currency': {
+                    $exists: true,
+                    $eq: amountCurrencyEq
+                }
+            });
+        }
+
+        const locationAccountNumberEq = params.location?.accountNumber?.$eq;
+        if (typeof locationAccountNumberEq === 'string') {
+            andConditions.push({
+                $or: [
+                    {
+                        'fromLocation.accountNumber': {
+                            $exists: true,
+                            $eq: locationAccountNumberEq
+                        }
+                    },
+                    {
+                        'toLocation.accountNumber': {
+                            $exists: true,
+                            $eq: locationAccountNumberEq
+                        }
+                    }
+                ]
+            });
+        }
+
+        const locationTypeOfEq = params.location?.typeOf?.$eq;
+        if (typeof locationTypeOfEq === 'string') {
+            andConditions.push({
+                $or: [
+                    {
+                        'fromLocation.typeOf': {
+                            $exists: true,
+                            $eq: locationTypeOfEq
+                        }
+                    },
+                    {
+                        'toLocation.typeOf': {
+                            $exists: true,
+                            $eq: locationTypeOfEq
+                        }
+                    }
+                ]
+            });
+        }
+
         const purposeTypeOfEq = params.purpose?.typeOf?.$eq;
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
