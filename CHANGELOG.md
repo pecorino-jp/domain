@@ -10,9 +10,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
-- MoneyTransferアクションのamountをMoneytaryAmount型に拡張
-- アクション検索条件拡張
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +17,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 ### Security
+
+## v4.5.0 - 2020-11-08
+
+### Changed
+
+- MoneyTransferアクションのamountをMoneytaryAmount型に拡張
+- アクション検索条件拡張
 
 ## v4.4.0 - 2020-11-04
 
