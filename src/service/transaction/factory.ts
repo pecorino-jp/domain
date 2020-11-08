@@ -7,7 +7,7 @@ import * as factory from '../../factory';
  * 転送アクション属性作成
  */
 export function createMoneyTransferActionAttributes(params: {
-    transaction: factory.transaction.ITransaction<any>;
+    transaction: factory.transaction.ITransaction<factory.transactionType>;
 }): factory.action.transfer.moneyTransfer.IAttributes {
     const transaction = params.transaction;
 
@@ -32,6 +32,22 @@ export function createMoneyTransferActionAttributes(params: {
                 name: transaction.recipient.name
             };
 
+    let accountType: string;
+    switch (params.transaction.typeOf) {
+        case factory.transactionType.Deposit:
+            accountType = params.transaction.object.toLocation.accountType;
+            break;
+        case factory.transactionType.Transfer:
+            accountType = params.transaction.object.fromLocation.accountType;
+            break;
+        case factory.transactionType.Withdraw:
+            accountType = params.transaction.object.fromLocation.accountType;
+            break;
+
+        default:
+            throw new factory.errors.NotImplemented(`transaction type ${(<any>params.transaction).typeOf} not implemented`);
+    }
+
     return {
         project: transaction.project,
         typeOf: factory.actionType.MoneyTransfer,
@@ -43,7 +59,11 @@ export function createMoneyTransferActionAttributes(params: {
         object: {},
         agent: transaction.agent,
         recipient: transaction.recipient,
-        amount: transaction.object.amount,
+        amount: {
+            typeOf: 'MonetaryAmount',
+            currency: accountType,
+            value: transaction.object.amount
+        },
         fromLocation: fromLocation,
         toLocation: toLocation,
         purpose: {

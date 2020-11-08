@@ -23,7 +23,7 @@ const schema = new mongoose.Schema(
         endDate: Date,
         purpose: mongoose.SchemaTypes.Mixed,
         potentialActions: mongoose.SchemaTypes.Mixed,
-        amount: Number,
+        amount: mongoose.SchemaTypes.Mixed,
         fromLocation: mongoose.SchemaTypes.Mixed,
         toLocation: mongoose.SchemaTypes.Mixed,
         instrument: mongoose.SchemaTypes.Mixed
@@ -110,6 +110,15 @@ schema.index(
         name: 'searchByEndDate-v2',
         partialFilterExpression: {
             endDate: { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'amount.currency': 1, startDate: -1 },
+    {
+        name: 'searchByAmountCurrency',
+        partialFilterExpression: {
+            'amount.currency': { $exists: true }
         }
     }
 );

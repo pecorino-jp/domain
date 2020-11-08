@@ -199,9 +199,13 @@ describe('転送アクションを検索する', () => {
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
             project: { id: { $eq: 'eq', $ne: 'ne' } },
-            accountType: 'accountType',
             accountNumber: 'accountNumber',
             actionStatus: { $in: [] },
+            amount: { currency: { $eq: 'JPY' } },
+            location: {
+                accountNumber: { $eq: 'accountNumber' },
+                typeOf: { $eq: 'typeOf' }
+            },
             limit: 1,
             page: 1,
             sort: {
