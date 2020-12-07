@@ -33,6 +33,56 @@ export class MongoRepository {
             .then((doc) => doc.toObject());
     }
 
+    public async startByIdentifier<T extends factory.transactionType>(
+        typeOf: T,
+        params: factory.transaction.IStartParams<T>
+    ): Promise<factory.transaction.ITransaction<T>> {
+        const startDate = new Date();
+
+        if (typeof params.identifier === 'string' && params.identifier.length > 0) {
+            return this.transactionModel.findOneAndUpdate(
+                {
+                    identifier: {
+                        $exists: true,
+                        $eq: params.identifier
+                    },
+                    status: factory.transactionStatusType.InProgress
+                },
+                {
+                    $setOnInsert: {
+                        typeOf: typeOf,
+                        ...<Object>params,
+                        status: factory.transactionStatusType.InProgress,
+                        startDate: startDate,
+                        endDate: undefined,
+                        tasksExportationStatus: factory.transactionTasksExportationStatus.Unexported
+                    }
+                },
+                {
+                    new: true,
+                    upsert: true
+                }
+            )
+                .exec()
+                .then((doc) => {
+                    if (doc === null) {
+                        throw new factory.errors.NotFound(this.transactionModel.modelName);
+                    }
+
+                    // 以前に開始した取引であればエラー
+                    const transaction = <factory.transaction.ITransaction<T>>doc.toObject();
+                    if (!moment(transaction.startDate)
+                        .isSame(startDate)) {
+                        throw new factory.errors.Argument('identifier', 'another transaction in progress');
+                    }
+
+                    return doc.toObject();
+                });
+        } else {
+            return this.start(typeOf, params);
+        }
+    }
+
     /**
      * 取引検索
      */

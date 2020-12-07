@@ -12,6 +12,7 @@ const schema = new mongoose.Schema(
         project: mongoose.SchemaTypes.Mixed,
         status: String,
         typeOf: String,
+        identifier: String,
         transactionNumber: String,
         agent: mongoose.SchemaTypes.Mixed,
         recipient: mongoose.SchemaTypes.Mixed,
@@ -76,6 +77,16 @@ schema.index(
     {
         partialFilterExpression: {
             transactionNumber: { $exists: true }
+        }
+    }
+);
+
+schema.index(
+    { identifier: 1, startDate: -1 },
+    {
+        name: 'searchByIdentifier',
+        partialFilterExpression: {
+            identifier: { $exists: true }
         }
     }
 );
