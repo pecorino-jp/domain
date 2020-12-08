@@ -161,6 +161,30 @@ export class MongoRepository {
             });
         }
 
+        const purposeIdentifierEq = params.purpose?.identifier?.$eq;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof purposeIdentifierEq === 'string') {
+            andConditions.push({
+                'purpose.identifier': {
+                    $exists: true,
+                    $eq: purposeIdentifierEq
+                }
+            });
+        }
+
+        const purposeTransactionNumberEq = params.purpose?.transactionNumber?.$eq;
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore else */
+        if (typeof purposeTransactionNumberEq === 'string') {
+            andConditions.push({
+                'purpose.transactionNumber': {
+                    $exists: true,
+                    $eq: purposeTransactionNumberEq
+                }
+            });
+        }
+
         const startDateGte = params.startDate?.$gte;
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */

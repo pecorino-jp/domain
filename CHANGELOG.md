@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - 同識別子に対して進行中取引のユニークネスを保証するように調整
+- MoneyTransferアクション検索条件拡張
 
 ### Deprecated
 
