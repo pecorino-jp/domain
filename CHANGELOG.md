@@ -10,9 +10,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
-- 同識別子に対して進行中取引のユニークネスを保証するように調整
-- MoneyTransferアクション検索条件拡張
-
 ### Deprecated
 
 ### Removed
@@ -20,6 +17,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 ### Security
+
+## v4.6.0 - 2020-12-08
+
+### Changed
+
+- 同識別子に対して進行中取引のユニークネスを保証するように調整
+- MoneyTransferアクション検索条件拡張
 
 ## v4.5.0 - 2020-11-08
 
