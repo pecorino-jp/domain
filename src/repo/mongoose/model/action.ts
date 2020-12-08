@@ -141,6 +141,24 @@ schema.index(
     }
 );
 schema.index(
+    { 'purpose.identifier': 1, startDate: -1 },
+    {
+        name: 'searchByPurposeIdentifier',
+        partialFilterExpression: {
+            'purpose.identifier': { $exists: true }
+        }
+    }
+);
+schema.index(
+    { 'purpose.transactionNumber': 1, startDate: -1 },
+    {
+        name: 'searchByPurposeTransactionNumber',
+        partialFilterExpression: {
+            'purpose.transactionNumber': { $exists: true }
+        }
+    }
+);
+schema.index(
     { 'object.typeOf': 1, startDate: -1 },
     {
         name: 'searchByObjectTypeOf-v2',

@@ -12,11 +12,14 @@ async function main() {
     const actions = await actionRepo.searchTransferActions({
         limit: 100,
         page: 1,
-        // amount: { currency: { $eq: 'JPY' } },
-        location: {
-            typeOf: { $eq: 'PrepaidPaymentCard' },
-            //  accountNumber: { $eq: '139485855034733' } 
+        purpose: {
+            // transactionNumber: { $eq: 'CIN648078734021904' },
         }
+        // amount: { currency: { $eq: 'JPY' } },
+        // location: {
+        //     typeOf: { $eq: 'PrepaidPaymentCard' },
+        //      accountNumber: { $eq: '139485855034733' } 
+        // }
     });
     console.log(actions)
     console.log(actions.length, 'actions found.')

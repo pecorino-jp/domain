@@ -1,16 +1,12 @@
 /**
  * 入金取引サービス
  */
-import * as createDebug from 'debug';
-
 import * as factory from '../../factory';
 import { MongoRepository as AccountRepo } from '../../repo/account';
 import { MongoRepository as ActionRepo } from '../../repo/action';
 import { MongoRepository as TransactionRepo } from '../../repo/transaction';
 
 import { createMoneyTransferActionAttributes } from './factory';
-
-const debug = createDebug('pecorino-domain:service');
 
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
@@ -29,8 +25,6 @@ export function start(
         action: ActionRepo;
         transaction: TransactionRepo;
     }) => {
-        debug(`${params.agent.name} is starting deposit transaction... amount:${params.object.amount}`);
-
         // 口座存在確認
         const account = await repos.account.findByAccountNumber({
             accountNumber: params.object.toLocation.accountNumber
@@ -54,13 +48,17 @@ export function start(
                 description: params.object.description
             },
             expires: params.expires,
+            ...(typeof params.identifier === 'string' && params.identifier.length > 0) ? { identifier: params.identifier } : undefined,
             ...(typeof params.transactionNumber === 'string') ? { transactionNumber: params.transactionNumber } : undefined
         };
 
         // 取引作成
         let transaction: factory.transaction.deposit.ITransaction;
         try {
-            transaction = await repos.transaction.start<factory.transactionType.Deposit>(factory.transactionType.Deposit, startParams);
+            // 取引識別子が指定されていれば、進行中取引のユニークネスを保証する
+            transaction = await repos.transaction.startByIdentifier<factory.transactionType.Deposit>(
+                factory.transactionType.Deposit, startParams
+            );
         } catch (error) {
             // tslint:disable-next-line:no-single-line-block-comment
             /* istanbul ignore next */

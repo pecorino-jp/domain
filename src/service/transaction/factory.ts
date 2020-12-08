@@ -69,6 +69,9 @@ export function createMoneyTransferActionAttributes(params: {
         purpose: {
             typeOf: transaction.typeOf,
             id: transaction.id,
+            ...(typeof transaction.identifier === 'string')
+                ? { identifier: transaction.identifier }
+                : /* istanbul ignore next */ undefined,
             ...(typeof transaction.transactionNumber === 'string')
                 ? { transactionNumber: transaction.transactionNumber }
                 : /* istanbul ignore next */ undefined
