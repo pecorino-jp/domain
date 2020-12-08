@@ -76,13 +76,17 @@ export function start(
                 description: params.object.description
             },
             expires: params.expires,
+            ...(typeof params.identifier === 'string' && params.identifier.length > 0) ? { identifier: params.identifier } : undefined,
             ...(typeof params.transactionNumber === 'string') ? { transactionNumber: params.transactionNumber } : undefined
         };
 
         // 取引作成
         let transaction: factory.transaction.transfer.ITransaction;
         try {
-            transaction = await repos.transaction.start<factory.transactionType.Transfer>(factory.transactionType.Transfer, startParams);
+            // 取引識別子が指定されていれば、進行中取引のユニークネスを保証する
+            transaction = await repos.transaction.startByIdentifier<factory.transactionType.Transfer>(
+                factory.transactionType.Transfer, startParams
+            );
         } catch (error) {
             // tslint:disable-next-line:no-single-line-block-comment
             /* istanbul ignore next */
