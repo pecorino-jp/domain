@@ -46,7 +46,10 @@ export class MongoRepository {
                         $exists: true,
                         $eq: params.identifier
                     },
-                    status: factory.transactionStatusType.InProgress
+                    status: {
+                        // InProgress,Confirmedについては、identifierで取引のユニークネスが保証されるように
+                        $in: [factory.transactionStatusType.InProgress, factory.transactionStatusType.Confirmed]
+                    }
                 },
                 {
                     $setOnInsert: {
@@ -71,6 +74,10 @@ export class MongoRepository {
 
                     // 以前に開始した取引であればエラー
                     const transaction = <factory.transaction.ITransaction<T>>doc.toObject();
+                    if (transaction.status === factory.transactionStatusType.Confirmed) {
+                        throw new factory.errors.Argument('identifier', 'already confirmed');
+                    }
+
                     if (!moment(transaction.startDate)
                         .isSame(startDate)) {
                         throw new factory.errors.Argument('identifier', 'another transaction in progress');
