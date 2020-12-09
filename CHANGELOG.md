@@ -10,8 +10,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
-- 同識別子に対して進行中取引のユニークネスを保証するように調整
-
 ### Deprecated
 
 ### Removed
@@ -19,6 +17,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 ### Security
+
+## v4.6.1 - 2020-12-09
+
+### Changed
+
+- 同識別子に対して進行中取引のユニークネスを保証するように調整
 
 ## v4.6.0 - 2020-12-08
 
