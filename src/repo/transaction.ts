@@ -229,64 +229,6 @@ export class MongoRepository {
     }
 
     /**
-     * 取引を返金する
-     */
-    public async returnMoneyTransfer<T extends factory.account.transactionType>(params: {
-        typeOf: T;
-        id?: string;
-        transactionNumber?: string;
-    }): Promise<factory.account.transaction.ITransaction<T>> {
-        // 進行中ステータスの取引を中止する
-        const doc = await this.transactionModel.findOneAndUpdate(
-            {
-                typeOf: params.typeOf,
-                ...(typeof params.id === 'string') ? { _id: params.id } : /* istanbul ignore next */ undefined,
-                ...(typeof params.transactionNumber === 'string')
-                    // tslint:disable-next-line:no-single-line-block-comment
-                    /* istanbul ignore next */
-                    ? { transactionNumber: { $exists: true, $eq: params.transactionNumber } }
-                    : undefined,
-                status: factory.transactionStatusType.Confirmed
-            },
-            {
-                status: factory.transactionStatusType.Returned,
-                dateReturned: new Date()
-            },
-            { new: true }
-        )
-            .exec();
-
-        // NotFoundであれば取引状態確認
-        if (doc === null) {
-            let transaction: factory.account.transaction.ITransaction<T>;
-            // tslint:disable-next-line:no-single-line-block-comment
-            /* istanbul ignore else */
-            if (typeof params.id === 'string') {
-                transaction = await this.findById<T>(params.typeOf, params.id);
-            } else if (typeof params.transactionNumber === 'string') {
-                // tslint:disable-next-line:no-single-line-block-comment
-                /* istanbul ignore next */
-                transaction = await this.findByTransactionNumber<T>({
-                    typeOf: params.typeOf,
-                    transactionNumber: params.transactionNumber
-                });
-            } else {
-                // tslint:disable-next-line:no-single-line-block-comment
-                /* istanbul ignore next */
-                throw new factory.errors.ArgumentNull('Transaction ID or Transaction Number');
-            }
-
-            if (transaction.status === factory.transactionStatusType.Returned) {
-                return transaction;
-            } else {
-                throw new factory.errors.Argument('transactionId', `Transaction ${transaction.status}`);
-            }
-        }
-
-        return doc.toObject();
-    }
-
-    /**
      * タスク未エクスポートの取引をひとつ取得してエクスポートを開始する
      */
     public async startExportTasks<T extends factory.account.transactionType>(

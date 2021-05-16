@@ -146,28 +146,6 @@ export function exportTasksById(params: {
                 taskAttributes.push(cancelMoneyTransferTask);
                 break;
 
-            case factory.transactionStatusType.Returned:
-                const returnMoneyTransferTask: factory.task.returnAccountMoneyTransfer.IAttributes = {
-                    project: transaction.project,
-                    name: factory.taskName.ReturnAccountMoneyTransfer,
-                    status: factory.taskStatus.Ready,
-                    runsAt: new Date(), // なるはやで実行
-                    remainingNumberOfTries: 10,
-                    numberOfTried: 0,
-                    executionResults: [],
-                    data: {
-                        purpose: {
-                            typeOf: transaction.typeOf,
-                            id: transaction.id,
-                            ...(typeof transaction.transactionNumber === 'string')
-                                ? { transactionNumber: transaction.transactionNumber }
-                                : undefined
-                        }
-                    }
-                };
-                taskAttributes.push(returnMoneyTransferTask);
-                break;
-
             default:
                 throw new factory.errors.NotImplemented(`Transaction status "${transaction.status}" not implemented.`);
         }

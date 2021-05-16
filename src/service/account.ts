@@ -8,8 +8,6 @@ import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as ActionRepo } from '../repo/action';
 import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
-import { createMoneyTransferActionAttributes } from './transaction/factory';
-
 export type IOpenOperation<T> = (repos: {
     account: AccountRepo;
 }) => Promise<T>;
@@ -192,91 +190,5 @@ export function cancelMoneyTransfer(params: {
         await Promise.all(actions.map(async (action) => {
             await repos.action.cancel(action.typeOf, action.id);
         }));
-    };
-}
-
-/**
- * 通貨転送返金
- */
-export function returnMoneyTransfer(params: factory.task.returnAccountMoneyTransfer.IData) {
-    return async (repos: {
-        account: AccountRepo;
-        action: ActionRepo;
-        transaction: TransactionRepo;
-    }) => {
-        let fromAccountNumber: string | undefined;
-        let toAccountNumber: string | undefined;
-
-        // 取引存在確認
-        const transaction = await repos.transaction.findById(params.purpose.typeOf, params.purpose.id);
-        const moneyTransferAction = createMoneyTransferActionAttributes({ transaction });
-
-        // アクション開始
-        const actionAttributes: factory.account.action.moneyTransfer.IAttributes = {
-            project: transaction.project,
-            typeOf: factory.actionType.MoneyTransfer,
-            identifier: `${moneyTransferAction.identifier}-${factory.transactionStatusType.Returned}`,
-            agent: moneyTransferAction.recipient,
-            recipient: moneyTransferAction.agent,
-            description: `Return ${moneyTransferAction.description}`,
-            amount: moneyTransferAction.amount,
-            fromLocation: moneyTransferAction.toLocation,
-            toLocation: moneyTransferAction.fromLocation,
-            object: {},
-            purpose: {
-                ...moneyTransferAction.purpose,
-                ...{
-                    status: factory.transactionStatusType.Returned
-                }
-            }
-        };
-
-        const action = await repos.action.startByIdentifier(actionAttributes);
-
-        // すでに完了していれば何もしない
-        if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
-            return;
-        }
-
-        try {
-            switch (transaction.typeOf) {
-                case factory.account.transactionType.Deposit:
-                    toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
-                    break;
-
-                case factory.account.transactionType.Withdraw:
-                    fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
-                    break;
-
-                case factory.account.transactionType.Transfer:
-                    fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
-                    toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
-                    break;
-
-                default:
-                    throw new factory.errors.Argument('typeOf', `transaction type ${params.purpose.typeOf} unknown`);
-            }
-
-            await repos.account.returnTransaction({
-                fromAccountNumber: fromAccountNumber,
-                toAccountNumber: toAccountNumber,
-                amount: (typeof actionAttributes.amount === 'number') ? actionAttributes.amount : Number(actionAttributes.amount.value),
-                transactionId: transaction.id
-            });
-        } catch (error) {
-            // actionにエラー結果を追加
-            try {
-                const actionError = { ...error, message: error.message, name: error.name };
-                await repos.action.giveUp(action.typeOf, action.id, actionError);
-            } catch (__) {
-                // 失敗したら仕方ない
-            }
-
-            throw error;
-        }
-
-        // アクション完了
-        const actionResult: factory.account.action.moneyTransfer.IResult = {};
-        await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }

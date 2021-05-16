@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Removed
 
+- 返金タスクを削除
+
 ### Fixed
 
 ### Security
