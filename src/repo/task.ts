@@ -22,16 +22,16 @@ export class MongoRepository {
         this.taskModel = connection.model(taskModel.modelName);
     }
 
-    public async save(taskAttributes: factory.task.IAttributes): Promise<factory.task.ITask> {
+    public async save(taskAttributes: factory.task.IAttributes<factory.taskName>): Promise<factory.task.ITask<factory.taskName>> {
         return this.taskModel.create(taskAttributes)
             .then(
-                (doc) => <factory.task.ITask>doc.toObject()
+                (doc) => <factory.task.ITask<factory.taskName>>doc.toObject()
             );
     }
 
-    public async executeOneByName(params: {
-        name: factory.taskName;
-    }): Promise<factory.task.ITask> {
+    public async executeOneByName<T extends factory.taskName>(params: {
+        name: T;
+    }): Promise<factory.task.ITask<T>> {
         const doc = await this.taskModel.findOneAndUpdate(
             {
                 status: factory.taskStatus.Ready,
@@ -55,7 +55,7 @@ export class MongoRepository {
             throw new factory.errors.NotFound('executable task');
         }
 
-        return <factory.task.ITask>doc.toObject();
+        return doc.toObject();
     }
 
     public async retry(params: {
@@ -83,7 +83,7 @@ export class MongoRepository {
 
     public async abortOne(params: {
         intervalInMinutes: number;
-    }): Promise<factory.task.ITask | null> {
+    }): Promise<factory.task.ITask<factory.taskName> | null> {
         const lastTriedAtShoudBeLessThan = moment()
             .add(-params.intervalInMinutes, 'minutes')
             .toDate();
@@ -109,7 +109,7 @@ export class MongoRepository {
             return null;
         }
 
-        return <factory.task.ITask>doc.toObject();
+        return doc.toObject();
     }
 
     public async pushExecutionResultById(

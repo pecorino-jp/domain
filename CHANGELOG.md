@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - アクションを口座アクションに変換
 - 取引を口座取引に変換
 - タスクサービスをchevreに仕様統合
+- @chevre/factoryで再構築
 
 ### Deprecated
 

@@ -9,7 +9,7 @@
     }
   ],
   "dependencies": {
-    "@pecorino/factory": "5.0.0-alpha.1",
+    "@chevre/factory": "4.102.0",
     "debug": "^3.1.0",
     "http-status": "^1.2.0",
     "json2csv": "^4.1.6",

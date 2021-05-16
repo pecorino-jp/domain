@@ -13,7 +13,7 @@ export interface ILineNotifyMessage {
 }
 
 export function task2lineNotify(params: {
-    task: factory.task.ITask;
+    task: factory.task.ITask<any>;
 }): ILineNotifyMessage {
     const task = params.task;
 

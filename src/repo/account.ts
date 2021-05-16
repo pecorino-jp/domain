@@ -186,7 +186,7 @@ export class MongoRepository {
         if (params.length > 0) {
             const accounts: factory.account.IAccount[] = params.map((p) => {
                 return {
-                    project: { typeOf: p.project.typeOf, id: p.project.id },
+                    project: { typeOf: factory.organizationType.Project, id: p.project.id },
                     typeOf: p.typeOf,
                     accountType: p.accountType,
                     accountNumber: p.accountNumber,

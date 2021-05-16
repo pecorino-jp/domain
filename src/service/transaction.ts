@@ -95,7 +95,7 @@ export function exportTasks(params: {
 export function exportTasksById(params: {
     id: string;
     typeOf: factory.account.transactionType;
-}): ITaskAndTransactionOperation<factory.task.ITask[]> {
+}): ITaskAndTransactionOperation<factory.task.ITask<factory.taskName>[]> {
     return async (repos: {
         task: TaskRepository;
         transaction: TransactionRepo;
@@ -103,7 +103,7 @@ export function exportTasksById(params: {
         const transaction = await repos.transaction.findById(params.typeOf, params.id);
         const potentialActions = transaction.potentialActions;
 
-        const taskAttributes: factory.task.IAttributes[] = [];
+        const taskAttributes: factory.task.IAttributes<factory.taskName>[] = [];
         switch (transaction.status) {
             case factory.transactionStatusType.Confirmed:
                 // tslint:disable-next-line:no-single-line-block-comment

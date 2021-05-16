@@ -25,16 +25,16 @@ export type IOperation<T> = (settings: IConnectionSettings) => Promise<T>;
 /**
  * タスク名でタスクをひとつ実行する
  */
-export function executeByName(params: {
+export function executeByName<T extends factory.taskName>(params: {
     project?: factory.project.IProject;
-    name: factory.taskName;
+    name: T;
 }): IOperation<void> {
     return async (settings: IConnectionSettings) => {
         const taskRepo = new TaskRepo(settings.connection);
 
         // 未実行のタスクを取得
         // tslint:disable-next-line:no-null-keyword
-        let task: factory.task.ITask | null = null;
+        let task: factory.task.ITask<T> | null = null;
         try {
             task = await taskRepo.executeOneByName(params);
         } catch (error) {
@@ -53,7 +53,7 @@ export function executeByName(params: {
 /**
  * タスクを実行する
  */
-export function execute(task: factory.task.ITask): IOperation<void> {
+export function execute(task: factory.task.ITask<factory.taskName>): IOperation<void> {
     const now = new Date();
 
     return async (settings: IConnectionSettings) => {

@@ -102,14 +102,14 @@ export interface ITransactionReport {
     fromLocation: {
         typeOf: string;
         id?: string;
-        name?: string;
+        name?: any;
         url?: string;
         accountNumber?: string;
     };
     toLocation: {
         typeOf: string;
         id?: string;
-        name?: string;
+        name?: any;
         url?: string;
         accountNumber?: string;
     };
