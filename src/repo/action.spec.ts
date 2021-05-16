@@ -48,7 +48,7 @@ describe('アクションを完了する', () => {
             .chain('exec')
             .resolves(new actionRepo.actionModel());
 
-        const result = await actionRepo.complete(pecorino.factory.actionType.AuthorizeAction, 'actionId', {});
+        const result = await actionRepo.complete(pecorino.factory.actionType.MoneyTransfer, 'actionId', {});
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -61,7 +61,7 @@ describe('アクションを完了する', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await actionRepo.complete(pecorino.factory.actionType.AuthorizeAction, 'actionId', {})
+        const result = await actionRepo.complete(pecorino.factory.actionType.MoneyTransfer, 'actionId', {})
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
@@ -81,7 +81,7 @@ describe('アクションを中止する', () => {
             .chain('exec')
             .resolves(new actionRepo.actionModel());
 
-        const result = await actionRepo.cancel(pecorino.factory.actionType.AuthorizeAction, 'actionId');
+        const result = await actionRepo.cancel(pecorino.factory.actionType.MoneyTransfer, 'actionId');
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -94,7 +94,7 @@ describe('アクションを中止する', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await actionRepo.cancel(pecorino.factory.actionType.AuthorizeAction, 'actionId')
+        const result = await actionRepo.cancel(pecorino.factory.actionType.MoneyTransfer, 'actionId')
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
@@ -114,7 +114,7 @@ describe('アクションを断念する', () => {
             .chain('exec')
             .resolves(new actionRepo.actionModel());
 
-        const result = await actionRepo.giveUp(pecorino.factory.actionType.AuthorizeAction, 'actionId', {});
+        const result = await actionRepo.giveUp(pecorino.factory.actionType.MoneyTransfer, 'actionId', {});
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -127,7 +127,7 @@ describe('アクションを断念する', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await actionRepo.giveUp(pecorino.factory.actionType.AuthorizeAction, 'actionId', {})
+        const result = await actionRepo.giveUp(pecorino.factory.actionType.MoneyTransfer, 'actionId', {})
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
@@ -146,7 +146,7 @@ describe('IDでアクションを検索する', () => {
             .chain('exec')
             .resolves(new actionRepo.actionModel());
 
-        const result = await actionRepo.findById(pecorino.factory.actionType.AuthorizeAction, 'actionId');
+        const result = await actionRepo.findById(pecorino.factory.actionType.MoneyTransfer, 'actionId');
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -159,7 +159,7 @@ describe('IDでアクションを検索する', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await actionRepo.findById(pecorino.factory.actionType.AuthorizeAction, 'actionId')
+        const result = await actionRepo.findById(pecorino.factory.actionType.MoneyTransfer, 'actionId')
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
@@ -238,11 +238,11 @@ describe('アクションを検索する', () => {
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
-            typeOf: pecorino.factory.actionType.AuthorizeAction,
+            typeOf: pecorino.factory.actionType.MoneyTransfer,
             actionStatuses: [pecorino.factory.accountStatusType.Closed],
             startDateFrom: new Date(),
             startDateThrough: new Date(),
-            purposeTypeOfs: [pecorino.factory.transactionType.Deposit],
+            purposeTypeOfs: [pecorino.factory.account.transactionType.Deposit],
             fromLocationAccountNumbers: ['accountNumber'],
             toLocationAccountNumbers: ['accountNumber'],
             limit: 1

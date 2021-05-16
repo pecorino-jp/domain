@@ -30,12 +30,12 @@ export import withdraw = WithdrawTransactionService;
 export function confirm(params: {
     id?: string;
     transactionNumber?: string;
-    typeOf: factory.transactionType;
+    typeOf: factory.account.transactionType;
 }): IConfirmOperation<void> {
     return async (repos: {
         transaction: TransactionRepo;
     }) => {
-        let transaction: factory.transaction.ITransaction<any>;
+        let transaction: factory.account.transaction.ITransaction<any>;
 
         // 取引存在確認
         // tslint:disable-next-line:no-single-line-block-comment
@@ -57,7 +57,7 @@ export function confirm(params: {
 
         // 現金転送アクション属性作成
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        const potentialActions: factory.transaction.IPotentialActions<typeof params.typeOf> = {
+        const potentialActions: factory.account.transaction.IPotentialActions<typeof params.typeOf> = {
             moneyTransfer: moneyTransferActionAttributes
         };
 
@@ -71,7 +71,7 @@ export function confirm(params: {
  */
 export function exportTasks(params: {
     status: factory.transactionStatusType;
-    typeOf: factory.transactionType;
+    typeOf: factory.account.transactionType;
 }) {
     return async (repos: {
         task: TaskRepository;
@@ -94,7 +94,7 @@ export function exportTasks(params: {
  */
 export function exportTasksById(params: {
     id: string;
-    typeOf: factory.transactionType;
+    typeOf: factory.account.transactionType;
 }): ITaskAndTransactionOperation<factory.task.ITask[]> {
     return async (repos: {
         task: TaskRepository;
@@ -112,9 +112,9 @@ export function exportTasksById(params: {
                     // tslint:disable-next-line:no-single-line-block-comment
                     /* istanbul ignore else */
                     if (potentialActions.moneyTransfer !== undefined) {
-                        const moneyTransferTask: factory.task.moneyTransfer.IAttributes = {
+                        const moneyTransferTask: factory.task.accountMoneyTransfer.IAttributes = {
                             project: transaction.project,
-                            name: factory.taskName.MoneyTransfer,
+                            name: factory.taskName.AccountMoneyTransfer,
                             status: factory.taskStatus.Ready,
                             runsAt: new Date(), // なるはやで実行
                             remainingNumberOfTries: 10,
@@ -131,9 +131,9 @@ export function exportTasksById(params: {
 
             case factory.transactionStatusType.Canceled:
             case factory.transactionStatusType.Expired:
-                const cancelMoneyTransferTask: factory.task.cancelMoneyTransfer.IAttributes = {
+                const cancelMoneyTransferTask: factory.task.cancelAccountMoneyTransfer.IAttributes = {
                     project: transaction.project,
-                    name: factory.taskName.CancelMoneyTransfer,
+                    name: factory.taskName.CancelAccountMoneyTransfer,
                     status: factory.taskStatus.Ready,
                     runsAt: new Date(), // なるはやで実行
                     remainingNumberOfTries: 10,
@@ -147,9 +147,9 @@ export function exportTasksById(params: {
                 break;
 
             case factory.transactionStatusType.Returned:
-                const returnMoneyTransferTask: factory.task.returnMoneyTransfer.IAttributes = {
+                const returnMoneyTransferTask: factory.task.returnAccountMoneyTransfer.IAttributes = {
                     project: transaction.project,
-                    name: factory.taskName.ReturnMoneyTransfer,
+                    name: factory.taskName.ReturnAccountMoneyTransfer,
                     status: factory.taskStatus.Ready,
                     runsAt: new Date(), // なるはやで実行
                     remainingNumberOfTries: 10,

@@ -182,9 +182,9 @@ describe('金額転送を中止する', () => {
 
     // tslint:disable-next-line:mocha-no-side-effect-code
     [
-        pecorino.factory.transactionType.Deposit,
-        pecorino.factory.transactionType.Transfer,
-        pecorino.factory.transactionType.Withdraw
+        pecorino.factory.account.transactionType.Deposit,
+        pecorino.factory.account.transactionType.Transfer,
+        pecorino.factory.account.transactionType.Withdraw
     ].map((transactionType) => {
         it(`リポジトリーが正常であれば、${transactionType}取引の転送処理を中止できるはず`, async () => {
             const actionAttributes = {

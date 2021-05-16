@@ -29,7 +29,7 @@ describe('取引を開始する', () => {
             .once()
             .resolves(new transactionRepo.transactionModel());
 
-        const result = await transactionRepo.start(pecorino.factory.transactionType.Deposit, <any>{});
+        const result = await transactionRepo.start(pecorino.factory.account.transactionType.Deposit, <any>{});
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -48,7 +48,7 @@ describe('IDで取引を検索する', () => {
             .chain('exec')
             .resolves(new transactionRepo.transactionModel());
 
-        const result = await transactionRepo.findById(pecorino.factory.transactionType.Deposit, 'transactionId');
+        const result = await transactionRepo.findById(pecorino.factory.account.transactionType.Deposit, 'transactionId');
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -61,7 +61,7 @@ describe('IDで取引を検索する', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await transactionRepo.findById(pecorino.factory.transactionType.Deposit, 'transactionId')
+        const result = await transactionRepo.findById(pecorino.factory.account.transactionType.Deposit, 'transactionId')
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
@@ -81,7 +81,7 @@ describe('取引を確定する', () => {
             .chain('exec')
             .resolves(new transactionRepo.transactionModel());
 
-        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{});
+        const result = await transactionRepo.confirm(pecorino.factory.account.transactionType.Deposit, 'transactionId', {}, <any>{});
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -101,7 +101,7 @@ describe('取引を確定する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{});
+        const result = await transactionRepo.confirm(pecorino.factory.account.transactionType.Deposit, 'transactionId', {}, <any>{});
         assert.equal(typeof result, 'object');
         sandbox.verify();
     });
@@ -121,7 +121,7 @@ describe('取引を確定する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
+        const result = await transactionRepo.confirm(pecorino.factory.account.transactionType.Deposit, 'transactionId', {}, <any>{})
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
@@ -142,7 +142,7 @@ describe('取引を確定する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await transactionRepo.confirm(pecorino.factory.transactionType.Deposit, 'transactionId', {}, <any>{})
+        const result = await transactionRepo.confirm(pecorino.factory.account.transactionType.Deposit, 'transactionId', {}, <any>{})
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);
         sandbox.verify();
@@ -163,7 +163,7 @@ describe('取引を中止する', () => {
             .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.cancel({
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             id: 'transactionId'
         });
         assert.equal(typeof result, 'object');
@@ -186,7 +186,7 @@ describe('取引を中止する', () => {
             .resolves(transaction);
 
         const result = await transactionRepo.cancel({
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             id: 'transactionId'
         });
         assert.equal(typeof result, 'object');
@@ -209,7 +209,7 @@ describe('取引を中止する', () => {
             .resolves(transaction);
 
         const result = await transactionRepo.cancel({
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             id: 'transactionId'
         })
             .catch((err) => err);
@@ -233,7 +233,7 @@ describe('取引を中止する', () => {
             .resolves(transaction);
 
         const result = await transactionRepo.cancel({
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             id: 'transactionId'
         })
             .catch((err) => err);
@@ -256,7 +256,7 @@ describe('取引タスクエクスポートを開始する', () => {
             .resolves(new transactionRepo.transactionModel());
 
         const result = await transactionRepo.startExportTasks(
-            pecorino.factory.transactionType.Deposit,
+            pecorino.factory.account.transactionType.Deposit,
             pecorino.factory.transactionStatusType.Canceled
         );
         assert.equal(typeof result, 'object');
@@ -272,7 +272,7 @@ describe('取引タスクエクスポートを開始する', () => {
             .resolves(null);
 
         const result = await transactionRepo.startExportTasks(
-            pecorino.factory.transactionType.Deposit,
+            pecorino.factory.account.transactionType.Deposit,
             pecorino.factory.transactionStatusType.Canceled
         );
         // tslint:disable-next-line:no-null-keyword
@@ -346,7 +346,7 @@ describe('取引を検索する', () => {
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             startFrom: new Date(),
             startThrough: new Date()
         };

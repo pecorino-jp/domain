@@ -22,7 +22,7 @@ describe('出金取引を開始する', () => {
     it('リポジトリーが正常であれば開始できるはず', async () => {
         const account = {};
         const transaction = {
-            typeOf: pecorino.factory.transactionType.Withdraw,
+            typeOf: pecorino.factory.account.transactionType.Withdraw,
             agent: {},
             recipient: {},
             object: {
@@ -69,7 +69,7 @@ describe('出金取引を開始する', () => {
     it('開始時リポジトリーに問題があれば、そのままエラーとなるはず', async () => {
         const account = {};
         const transaction = {
-            typeOf: pecorino.factory.transactionType.Withdraw,
+            typeOf: pecorino.factory.account.transactionType.Withdraw,
             agent: {},
             recipient: {},
             object: {

@@ -7,8 +7,9 @@ import ActionModel from './mongoose/model/action';
 const debug = createDebug('pecorino-domain:repository');
 
 export type IAction<T extends factory.actionType> =
-    T extends factory.actionType.MoneyTransfer ? factory.action.transfer.moneyTransfer.IAction :
-    factory.action.IAction<factory.action.IAttributes<any, any>>;
+    T extends factory.actionType.MoneyTransfer ? factory.account.action.moneyTransfer.IAction :
+    never;
+// factory.action.IAction<factory.action.IAttributes<any, any>>;
 
 /**
  * アクションリポジトリ
@@ -22,7 +23,7 @@ export class MongoRepository {
 
     // tslint:disable-next-line:max-func-body-length
     public static CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(
-        params: factory.action.transfer.moneyTransfer.ISearchConditions
+        params: factory.account.action.moneyTransfer.ISearchConditions
     ) {
         const andConditions: any[] = [
             { typeOf: factory.actionType.MoneyTransfer }
@@ -209,7 +210,9 @@ export class MongoRepository {
     /**
      * アクション開始
      */
-    public async start<T extends factory.actionType>(params: factory.action.IAttributes<any, any>): Promise<IAction<T>> {
+    public async start<T extends factory.actionType>(
+        params: factory.account.action.moneyTransfer.IAttributes
+    ): Promise<IAction<T>> {
         return this.actionModel.create({
             ...params,
             actionStatus: factory.actionStatusType.ActiveActionStatus,
@@ -220,7 +223,9 @@ export class MongoRepository {
             );
     }
 
-    public async startByIdentifier<T extends factory.actionType>(params: factory.action.IAttributes<any, any>): Promise<IAction<T>> {
+    public async startByIdentifier<T extends factory.actionType>(
+        params: factory.account.action.moneyTransfer.IAttributes
+    ): Promise<IAction<T>> {
         if (typeof params.identifier === 'string') {
             return this.actionModel.findOneAndUpdate(
                 {
@@ -371,7 +376,7 @@ export class MongoRepository {
     }
 
     public async countTransferActions(
-        params: factory.action.transfer.moneyTransfer.ISearchConditions
+        params: factory.account.action.moneyTransfer.ISearchConditions
     ): Promise<number> {
         const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
 
@@ -384,8 +389,8 @@ export class MongoRepository {
      * 転送アクションを検索する
      */
     public async searchTransferActions(
-        params: factory.action.transfer.moneyTransfer.ISearchConditions
-    ): Promise<factory.action.transfer.moneyTransfer.IAction[]> {
+        params: factory.account.action.moneyTransfer.ISearchConditions
+    ): Promise<factory.account.action.moneyTransfer.IAction[]> {
         const conditions = MongoRepository.CREATE_MONEY_TRANSFER_ACTIONS_MONGO_CONDITIONS(params);
         const query = this.actionModel.find(
             { $and: conditions },
@@ -421,7 +426,7 @@ export class MongoRepository {
         actionStatuses?: factory.accountStatusType[];
         startDateFrom?: Date;
         startDateThrough?: Date;
-        purposeTypeOfs?: factory.transactionType[];
+        purposeTypeOfs?: factory.account.transactionType[];
         fromLocationAccountNumbers?: string[];
         toLocationAccountNumbers?: string[];
         limit: number;

@@ -23,7 +23,7 @@ describe('転送取引を開始する', () => {
         const fromAccount = { accountNumber: 'fromAccountNumber' };
         const toAccount = { accountNumber: 'toAccountNumber' };
         const transaction = {
-            typeOf: pecorino.factory.transactionType.Transfer,
+            typeOf: pecorino.factory.account.transactionType.Transfer,
             agent: {},
             recipient: {},
             object: {
@@ -79,7 +79,7 @@ describe('転送取引を開始する', () => {
         const fromAccount = { accountNumber: 'fromAccountNumber' };
         const toAccount = { accountNumber: 'toAccountNumber' };
         const transaction = {
-            typeOf: pecorino.factory.transactionType.Transfer,
+            typeOf: pecorino.factory.account.transactionType.Transfer,
             agent: {},
             recipient: {},
             object: {

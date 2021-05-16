@@ -122,18 +122,18 @@ export interface ITransactionReport {
  * @param transaction 取引オブジェクト
  */
 export function transaction2report(params: {
-    transaction: factory.transaction.ITransaction<factory.transactionType>;
+    transaction: factory.account.transaction.ITransaction<factory.account.transactionType>;
 }): ITransactionReport {
     const fromLocation = { ...params.transaction.agent, accountNumber: '' };
     const toLocation = { ...params.transaction.recipient, accountNumber: '' };
     switch (params.transaction.typeOf) {
-        case factory.transactionType.Deposit:
+        case factory.account.transactionType.Deposit:
             toLocation.accountNumber = params.transaction.object.toLocation.accountNumber;
             break;
-        case factory.transactionType.Withdraw:
+        case factory.account.transactionType.Withdraw:
             fromLocation.accountNumber = params.transaction.object.fromLocation.accountNumber;
             break;
-        case factory.transactionType.Transfer:
+        case factory.account.transactionType.Transfer:
             toLocation.accountNumber = params.transaction.object.toLocation.accountNumber;
             fromLocation.accountNumber = params.transaction.object.fromLocation.accountNumber;
             break;

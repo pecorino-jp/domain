@@ -22,7 +22,7 @@ describe('取引を確定する', () => {
     it('リポジトリーが正常であれば確定できるはず', async () => {
         const transaction = {
             id: 'transactionId',
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             agent: {},
             recipient: {},
             object: {
@@ -87,7 +87,7 @@ describe('取引のタスクをエクスポートする', () => {
 
         const result = await pecorino.service.transaction.exportTasks({
             status: pecorino.factory.transactionStatusType.Canceled,
-            typeOf: pecorino.factory.transactionType.Deposit
+            typeOf: pecorino.factory.account.transactionType.Deposit
         })({
             task: taskRepo,
             transaction: transactionRepo
@@ -116,7 +116,7 @@ describe('取引のタスクをエクスポートする', () => {
 
         const result = await pecorino.service.transaction.exportTasks({
             status: pecorino.factory.transactionStatusType.Canceled,
-            typeOf: pecorino.factory.transactionType.Deposit
+            typeOf: pecorino.factory.account.transactionType.Deposit
         })({
             task: taskRepo,
             transaction: transactionRepo
@@ -133,7 +133,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
 
     it('確定済取引のタスクをエクスポートできるはず', async () => {
         const transaction = {
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             id: 'transactionId',
             status: pecorino.factory.transactionStatusType.Confirmed,
             potentialActions: {
@@ -167,7 +167,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
     ].map((transactionStatus) => {
         it(`${transactionStatus}取引のタスクをエクスポートできるはず`, async () => {
             const transaction = {
-                typeOf: pecorino.factory.transactionType.Deposit,
+                typeOf: pecorino.factory.account.transactionType.Deposit,
                 id: 'transactionId',
                 status: transactionStatus
             };
@@ -194,7 +194,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
 
     it('非対応ステータスの取引であればNotImplementedエラーとなるはず', async () => {
         const transaction = {
-            typeOf: pecorino.factory.transactionType.Deposit,
+            typeOf: pecorino.factory.account.transactionType.Deposit,
             id: 'transactionId',
             status: 'UnknownStatus'
         };

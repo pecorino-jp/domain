@@ -7,11 +7,11 @@ import * as factory from '../../factory';
  * 転送アクション属性作成
  */
 export function createMoneyTransferActionAttributes(params: {
-    transaction: factory.transaction.ITransaction<factory.transactionType>;
-}): factory.action.transfer.moneyTransfer.IAttributes {
+    transaction: factory.account.transaction.ITransaction<factory.account.transactionType>;
+}): factory.account.action.moneyTransfer.IAttributes {
     const transaction = params.transaction;
 
-    const fromLocation: factory.action.transfer.moneyTransfer.ILocation =
+    const fromLocation: factory.account.action.moneyTransfer.ILocation =
         (transaction.object.fromLocation !== undefined && transaction.object.fromLocation !== null)
             ? {
                 ...transaction.object.fromLocation,
@@ -21,7 +21,7 @@ export function createMoneyTransferActionAttributes(params: {
                 typeOf: transaction.agent.typeOf,
                 name: transaction.agent.name
             };
-    const toLocation: factory.action.transfer.moneyTransfer.ILocation =
+    const toLocation: factory.account.action.moneyTransfer.ILocation =
         (transaction.object.toLocation !== undefined && transaction.object.toLocation !== null)
             ? {
                 ...transaction.object.toLocation,
@@ -34,13 +34,13 @@ export function createMoneyTransferActionAttributes(params: {
 
     let accountType: string;
     switch (params.transaction.typeOf) {
-        case factory.transactionType.Deposit:
+        case factory.account.transactionType.Deposit:
             accountType = params.transaction.object.toLocation.accountType;
             break;
-        case factory.transactionType.Transfer:
+        case factory.account.transactionType.Transfer:
             accountType = params.transaction.object.fromLocation.accountType;
             break;
-        case factory.transactionType.Withdraw:
+        case factory.account.transactionType.Withdraw:
             accountType = params.transaction.object.fromLocation.accountType;
             break;
 

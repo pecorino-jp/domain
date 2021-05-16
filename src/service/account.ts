@@ -81,7 +81,7 @@ export function close(params: {
  * 確定取引結果から、実際の転送アクションを実行します。
  */
 export function transferMoney(
-    actionAttributes: factory.action.transfer.moneyTransfer.IAttributes
+    actionAttributes: factory.account.action.moneyTransfer.IAttributes
 ) {
     return async (repos: {
         action: ActionRepo;
@@ -96,12 +96,12 @@ export function transferMoney(
 
         try {
             const fromAccountNumber = (typeof (<any>action.fromLocation).accountNumber === 'string')
-                ? (<factory.action.transfer.moneyTransfer.IAccount>action.fromLocation).accountNumber
+                ? (<factory.account.action.moneyTransfer.IAccount>action.fromLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore next */
                 : undefined;
             const toAccountNumber = (typeof (<any>action.toLocation).accountNumber === 'string')
-                ? (<factory.action.transfer.moneyTransfer.IAccount>action.toLocation).accountNumber
+                ? (<factory.account.action.moneyTransfer.IAccount>action.toLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore next */
                 : undefined;
@@ -125,7 +125,7 @@ export function transferMoney(
         }
 
         // アクション完了
-        const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
+        const actionResult: factory.account.action.moneyTransfer.IResult = {};
         await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }
@@ -136,7 +136,7 @@ export function transferMoney(
  */
 export function cancelMoneyTransfer(params: {
     transaction: {
-        typeOf: factory.transactionType;
+        typeOf: factory.account.transactionType;
         id: string;
     };
 }) {
@@ -152,21 +152,22 @@ export function cancelMoneyTransfer(params: {
         const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
 
         switch (params.transaction.typeOf) {
-            case factory.transactionType.Deposit:
+            case factory.account.transactionType.Deposit:
                 toAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Deposit>>transaction).object.toLocation.accountNumber;
+                    (<factory.account.transaction.deposit.ITransaction>transaction).object.toLocation.accountNumber;
                 break;
 
-            case factory.transactionType.Withdraw:
+            case factory.account.transactionType.Withdraw:
                 fromAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Withdraw>>transaction).object.fromLocation.accountNumber;
+                    (<factory.account.transaction.withdraw.ITransaction>transaction).object.fromLocation.accountNumber;
                 break;
 
-            case factory.transactionType.Transfer:
+            case factory.account.transactionType.Transfer:
                 fromAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.fromLocation.accountNumber;
+                    (<factory.account.transaction.transfer.ITransaction>transaction).object.fromLocation.accountNumber;
                 toAccountNumber =
-                    (<factory.transaction.ITransaction<factory.transactionType.Transfer>>transaction).object.toLocation.accountNumber;
+                    // tslint:disable-next-line:max-line-length
+                    (<factory.account.transaction.ITransaction<factory.account.transactionType.Transfer>>transaction).object.toLocation.accountNumber;
                 break;
 
             default:
@@ -197,7 +198,7 @@ export function cancelMoneyTransfer(params: {
 /**
  * 通貨転送返金
  */
-export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITask) {
+export function returnMoneyTransfer(params: factory.task.returnAccountMoneyTransfer.ITask) {
     return async (repos: {
         account: AccountRepo;
         action: ActionRepo;
@@ -211,7 +212,7 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
         const moneyTransferAction = createMoneyTransferActionAttributes({ transaction });
 
         // アクション開始
-        const actionAttributes: factory.action.transfer.moneyTransfer.IAttributes = {
+        const actionAttributes: factory.account.action.moneyTransfer.IAttributes = {
             project: transaction.project,
             typeOf: factory.actionType.MoneyTransfer,
             identifier: `${moneyTransferAction.identifier}-${factory.transactionStatusType.Returned}`,
@@ -239,15 +240,15 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
 
         try {
             switch (transaction.typeOf) {
-                case factory.transactionType.Deposit:
+                case factory.account.transactionType.Deposit:
                     toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
                     break;
 
-                case factory.transactionType.Withdraw:
+                case factory.account.transactionType.Withdraw:
                     fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
                     break;
 
-                case factory.transactionType.Transfer:
+                case factory.account.transactionType.Transfer:
                     fromAccountNumber = (<factory.account.IAccount>actionAttributes.fromLocation).accountNumber;
                     toAccountNumber = (<factory.account.IAccount>actionAttributes.toLocation).accountNumber;
                     break;
@@ -275,7 +276,7 @@ export function returnMoneyTransfer(params: factory.task.returnMoneyTransfer.ITa
         }
 
         // アクション完了
-        const actionResult: factory.action.transfer.moneyTransfer.IResult = {};
+        const actionResult: factory.account.action.moneyTransfer.IResult = {};
         await repos.action.complete(action.typeOf, action.id, actionResult);
     };
 }

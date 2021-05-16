@@ -23,8 +23,8 @@ export type IStartOperation<T> = (repos: {
  */
 // tslint:disable-next-line:max-func-body-length
 export function start(
-    params: factory.transaction.transfer.IStartParamsWithoutDetail
-): IStartOperation<factory.transaction.transfer.ITransaction> {
+    params: factory.account.transaction.transfer.IStartParamsWithoutDetail
+): IStartOperation<factory.account.transaction.transfer.ITransaction> {
     return async (repos: {
         account: AccountRepo;
         action: ActionRepo;
@@ -53,9 +53,9 @@ export function start(
         }
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const startParams: factory.transaction.IStartParams<factory.transactionType.Transfer> = {
+        const startParams: factory.account.transaction.transfer.IStartParams = {
             project: { typeOf: params.project.typeOf, id: params.project.id },
-            typeOf: factory.transactionType.Transfer,
+            typeOf: factory.account.transactionType.Transfer,
             agent: params.agent,
             recipient: params.recipient,
             object: {
@@ -81,11 +81,11 @@ export function start(
         };
 
         // 取引作成
-        let transaction: factory.transaction.transfer.ITransaction;
+        let transaction: factory.account.transaction.transfer.ITransaction;
         try {
             // 取引識別子が指定されていれば、進行中取引のユニークネスを保証する
-            transaction = await repos.transaction.startByIdentifier<factory.transactionType.Transfer>(
-                factory.transactionType.Transfer, startParams
+            transaction = await repos.transaction.startByIdentifier<factory.account.transactionType.Transfer>(
+                factory.account.transactionType.Transfer, startParams
             );
         } catch (error) {
             // tslint:disable-next-line:no-single-line-block-comment

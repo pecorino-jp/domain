@@ -23,7 +23,7 @@ describe('executeByName()', () => {
     it('未実行タスクが存在すれば、実行されるはず', async () => {
         const task = {
             id: 'id',
-            name: pecorino.factory.taskName.MoneyTransfer,
+            name: pecorino.factory.taskName.AccountMoneyTransfer,
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
@@ -55,7 +55,7 @@ describe('executeByName()', () => {
     });
 
     it('未実行タスクが存在しなければ、実行されないはず', async () => {
-        const taskName = pecorino.factory.taskName.MoneyTransfer;
+        const taskName = pecorino.factory.taskName.AccountMoneyTransfer;
         const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
         sandbox.mock(taskRepo)
@@ -138,7 +138,7 @@ describe('execute()', () => {
     it('存在するタスク名であれば、完了ステータスへ変更されるはず', async () => {
         const task = {
             id: 'id',
-            name: pecorino.factory.taskName.MoneyTransfer,
+            name: pecorino.factory.taskName.AccountMoneyTransfer,
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };

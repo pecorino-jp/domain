@@ -18,8 +18,8 @@ export type IStartOperation<T> = (repos: {
  * 取引開始
  */
 export function start(
-    params: factory.transaction.deposit.IStartParamsWithoutDetail
-): IStartOperation<factory.transaction.deposit.ITransaction> {
+    params: factory.account.transaction.deposit.IStartParamsWithoutDetail
+): IStartOperation<factory.account.transaction.deposit.ITransaction> {
     return async (repos: {
         account: AccountRepo;
         action: ActionRepo;
@@ -31,9 +31,9 @@ export function start(
         });
 
         // 取引ファクトリーで新しい進行中取引オブジェクトを作成
-        const startParams: factory.transaction.IStartParams<factory.transactionType.Deposit> = {
+        const startParams: factory.account.transaction.deposit.IStartParams = {
             project: { typeOf: params.project.typeOf, id: params.project.id },
-            typeOf: factory.transactionType.Deposit,
+            typeOf: factory.account.transactionType.Deposit,
             agent: params.agent,
             recipient: params.recipient,
             object: {
@@ -53,11 +53,11 @@ export function start(
         };
 
         // 取引作成
-        let transaction: factory.transaction.deposit.ITransaction;
+        let transaction: factory.account.transaction.deposit.ITransaction;
         try {
             // 取引識別子が指定されていれば、進行中取引のユニークネスを保証する
-            transaction = await repos.transaction.startByIdentifier<factory.transactionType.Deposit>(
-                factory.transactionType.Deposit, startParams
+            transaction = await repos.transaction.startByIdentifier<factory.account.transactionType.Deposit>(
+                factory.account.transactionType.Deposit, startParams
             );
         } catch (error) {
             // tslint:disable-next-line:no-single-line-block-comment

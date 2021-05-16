@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- 不要なインターフェースを削除
+- タスク名を再定義
+- アクションを口座アクションに変換
+- 取引を口座取引に変換
+
 ### Deprecated
 
 ### Removed

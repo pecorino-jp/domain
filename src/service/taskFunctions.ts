@@ -16,8 +16,8 @@ export type IOperation<T> = (settings: {
     connection: mongoose.Connection;
 }) => Promise<T>;
 
-export function cancelMoneyTransfer(
-    task: factory.task.cancelMoneyTransfer.ITask
+export function cancelAccountMoneyTransfer(
+    task: factory.task.cancelAccountMoneyTransfer.ITask
 ): IOperation<void> {
     return async (settings: {
         connection: mongoose.Connection;
@@ -33,8 +33,8 @@ export function cancelMoneyTransfer(
     };
 }
 
-export function moneyTransfer(
-    task: factory.task.moneyTransfer.ITask
+export function accountMoneyTransfer(
+    task: factory.task.accountMoneyTransfer.ITask
 ): IOperation<void> {
     return async (settings: {
         connection: mongoose.Connection;
@@ -48,7 +48,7 @@ export function moneyTransfer(
     };
 }
 
-export function returnMoneyTransfer(task: factory.task.returnMoneyTransfer.ITask): IOperation<void> {
+export function returnAccountMoneyTransfer(task: factory.task.returnAccountMoneyTransfer.ITask): IOperation<void> {
     return async (settings: {
         connection: mongoose.Connection;
     }) => {

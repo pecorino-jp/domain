@@ -26,7 +26,7 @@ describe('金額転送を中止する', () => {
             .once()
             .returns(async () => Promise.resolve());
 
-        const result = await taskFunctions.cancelMoneyTransfer(<any>{ data: {} })({
+        const result = await taskFunctions.cancelAccountMoneyTransfer(<any>{ data: {} })({
             connection: mongoose.connection
         });
         assert.equal(result, undefined);
@@ -45,7 +45,7 @@ describe('金額を転送する', () => {
             .once()
             .returns(async () => Promise.resolve());
 
-        const result = await taskFunctions.moneyTransfer(<any>{ data: {} })({
+        const result = await taskFunctions.accountMoneyTransfer(<any>{ data: {} })({
             connection: mongoose.connection
         });
         assert.equal(result, undefined);

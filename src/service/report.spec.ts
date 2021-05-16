@@ -22,7 +22,7 @@ describe('取引レポートをダウンロードする', () => {
     it('リポジトリーが正常であればダウンロードできるはず', async () => {
         const transactions = [
             {
-                typeOf: pecorino.factory.transactionType.Deposit,
+                typeOf: pecorino.factory.account.transactionType.Deposit,
                 agent: {},
                 recipient: {},
                 object: {
@@ -39,7 +39,7 @@ describe('取引レポートをダウンロードする', () => {
                 potentialActions: {}
             },
             {
-                typeOf: pecorino.factory.transactionType.Deposit,
+                typeOf: pecorino.factory.account.transactionType.Deposit,
                 agent: {},
                 recipient: {},
                 object: {
@@ -55,7 +55,7 @@ describe('取引レポートをダウンロードする', () => {
                 potentialActions: {}
             },
             {
-                typeOf: pecorino.factory.transactionType.Transfer,
+                typeOf: pecorino.factory.account.transactionType.Transfer,
                 agent: {},
                 recipient: {},
                 object: {
@@ -73,7 +73,7 @@ describe('取引レポートをダウンロードする', () => {
                 potentialActions: {}
             },
             {
-                typeOf: pecorino.factory.transactionType.Withdraw,
+                typeOf: pecorino.factory.account.transactionType.Withdraw,
                 agent: {},
                 recipient: {},
                 object: {
