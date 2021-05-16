@@ -54,7 +54,7 @@ describe('executeOneByName()', () => {
             .chain('exec')
             .resolves(new repository.taskModel());
 
-        const result = await repository.executeOneByName(taskName);
+        const result = await repository.executeOneByName({ name: taskName });
 
         assert.equal(typeof result, 'object');
         sandbox.verify();
@@ -72,7 +72,7 @@ describe('executeOneByName()', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await repository.executeOneByName(taskName)
+        const result = await repository.executeOneByName({ name: taskName })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotFound);
         sandbox.verify();
@@ -95,7 +95,7 @@ describe('retry()', () => {
             .chain('exec')
             .resolves();
 
-        const result = await repository.retry(intervalInMinutes);
+        const result = await repository.retry({ intervalInMinutes });
 
         assert.equal(result, undefined);
         sandbox.verify();
@@ -118,7 +118,7 @@ describe('abortOne()', () => {
             .chain('exec')
             .resolves(new repository.taskModel());
 
-        const result = await repository.abortOne(intervalInMinutes);
+        const result = await repository.abortOne({ intervalInMinutes });
 
         assert.equal(typeof result, 'object');
         sandbox.verify();
@@ -136,7 +136,7 @@ describe('abortOne()', () => {
             // tslint:disable-next-line:no-null-keyword
             .resolves(null);
 
-        const result = await repository.abortOne(intervalInMinutes);
+        const result = await repository.abortOne({ intervalInMinutes });
         // tslint:disable-next-line:no-null-keyword
         assert(result === null);
         sandbox.verify();

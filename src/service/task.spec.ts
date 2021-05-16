@@ -7,7 +7,8 @@ import * as assert from 'power-assert';
 import * as sinon from 'sinon';
 import * as pecorino from '../index';
 
-import * as TaskFunctionsService from './taskFunctions';
+import { MongoRepository as TaskRepo } from '../repo/task';
+import * as AccountMoneyTransferTask from './task/accountMoneyTransfer';
 
 let sandbox: sinon.SinonSandbox;
 
@@ -27,26 +28,29 @@ describe('executeByName()', () => {
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(taskRepo)
+        sandbox.mock(TaskRepo.prototype)
             .expects('executeOneByName')
             .once()
-            .withArgs(task.name)
+            .withArgs({ name: task.name })
             .resolves(task);
-        sandbox.mock(TaskFunctionsService)
-            .expects(task.name)
+        sandbox.mock(AccountMoneyTransferTask)
+            .expects('call')
             .once()
-            .withArgs(task)
+            // .withArgs(task.data)
             .returns(async () => Promise.resolve());
-        sandbox.mock(taskRepo)
+        // sandbox.mock(TaskFunctionsService)
+        //     .expects(task.name)
+        //     .once()
+        //     .withArgs(task)
+        //     .returns(async () => Promise.resolve());
+        sandbox.mock(TaskRepo.prototype)
             .expects('pushExecutionResultById')
             .once()
             .withArgs(task.id, pecorino.factory.taskStatus.Executed)
             .resolves();
 
-        const result = await pecorino.service.task.executeByName(task.name)({
-            taskRepo: taskRepo,
+        const result = await pecorino.service.task.executeByName({ name: task.name })({
             connection: mongoose.connection
         });
 
@@ -56,19 +60,17 @@ describe('executeByName()', () => {
 
     it('未実行タスクが存在しなければ、実行されないはず', async () => {
         const taskName = pecorino.factory.taskName.AccountMoneyTransfer;
-        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(taskRepo)
+        sandbox.mock(TaskRepo.prototype)
             .expects('executeOneByName')
             .once()
-            .withArgs(taskName)
+            .withArgs({ name: taskName })
             .rejects(new pecorino.factory.errors.NotFound('task'));
         sandbox.mock(pecorino.service.task)
             .expects('execute')
             .never();
 
-        const result = await pecorino.service.task.executeByName(taskName)({
-            taskRepo: taskRepo,
+        const result = await pecorino.service.task.executeByName({ name: taskName })({
             connection: mongoose.connection
         });
 
@@ -89,10 +91,10 @@ describe('retry()', () => {
         sandbox.mock(taskRepo)
             .expects('retry')
             .once()
-            .withArgs(INTERVAL)
+            .withArgs({ intervalInMinutes: INTERVAL })
             .resolves();
 
-        const result = await pecorino.service.task.retry(INTERVAL)({ task: taskRepo });
+        const result = await pecorino.service.task.retry({ intervalInMinutes: INTERVAL })({ task: taskRepo });
 
         assert.equal(result, undefined);
         sandbox.verify();
@@ -115,15 +117,15 @@ describe('abort()', () => {
         sandbox.mock(taskRepo)
             .expects('abortOne')
             .once()
-            .withArgs(INTERVAL)
+            .withArgs({ intervalInMinutes: INTERVAL })
             .resolves(task);
         sandbox.mock(pecorino.service.notification)
             .expects('report2developers')
             .once()
-            .withArgs(pecorino.service.task.ABORT_REPORT_SUBJECT)
+            // .withArgs(pecorino.service.task.ABORT_REPORT_SUBJECT)
             .returns(async () => Promise.resolve());
 
-        const result = await pecorino.service.task.abort(INTERVAL)({ task: taskRepo });
+        const result = await pecorino.service.task.abort({ intervalInMinutes: INTERVAL })({ task: taskRepo });
 
         assert.equal(result, undefined);
         sandbox.verify();
@@ -142,21 +144,24 @@ describe('execute()', () => {
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(TaskFunctionsService)
-            .expects(task.name)
+        sandbox.mock(AccountMoneyTransferTask)
+            .expects('call')
             .once()
-            .withArgs(task)
+            // .withArgs(task.data)
             .returns(async () => Promise.resolve());
-        sandbox.mock(taskRepo)
+        // sandbox.mock(TaskFunctionsService)
+        //     .expects(task.name)
+        //     .once()
+        //     .withArgs(task)
+        //     .returns(async () => Promise.resolve());
+        sandbox.mock(TaskRepo.prototype)
             .expects('pushExecutionResultById')
             .once()
             .withArgs(task.id, pecorino.factory.taskStatus.Executed)
             .resolves();
 
         const result = await pecorino.service.task.execute(<any>task)({
-            taskRepo: taskRepo,
             connection: mongoose.connection
         });
 
@@ -171,16 +176,14 @@ describe('execute()', () => {
             data: { datakey: 'dataValue' },
             status: pecorino.factory.taskStatus.Running
         };
-        const taskRepo = new pecorino.repository.Task(mongoose.connection);
 
-        sandbox.mock(taskRepo)
+        sandbox.mock(TaskRepo.prototype)
             .expects('pushExecutionResultById')
             .once()
             .withArgs(task.id, task.status)
             .resolves();
 
         const result = await pecorino.service.task.execute(<any>task)({
-            taskRepo: taskRepo,
             connection: mongoose.connection
         });
 

@@ -29,12 +29,14 @@ export class MongoRepository {
             );
     }
 
-    public async executeOneByName(taskName: factory.taskName): Promise<factory.task.ITask> {
+    public async executeOneByName(params: {
+        name: factory.taskName;
+    }): Promise<factory.task.ITask> {
         const doc = await this.taskModel.findOneAndUpdate(
             {
                 status: factory.taskStatus.Ready,
                 runsAt: { $lt: new Date() },
-                name: taskName
+                name: params.name
             },
             {
                 status: factory.taskStatus.Running, // 実行中に変更
@@ -56,9 +58,11 @@ export class MongoRepository {
         return <factory.task.ITask>doc.toObject();
     }
 
-    public async retry(intervalInMinutes: number) {
+    public async retry(params: {
+        intervalInMinutes: number;
+    }) {
         const lastTriedAtShoudBeLessThan = moment()
-            .add(-intervalInMinutes, 'minutes')
+            .add(-params.intervalInMinutes, 'minutes')
             .toDate();
         await this.taskModel.update(
             {
@@ -77,9 +81,11 @@ export class MongoRepository {
             .exec();
     }
 
-    public async abortOne(intervalInMinutes: number): Promise<factory.task.ITask | null> {
+    public async abortOne(params: {
+        intervalInMinutes: number;
+    }): Promise<factory.task.ITask | null> {
         const lastTriedAtShoudBeLessThan = moment()
-            .add(-intervalInMinutes, 'minutes')
+            .add(-params.intervalInMinutes, 'minutes')
             .toDate();
 
         const doc = await this.taskModel.findOneAndUpdate(

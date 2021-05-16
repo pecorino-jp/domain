@@ -198,7 +198,7 @@ export function cancelMoneyTransfer(params: {
 /**
  * 通貨転送返金
  */
-export function returnMoneyTransfer(params: factory.task.returnAccountMoneyTransfer.ITask) {
+export function returnMoneyTransfer(params: factory.task.returnAccountMoneyTransfer.IData) {
     return async (repos: {
         account: AccountRepo;
         action: ActionRepo;
@@ -208,7 +208,7 @@ export function returnMoneyTransfer(params: factory.task.returnAccountMoneyTrans
         let toAccountNumber: string | undefined;
 
         // 取引存在確認
-        const transaction = await repos.transaction.findById(params.data.purpose.typeOf, params.data.purpose.id);
+        const transaction = await repos.transaction.findById(params.purpose.typeOf, params.purpose.id);
         const moneyTransferAction = createMoneyTransferActionAttributes({ transaction });
 
         // アクション開始
@@ -254,7 +254,7 @@ export function returnMoneyTransfer(params: factory.task.returnAccountMoneyTrans
                     break;
 
                 default:
-                    throw new factory.errors.Argument('typeOf', `transaction type ${params.data.purpose.typeOf} unknown`);
+                    throw new factory.errors.Argument('typeOf', `transaction type ${params.purpose.typeOf} unknown`);
             }
 
             await repos.account.returnTransaction({
