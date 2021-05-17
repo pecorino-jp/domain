@@ -3,15 +3,15 @@
  */
 import * as factory from '../../factory';
 import { MongoRepository as AccountRepo } from '../../repo/account';
-import { MongoRepository as ActionRepo } from '../../repo/action';
-import { MongoRepository as TransactionRepo } from '../../repo/transaction';
+import { MongoRepository as AccountActionRepo } from '../../repo/accountAction';
+import { MongoRepository as AccountTransactionRepo } from '../../repo/accountTransaction';
 
 import { createMoneyTransferActionAttributes } from './factory';
 
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
-    action: ActionRepo;
-    transaction: TransactionRepo;
+    accountAction: AccountActionRepo;
+    accountTransaction: AccountTransactionRepo;
 }) => Promise<T>;
 
 /**
@@ -22,8 +22,8 @@ export function start(
 ): IStartOperation<factory.account.transaction.deposit.ITransaction> {
     return async (repos: {
         account: AccountRepo;
-        action: ActionRepo;
-        transaction: TransactionRepo;
+        accountAction: AccountActionRepo;
+        accountTransaction: AccountTransactionRepo;
     }) => {
         // 口座存在確認
         const account = await repos.account.findByAccountNumber({
@@ -56,7 +56,7 @@ export function start(
         let transaction: factory.account.transaction.deposit.ITransaction;
         try {
             // 取引識別子が指定されていれば、進行中取引のユニークネスを保証する
-            transaction = await repos.transaction.startByIdentifier<factory.account.transactionType.Deposit>(
+            transaction = await repos.accountTransaction.startByIdentifier<factory.account.transactionType.Deposit>(
                 factory.account.transactionType.Deposit, startParams
             );
         } catch (error) {
@@ -83,8 +83,8 @@ export function start(
 
         // アクション開始
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        // await repos.action.start(moneyTransferActionAttributes);
-        await repos.action.startByIdentifier(moneyTransferActionAttributes);
+        // await repos.accountAction.start(moneyTransferActionAttributes);
+        await repos.accountAction.startByIdentifier(moneyTransferActionAttributes);
 
         // 結果返却
         return transaction;

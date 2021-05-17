@@ -72,7 +72,7 @@ describe('金額を転送する', () => {
                 accountNumber: 'accountNumber'
             }
         };
-        const actionRepo = new pecorino.repository.Action(mongoose.connection);
+        const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
 
         sandbox.mock(accountRepo)
@@ -89,7 +89,7 @@ describe('金額を転送する', () => {
             .resolves({});
 
         const result = await pecorino.service.account.transferMoney(<any>actionAttributes)({
-            action: actionRepo,
+            accountAction: actionRepo,
             account: accountRepo
         });
         assert.equal(result, undefined);
@@ -107,7 +107,7 @@ describe('金額を転送する', () => {
                 accountNumber: 'accountNumber'
             }
         };
-        const actionRepo = new pecorino.repository.Action(mongoose.connection);
+        const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
 
         sandbox.mock(accountRepo)
@@ -124,7 +124,7 @@ describe('金額を転送する', () => {
             .resolves({});
 
         const result = await pecorino.service.account.transferMoney(<any>actionAttributes)({
-            action: actionRepo,
+            accountAction: actionRepo,
             account: accountRepo
         });
         assert.equal(result, undefined);
@@ -146,7 +146,7 @@ describe('金額を転送する', () => {
             }
         };
         const settleError = new Error('settleError');
-        const actionRepo = new pecorino.repository.Action(mongoose.connection);
+        const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
 
         sandbox.mock(actionRepo)
@@ -166,7 +166,7 @@ describe('金額を転送する', () => {
             .never();
 
         const result = await pecorino.service.account.transferMoney(<any>actionAttributes)({
-            action: actionRepo,
+            accountAction: actionRepo,
             account: accountRepo
         })
             .catch((err) => err);
@@ -200,8 +200,8 @@ describe('金額転送を中止する', () => {
                 }
             };
             const accountRepo = new pecorino.repository.Account(mongoose.connection);
-            const actionRepo = new pecorino.repository.Action(mongoose.connection);
-            const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+            const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
+            const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
             sandbox.mock(transactionRepo)
                 .expects('findById')
                 .once()
@@ -221,8 +221,8 @@ describe('金額転送を中止する', () => {
 
             const result = await pecorino.service.account.cancelMoneyTransfer(actionAttributes)({
                 account: accountRepo,
-                action: actionRepo,
-                transaction: transactionRepo
+                accountAction: actionRepo,
+                accountTransaction: transactionRepo
             });
             assert.equal(result, undefined);
             sandbox.verify();
@@ -243,8 +243,8 @@ describe('金額転送を中止する', () => {
             }
         };
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
-        const actionRepo = new pecorino.repository.Action(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('findById')
             .once()
@@ -255,8 +255,8 @@ describe('金額転送を中止する', () => {
 
         const result = await pecorino.service.account.cancelMoneyTransfer(actionAttributes)({
             account: accountRepo,
-            action: actionRepo,
-            transaction: transactionRepo
+            accountAction: actionRepo,
+            accountTransaction: transactionRepo
         })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.Argument);

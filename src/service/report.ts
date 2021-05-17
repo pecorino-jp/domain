@@ -5,7 +5,7 @@ import * as createDebug from 'debug';
 import * as json2csv from 'json2csv';
 
 import * as factory from '../factory';
-import { MongoRepository as TransactionRepo } from '../repo/transaction';
+import { MongoRepository as AccountTransactionRepo } from '../repo/accountTransaction';
 
 const debug = createDebug('pecorino-domain:service');
 
@@ -29,10 +29,10 @@ export function download(
 ) {
     // tslint:disable-next-line:max-func-body-length
     return async (repos: {
-        transaction: TransactionRepo;
+        accountTransaction: AccountTransactionRepo;
     }): Promise<string> => {
         // 取引検索
-        const transactions = await repos.transaction.search(conditions);
+        const transactions = await repos.accountTransaction.search(conditions);
         debug('transactions:', transactions);
 
         // 取引ごとに詳細を検索し、csvを作成する

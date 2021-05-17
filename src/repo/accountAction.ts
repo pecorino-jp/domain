@@ -2,7 +2,7 @@ import * as createDebug from 'debug';
 import { Connection } from 'mongoose';
 
 import * as factory from '../factory';
-import ActionModel from './mongoose/model/action';
+import ActionModel from './mongoose/model/accountAction';
 
 const debug = createDebug('pecorino-domain:repository');
 

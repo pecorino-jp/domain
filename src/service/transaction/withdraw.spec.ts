@@ -33,8 +33,8 @@ describe('出金取引を開始する', () => {
             startDate: new Date()
         };
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
-        const actionRepo = new pecorino.repository.Action(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(accountRepo)
             .expects('findByAccountNumber')
             .once()
@@ -59,8 +59,8 @@ describe('出金取引を開始する', () => {
             object: transaction.object
         })({
             account: accountRepo,
-            action: actionRepo,
-            transaction: transactionRepo
+            accountAction: actionRepo,
+            accountTransaction: transactionRepo
         });
         assert.equal(typeof result, 'object');
         sandbox.verify();
@@ -81,8 +81,8 @@ describe('出金取引を開始する', () => {
         };
         const startError = new Error('startError');
         const accountRepo = new pecorino.repository.Account(mongoose.connection);
-        const actionRepo = new pecorino.repository.Action(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(accountRepo)
             .expects('findByAccountNumber')
             .once()
@@ -101,8 +101,8 @@ describe('出金取引を開始する', () => {
             object: transaction.object
         })({
             account: accountRepo,
-            action: actionRepo,
-            transaction: transactionRepo
+            accountAction: actionRepo,
+            accountTransaction: transactionRepo
         })
             .catch((err) => err);
         assert.deepEqual(result, startError);

@@ -3,11 +3,11 @@
  * リポジトリ
  */
 import { MongoRepository as AccountRepo } from './repo/account';
-import { MongoRepository as ActionRepo } from './repo/action';
+import { MongoRepository as AccountActionRepo } from './repo/accountAction';
+import { MongoRepository as AccountTransactionRepo } from './repo/accountTransaction';
 import { MongoRepository as TaskRepo } from './repo/task';
-import { MongoRepository as TransactionRepo } from './repo/transaction';
 
 export class Account extends AccountRepo { }
-export class Action extends ActionRepo { }
+export class AccountAction extends AccountActionRepo { }
+export class AccountTransaction extends AccountTransactionRepo { }
 export class Task extends TaskRepo { }
-export class Transaction extends TransactionRepo { }

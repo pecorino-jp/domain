@@ -11,7 +11,7 @@ require('sinon-mongoose');
 import * as pecorino from '../index';
 
 let sandbox: sinon.SinonSandbox;
-let actionRepo: pecorino.repository.Action;
+let actionRepo: pecorino.repository.AccountAction;
 
 before(() => {
     sandbox = sinon.sandbox.create();
@@ -20,7 +20,7 @@ before(() => {
 describe('アクションを開始する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
 
     it('MongoDBが正常であれば開始できるはず', async () => {
@@ -38,7 +38,7 @@ describe('アクションを開始する', () => {
 describe('アクションを完了する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
 
     it('アクションが存在すれば完了できるはず', async () => {
@@ -71,7 +71,7 @@ describe('アクションを完了する', () => {
 describe('アクションを中止する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
 
     it('アクションが存在すれば中止できるはず', async () => {
@@ -104,7 +104,7 @@ describe('アクションを中止する', () => {
 describe('アクションを断念する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
 
     it('アクションが存在すれば断念できるはず', async () => {
@@ -136,7 +136,7 @@ describe('アクションを断念する', () => {
 describe('IDでアクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
 
     it('アクションが存在すればオブジェクトを取得できるはず', async () => {
@@ -168,7 +168,7 @@ describe('IDでアクションを検索する', () => {
 describe('転送アクションをカウント', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
     it('MongoDBが正常であれば数字を取得できるはず', async () => {
         const searchConditions = {
@@ -194,7 +194,7 @@ describe('転送アクションをカウント', () => {
 describe('転送アクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
     it('MongoDBが正常であれば配列を取得できるはず', async () => {
         const searchConditions = {
@@ -233,7 +233,7 @@ describe('転送アクションを検索する', () => {
 describe('アクションを検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        actionRepo = new pecorino.repository.Action(mongoose.connection);
+        actionRepo = new pecorino.repository.AccountAction(mongoose.connection);
     });
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {

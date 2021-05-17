@@ -5,8 +5,8 @@ import * as createDebug from 'debug';
 
 import * as factory from '../../factory';
 import { MongoRepository as AccountRepo } from '../../repo/account';
-import { MongoRepository as ActionRepo } from '../../repo/action';
-import { MongoRepository as TransactionRepo } from '../../repo/transaction';
+import { MongoRepository as AccountActionRepo } from '../../repo/accountAction';
+import { MongoRepository as AccountTransactionRepo } from '../../repo/accountTransaction';
 
 import { createMoneyTransferActionAttributes } from './factory';
 
@@ -14,8 +14,8 @@ const debug = createDebug('pecorino-domain:service');
 
 export type IStartOperation<T> = (repos: {
     account: AccountRepo;
-    action: ActionRepo;
-    transaction: TransactionRepo;
+    accountAction: AccountActionRepo;
+    accountTransaction: AccountTransactionRepo;
 }) => Promise<T>;
 
 /**
@@ -26,8 +26,8 @@ export function start(
 ): IStartOperation<factory.account.transaction.withdraw.ITransaction> {
     return async (repos: {
         account: AccountRepo;
-        action: ActionRepo;
-        transaction: TransactionRepo;
+        accountAction: AccountActionRepo;
+        accountTransaction: AccountTransactionRepo;
     }) => {
         debug(`${params.agent.name} is starting withdraw transaction... amount:${params.object.amount}`);
 
@@ -62,7 +62,7 @@ export function start(
         let transaction: factory.account.transaction.withdraw.ITransaction;
         try {
             // 取引識別子が指定されていれば、進行中取引のユニークネスを保証する
-            transaction = await repos.transaction.startByIdentifier<factory.account.transactionType.Withdraw>(
+            transaction = await repos.accountTransaction.startByIdentifier<factory.account.transactionType.Withdraw>(
                 factory.account.transactionType.Withdraw, startParams
             );
         } catch (error) {
@@ -90,8 +90,8 @@ export function start(
 
         // アクション開始
         const moneyTransferActionAttributes = createMoneyTransferActionAttributes({ transaction });
-        // await repos.action.start(moneyTransferActionAttributes);
-        await repos.action.startByIdentifier(moneyTransferActionAttributes);
+        // await repos.accountAction.start(moneyTransferActionAttributes);
+        await repos.accountAction.startByIdentifier(moneyTransferActionAttributes);
 
         // 結果返却
         return transaction;

@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 
-const modelName = 'Action';
+const modelName = 'AccountAction';
 
 const safe = { j: true, w: 'majority', wtimeout: 10000 };
 

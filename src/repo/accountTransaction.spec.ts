@@ -11,7 +11,7 @@ require('sinon-mongoose');
 import * as pecorino from '../index';
 
 let sandbox: sinon.SinonSandbox;
-let transactionRepo: pecorino.repository.Transaction;
+let transactionRepo: pecorino.repository.AccountTransaction;
 
 before(() => {
     sandbox = sinon.sandbox.create();
@@ -20,7 +20,7 @@ before(() => {
 describe('取引を開始する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('MongoDBが正常であれば開始できるはず', async () => {
@@ -38,7 +38,7 @@ describe('取引を開始する', () => {
 describe('IDで取引を検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
@@ -71,7 +71,7 @@ describe('IDで取引を検索する', () => {
 describe('取引を確定する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
@@ -152,7 +152,7 @@ describe('取引を確定する', () => {
 describe('取引を中止する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
@@ -245,7 +245,7 @@ describe('取引を中止する', () => {
 describe('取引タスクエクスポートを開始する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('取引が存在すればオブジェクトを取得できるはず', async () => {
@@ -284,7 +284,7 @@ describe('取引タスクエクスポートを開始する', () => {
 describe('取引タスクエクスポートリトライ', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('MongoDBが正常であればエクスポートステータスを変更できるはず', async () => {
@@ -303,7 +303,7 @@ describe('取引タスクエクスポートリトライ', () => {
 describe('IDでタスクをエクスポート済に変更する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('MongoDBが正常であればエクスポートステータスを変更できるはず', async () => {
@@ -322,7 +322,7 @@ describe('IDでタスクをエクスポート済に変更する', () => {
 describe('取引を期限切れにする', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('MongoDBが正常であればエクスポートステータスを変更できるはず', async () => {
@@ -341,7 +341,7 @@ describe('取引を期限切れにする', () => {
 describe('取引を検索する', () => {
     beforeEach(() => {
         sandbox.restore();
-        transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
     });
 
     it('MongoDBが正常であれば配列を取得できるはず', async () => {

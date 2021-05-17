@@ -34,7 +34,7 @@ describe('取引を確定する', () => {
             result: {},
             startDate: new Date()
         };
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('findById')
             .once()
@@ -48,7 +48,7 @@ describe('取引を確定する', () => {
             id: transaction.id,
             typeOf: transaction.typeOf
         })({
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         });
         assert.equal(result, undefined);
         sandbox.verify();
@@ -67,7 +67,7 @@ describe('取引のタスクをエクスポートする', () => {
         };
         const task = {};
         const taskRepo = new pecorino.repository.Task(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('startExportTasks')
             .once()
@@ -90,7 +90,7 @@ describe('取引のタスクをエクスポートする', () => {
             typeOf: pecorino.factory.account.transactionType.Deposit
         })({
             task: taskRepo,
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         });
         assert.equal(result, undefined);
         sandbox.verify();
@@ -98,7 +98,7 @@ describe('取引のタスクをエクスポートする', () => {
 
     it('タスクエクスポート待ちの取引がなければ何もしないはず', async () => {
         const taskRepo = new pecorino.repository.Task(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('startExportTasks')
             .once()
@@ -119,7 +119,7 @@ describe('取引のタスクをエクスポートする', () => {
             typeOf: pecorino.factory.account.transactionType.Deposit
         })({
             task: taskRepo,
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         });
         assert.equal(result, undefined);
         sandbox.verify();
@@ -142,7 +142,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
         };
         const task = {};
         const taskRepo = new pecorino.repository.Task(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('findById')
             .once()
@@ -154,7 +154,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
 
         const result = await pecorino.service.transaction.exportTasksById(transaction)({
             task: taskRepo,
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         });
         assert(Array.isArray(result));
         sandbox.verify();
@@ -173,7 +173,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             };
             const task = {};
             const taskRepo = new pecorino.repository.Task(mongoose.connection);
-            const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+            const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
             sandbox.mock(transactionRepo)
                 .expects('findById')
                 .once()
@@ -185,7 +185,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
 
             const result = await pecorino.service.transaction.exportTasksById(transaction)({
                 task: taskRepo,
-                transaction: transactionRepo
+                accountTransaction: transactionRepo
             });
             assert(Array.isArray(result));
             sandbox.verify();
@@ -199,7 +199,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             status: 'UnknownStatus'
         };
         const taskRepo = new pecorino.repository.Task(mongoose.connection);
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('findById')
             .once()
@@ -210,7 +210,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
 
         const result = await pecorino.service.transaction.exportTasksById(transaction)({
             task: taskRepo,
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotImplemented);

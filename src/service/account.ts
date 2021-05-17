@@ -5,8 +5,8 @@
 import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
-import { MongoRepository as ActionRepo } from '../repo/action';
-import { MongoRepository as TransactionRepo } from '../repo/transaction';
+import { MongoRepository as AccountActionRepo } from '../repo/accountAction';
+import { MongoRepository as AccountTransactionRepo } from '../repo/accountTransaction';
 
 export type IOpenOperation<T> = (repos: {
     account: AccountRepo;
@@ -82,10 +82,10 @@ export function transferMoney(
     actionAttributes: factory.account.action.moneyTransfer.IAttributes
 ) {
     return async (repos: {
-        action: ActionRepo;
+        accountAction: AccountActionRepo;
         account: AccountRepo;
     }) => {
-        const action = await repos.action.startByIdentifier<factory.actionType.MoneyTransfer>(actionAttributes);
+        const action = await repos.accountAction.startByIdentifier<factory.actionType.MoneyTransfer>(actionAttributes);
 
         // すでに完了していれば何もしない
         if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
@@ -114,7 +114,7 @@ export function transferMoney(
             // actionにエラー結果を追加
             try {
                 const actionError = { ...error, message: error.message, name: error.name };
-                await repos.action.giveUp(action.typeOf, action.id, actionError);
+                await repos.accountAction.giveUp(action.typeOf, action.id, actionError);
             } catch (__) {
                 // 失敗したら仕方ない
             }
@@ -124,7 +124,7 @@ export function transferMoney(
 
         // アクション完了
         const actionResult: factory.account.action.moneyTransfer.IResult = {};
-        await repos.action.complete(action.typeOf, action.id, actionResult);
+        await repos.accountAction.complete(action.typeOf, action.id, actionResult);
     };
 }
 
@@ -140,14 +140,14 @@ export function cancelMoneyTransfer(params: {
 }) {
     return async (repos: {
         account: AccountRepo;
-        action: ActionRepo;
-        transaction: TransactionRepo;
+        accountAction: AccountActionRepo;
+        accountTransaction: AccountTransactionRepo;
     }) => {
         let fromAccountNumber: string | undefined;
         let toAccountNumber: string | undefined;
 
         // 取引存在確認
-        const transaction = await repos.transaction.findById(params.transaction.typeOf, params.transaction.id);
+        const transaction = await repos.accountTransaction.findById(params.transaction.typeOf, params.transaction.id);
 
         switch (params.transaction.typeOf) {
             case factory.account.transactionType.Deposit:
@@ -180,7 +180,7 @@ export function cancelMoneyTransfer(params: {
         });
 
         // アクション取得
-        const actions = await repos.action.searchTransferActions({
+        const actions = await repos.accountAction.searchTransferActions({
             purpose: {
                 typeOf: { $eq: transaction.typeOf },
                 id: { $eq: transaction.id }
@@ -188,7 +188,7 @@ export function cancelMoneyTransfer(params: {
         });
 
         await Promise.all(actions.map(async (action) => {
-            await repos.action.cancel(action.typeOf, action.id);
+            await repos.accountAction.cancel(action.typeOf, action.id);
         }));
     };
 }

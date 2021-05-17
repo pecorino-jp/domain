@@ -1,8 +1,8 @@
 /**
  * 取引サービス
  */
+import { MongoRepository as AccountTransactionRepo } from '../repo/accountTransaction';
 import { MongoRepository as TaskRepository } from '../repo/task';
-import { MongoRepository as TransactionRepo } from '../repo/transaction';
 
 import * as factory from '../factory';
 
@@ -13,11 +13,11 @@ import * as WithdrawTransactionService from './transaction/withdraw';
 import { createMoneyTransferActionAttributes } from './transaction/factory';
 
 export type IConfirmOperation<T> = (repos: {
-    transaction: TransactionRepo;
+    accountTransaction: AccountTransactionRepo;
 }) => Promise<T>;
 export type ITaskAndTransactionOperation<T> = (repos: {
     task: TaskRepository;
-    transaction: TransactionRepo;
+    accountTransaction: AccountTransactionRepo;
 }) => Promise<T>;
 
 export import deposit = DepositTransactionService;
@@ -33,7 +33,7 @@ export function confirm(params: {
     typeOf: factory.account.transactionType;
 }): IConfirmOperation<void> {
     return async (repos: {
-        transaction: TransactionRepo;
+        accountTransaction: AccountTransactionRepo;
     }) => {
         let transaction: factory.account.transaction.ITransaction<any>;
 
@@ -41,11 +41,11 @@ export function confirm(params: {
         // tslint:disable-next-line:no-single-line-block-comment
         /* istanbul ignore else */
         if (typeof params.id === 'string') {
-            transaction = await repos.transaction.findById(params.typeOf, params.id);
+            transaction = await repos.accountTransaction.findById(params.typeOf, params.id);
         } else if (typeof params.transactionNumber === 'string') {
             // tslint:disable-next-line:no-single-line-block-comment
             /* istanbul ignore next */
-            transaction = await repos.transaction.findByTransactionNumber({
+            transaction = await repos.accountTransaction.findByTransactionNumber({
                 typeOf: params.typeOf,
                 transactionNumber: params.transactionNumber
             });
@@ -62,7 +62,7 @@ export function confirm(params: {
         };
 
         // 取引確定
-        await repos.transaction.confirm(transaction.typeOf, transaction.id, {}, potentialActions);
+        await repos.accountTransaction.confirm(transaction.typeOf, transaction.id, {}, potentialActions);
     };
 }
 
@@ -75,9 +75,9 @@ export function exportTasks(params: {
 }) {
     return async (repos: {
         task: TaskRepository;
-        transaction: TransactionRepo;
+        accountTransaction: AccountTransactionRepo;
     }) => {
-        const transaction = await repos.transaction.startExportTasks(params.typeOf, params.status);
+        const transaction = await repos.accountTransaction.startExportTasks(params.typeOf, params.status);
         if (transaction === null) {
             return;
         }
@@ -85,7 +85,7 @@ export function exportTasks(params: {
         // 失敗してもここでは戻さない(RUNNINGのまま待機)
         await exportTasksById({ id: transaction.id, typeOf: transaction.typeOf })(repos);
 
-        await repos.transaction.setTasksExportedById(transaction.id);
+        await repos.accountTransaction.setTasksExportedById(transaction.id);
     };
 }
 
@@ -98,9 +98,9 @@ export function exportTasksById(params: {
 }): ITaskAndTransactionOperation<factory.task.ITask<factory.taskName>[]> {
     return async (repos: {
         task: TaskRepository;
-        transaction: TransactionRepo;
+        accountTransaction: AccountTransactionRepo;
     }) => {
-        const transaction = await repos.transaction.findById(params.typeOf, params.id);
+        const transaction = await repos.accountTransaction.findById(params.typeOf, params.id);
         const potentialActions = transaction.potentialActions;
 
         const taskAttributes: factory.task.IAttributes<factory.taskName>[] = [];

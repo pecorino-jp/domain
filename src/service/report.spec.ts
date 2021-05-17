@@ -89,14 +89,14 @@ describe('取引レポートをダウンロードする', () => {
                 tasksExportationStatus: pecorino.factory.transactionTasksExportationStatus.Exported,
                 potentialActions: {}
             }];
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('search')
             .once()
             .resolves(transactions);
 
         const result = await pecorino.service.report.download(<any>{}, 'csv')({
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         });
         assert.equal(typeof result, 'string');
         sandbox.verify();
@@ -104,14 +104,14 @@ describe('取引レポートをダウンロードする', () => {
 
     it('非対応フォーマットを指定すれば、NotImplementedエラーとなるはず', async () => {
         const transactions = [];
-        const transactionRepo = new pecorino.repository.Transaction(mongoose.connection);
+        const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(transactionRepo)
             .expects('search')
             .once()
             .resolves(transactions);
 
         const result = await pecorino.service.report.download(<any>{}, <any>'UnknownFormat')({
-            transaction: transactionRepo
+            accountTransaction: transactionRepo
         })
             .catch((err) => err);
         assert(result instanceof pecorino.factory.errors.NotImplemented);

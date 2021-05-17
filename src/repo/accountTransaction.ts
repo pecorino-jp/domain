@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { Connection } from 'mongoose';
 
-import TransactionModel from './mongoose/model/transaction';
+import TransactionModel from './mongoose/model/accountTransaction';
 
 import * as factory from '../factory';
 

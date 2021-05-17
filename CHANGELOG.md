@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 取引を口座取引に変換
 - タスクサービスをchevreに仕様統合
 - @chevre/factoryで再構築
+- Chevreとのリポジトリ名重複を解決
 
 ### Deprecated
 
