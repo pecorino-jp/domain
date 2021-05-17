@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - タスクサービスをchevreに仕様統合
 - @chevre/factoryで再構築
 - Chevreとのリポジトリ名重複を解決
+- 口座アクションのコレクション名変更
+- 口座取引のコレクション名変更
 
 ### Deprecated
 

@@ -28,7 +28,7 @@ const schema = new mongoose.Schema(
         potentialActions: mongoose.SchemaTypes.Mixed
     },
     {
-        collection: 'transactions',
+        collection: 'accountTransactions',
         id: true,
         read: 'primaryPreferred',
         safe: safe,
