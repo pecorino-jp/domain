@@ -75,7 +75,10 @@ export function open(params: {
                     project: { id: accounts[0].project.id }
                 });
                 await Promise.all(accounts.map(async (account) => {
-                    await accountService.syncAccount(account);
+                    await accountService.syncAccount({
+                        ...account,
+                        ...{ id: String((<any>account)._id) }
+                    });
                 }));
             }
         }
