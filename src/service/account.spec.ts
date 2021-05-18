@@ -2,6 +2,7 @@
 /**
  * 口座サービステスト
  */
+// import * as chevre from '@chevre/api-nodejs-client';
 import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
 import * as sinon from 'sinon';
@@ -60,6 +61,7 @@ describe('金額を転送する', () => {
 
     it('転送元が口座であれば転送できるはず', async () => {
         const actionAttributes = {
+            project: { id: 'xxx' },
             typeOf: pecorino.factory.actionType.MoneyTransfer,
             purpose: {},
             amount: 1234,
@@ -98,6 +100,7 @@ describe('金額を転送する', () => {
 
     it('転送先が口座であれば転送できるはず', async () => {
         const actionAttributes = {
+            project: { id: 'xxx' },
             typeOf: pecorino.factory.actionType.MoneyTransfer,
             purpose: {},
             amount: 1234,
@@ -133,6 +136,7 @@ describe('金額を転送する', () => {
 
     it('転送処理実行時にリポジトリーに問題があれば、アクションを断念してそのままエラーとなるはず', async () => {
         const actionAttributes = {
+            project: { id: 'xxx' },
             typeOf: pecorino.factory.actionType.MoneyTransfer,
             purpose: {},
             amount: 1234,
@@ -188,6 +192,7 @@ describe('金額転送を中止する', () => {
     ].map((transactionType) => {
         it(`リポジトリーが正常であれば、${transactionType}取引の転送処理を中止できるはず`, async () => {
             const actionAttributes = {
+                project: { id: 'xxx' },
                 transaction: {
                     typeOf: transactionType,
                     id: 'transactionId'
@@ -231,6 +236,7 @@ describe('金額転送を中止する', () => {
 
     it('非対応タイプの取引であればArgumentエラーとなるはず', async () => {
         const actionAttributes = {
+            project: { id: 'xxx' },
             transaction: {
                 typeOf: <any>'UnknownType',
                 id: 'transactionId'
