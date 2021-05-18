@@ -8,8 +8,8 @@ async function main() {
     let db = mongoose.connection.db;
 
     // Rename the `test` collection to `foobar`
-    const result = await db.collection('transactions')
-        .rename('accountTransactions', { dropTarget: true });
+    const result = await db.collection('actions')
+        .rename('accountActions', { dropTarget: true });
 
     console.log(result);
 }
