@@ -127,18 +127,32 @@ export function transferMoney(
     }) => {
         let action = await repos.accountAction.startByIdentifier<factory.actionType.MoneyTransfer>(actionAttributes);
 
+        const accountService = new chevre.service.Account({
+            endpoint: credentials.chevre.endpoint,
+            auth: chevreAuthClient,
+            project: { id: action.project.id }
+        });
+
         // すでに完了していれば何もしない
         if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
+            // chevre連携
+            if (USE_SYNC_CHEVRE) {
+                await accountService.syncAccountAction(action);
+            }
+
             return;
         }
 
+        let fromAccountNumber: string | undefined;
+        let toAccountNumber: string | undefined;
+
         try {
-            const fromAccountNumber = (typeof (<any>action.fromLocation).accountNumber === 'string')
+            fromAccountNumber = (typeof (<any>action.fromLocation).accountNumber === 'string')
                 ? (<factory.account.action.moneyTransfer.IAccount>action.fromLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore next */
                 : undefined;
-            const toAccountNumber = (typeof (<any>action.toLocation).accountNumber === 'string')
+            toAccountNumber = (typeof (<any>action.toLocation).accountNumber === 'string')
                 ? (<factory.account.action.moneyTransfer.IAccount>action.toLocation).accountNumber
                 // tslint:disable-next-line:no-single-line-block-comment
                 /* istanbul ignore next */
@@ -168,11 +182,15 @@ export function transferMoney(
 
         // chevre連携
         if (USE_SYNC_CHEVRE) {
-            const accountService = new chevre.service.Account({
-                endpoint: credentials.chevre.endpoint,
-                auth: chevreAuthClient,
-                project: { id: action.project.id }
-            });
+            if (typeof fromAccountNumber === 'string') {
+                const fromAccount = await repos.account.findByAccountNumber({ accountNumber: fromAccountNumber });
+                await accountService.syncAccount(fromAccount);
+            }
+            if (typeof toAccountNumber === 'string') {
+                const toAccount = await repos.account.findByAccountNumber({ accountNumber: toAccountNumber });
+                await accountService.syncAccount(toAccount);
+            }
+
             await accountService.syncAccountAction(action);
         }
     };
