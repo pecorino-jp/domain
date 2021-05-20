@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Chevreとのリポジトリ名重複を解決
 - 口座アクションのコレクション名変更
 - 口座取引のコレクション名変更
+- 全リポジトリを@chevre/domainからのインポートで再構築
+- 口座取引サービスをaccountTransactionにリネーム
 
 ### Deprecated
 

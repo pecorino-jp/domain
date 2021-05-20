@@ -1,13 +1,13 @@
 /**
  * タスクサービス
  */
+import { service } from '@chevre/domain';
 import * as createDebug from 'debug';
 import * as mongoose from 'mongoose';
 
 import * as factory from '../factory';
 import { MongoRepository as TaskRepo } from '../repo/task';
 
-import * as NotificationService from './notification';
 import { task2lineNotify } from './notification/factory';
 
 const debug = createDebug('chevre-domain:service');
@@ -127,6 +127,6 @@ export function abort(params: {
 
         // 開発者へ報告
         const message = task2lineNotify({ task: abortedTask });
-        await NotificationService.report2developers(message.subject, message.content)();
+        await service.notification.report2developers(message.subject, message.content)();
     };
 }

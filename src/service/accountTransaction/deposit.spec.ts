@@ -54,7 +54,7 @@ describe('入金取引を開始する', () => {
             .once()
             .resolves();
 
-        const result = await pecorino.service.transaction.deposit.start(<any>{
+        const result = await pecorino.service.accountTransaction.deposit.start(<any>{
             transactionNumber: 'transactionNumber',
             project: {},
             agent: transaction.agent,
@@ -98,7 +98,7 @@ describe('入金取引を開始する', () => {
             .expects('startTransaction')
             .never();
 
-        const result = await pecorino.service.transaction.deposit.start(<any>{
+        const result = await pecorino.service.accountTransaction.deposit.start(<any>{
             project: {},
             agent: transaction.agent,
             object: transaction.object

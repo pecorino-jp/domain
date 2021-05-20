@@ -6,11 +6,11 @@ import { MongoRepository as TaskRepository } from '../repo/task';
 
 import * as factory from '../factory';
 
-import * as DepositTransactionService from './transaction/deposit';
-import * as TransferTransactionService from './transaction/transfer';
-import * as WithdrawTransactionService from './transaction/withdraw';
+import * as DepositTransactionService from './accountTransaction/deposit';
+import * as TransferTransactionService from './accountTransaction/transfer';
+import * as WithdrawTransactionService from './accountTransaction/withdraw';
 
-import { createMoneyTransferActionAttributes } from './transaction/factory';
+import { createMoneyTransferActionAttributes } from './accountTransaction/factory';
 
 export type IConfirmOperation<T> = (repos: {
     accountTransaction: AccountTransactionRepo;

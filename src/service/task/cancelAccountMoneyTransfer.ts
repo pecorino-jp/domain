@@ -8,6 +8,8 @@ import * as AccountService from '../account';
 
 import { IConnectionSettings, IOperation } from '../task';
 
+// tslint:disable-next-line:no-single-line-block-comment
+/* istanbul ignore next */
 export function call(data: factory.task.cancelAccountMoneyTransfer.IData): IOperation<void> {
     return async (settings: IConnectionSettings) => {
         const accountRepo = new AccountRepo(settings.connection);

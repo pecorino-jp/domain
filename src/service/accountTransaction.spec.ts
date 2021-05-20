@@ -44,7 +44,7 @@ describe('取引を確定する', () => {
             .once()
             .resolves(transaction);
 
-        const result = await pecorino.service.transaction.confirm({
+        const result = await pecorino.service.accountTransaction.confirm({
             id: transaction.id,
             typeOf: transaction.typeOf
         })({
@@ -85,7 +85,7 @@ describe('取引のタスクをエクスポートする', () => {
             .once()
             .resolves();
 
-        const result = await pecorino.service.transaction.exportTasks({
+        const result = await pecorino.service.accountTransaction.exportTasks({
             status: pecorino.factory.transactionStatusType.Canceled,
             typeOf: pecorino.factory.account.transactionType.Deposit
         })({
@@ -114,7 +114,7 @@ describe('取引のタスクをエクスポートする', () => {
             .expects('setTasksExportedById')
             .never();
 
-        const result = await pecorino.service.transaction.exportTasks({
+        const result = await pecorino.service.accountTransaction.exportTasks({
             status: pecorino.factory.transactionStatusType.Canceled,
             typeOf: pecorino.factory.account.transactionType.Deposit
         })({
@@ -152,7 +152,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             .atLeast(1)
             .resolves(task);
 
-        const result = await pecorino.service.transaction.exportTasksById(transaction)({
+        const result = await pecorino.service.accountTransaction.exportTasksById(transaction)({
             task: taskRepo,
             accountTransaction: transactionRepo
         });
@@ -183,7 +183,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
                 .atLeast(1)
                 .resolves(task);
 
-            const result = await pecorino.service.transaction.exportTasksById(transaction)({
+            const result = await pecorino.service.accountTransaction.exportTasksById(transaction)({
                 task: taskRepo,
                 accountTransaction: transactionRepo
             });
@@ -208,7 +208,7 @@ describe('ID指定で取引のタスクをエクスポートする', () => {
             .expects('save')
             .never();
 
-        const result = await pecorino.service.transaction.exportTasksById(transaction)({
+        const result = await pecorino.service.accountTransaction.exportTasksById(transaction)({
             task: taskRepo,
             accountTransaction: transactionRepo
         })

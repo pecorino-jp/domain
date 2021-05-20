@@ -67,6 +67,8 @@ export function open(params: {
         }));
 
         // chevre連携
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore next */
         if (USE_SYNC_CHEVRE) {
             if (accounts.length > 0) {
                 const accountService = new chevre.service.Account({
@@ -105,6 +107,8 @@ export function close(params: {
         });
 
         // chevre連携
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore next */
         if (USE_SYNC_CHEVRE) {
             const account = await repos.account.findByAccountNumber({ accountNumber: params.accountNumber });
             const accountService = new chevre.service.Account({
@@ -139,6 +143,8 @@ export function transferMoney(
         // すでに完了していれば何もしない
         if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
             // chevre連携
+            // tslint:disable-next-line:no-single-line-block-comment
+            /* istanbul ignore next */
             if (USE_SYNC_CHEVRE) {
                 await accountService.syncAccountAction(action);
             }
@@ -184,6 +190,8 @@ export function transferMoney(
         action = await repos.accountAction.complete(action.typeOf, action.id, actionResult);
 
         // chevre連携
+        // tslint:disable-next-line:no-single-line-block-comment
+        /* istanbul ignore next */
         if (USE_SYNC_CHEVRE) {
             if (typeof fromAccountNumber === 'string') {
                 const fromAccount = await repos.account.findByAccountNumber({ accountNumber: fromAccountNumber });

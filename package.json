@@ -10,6 +10,7 @@
   ],
   "dependencies": {
     "@chevre/api-nodejs-client": "3.74.0",
+    "@chevre/domain": "15.47.0-alpha.40",
     "@chevre/factory": "4.102.0",
     "debug": "^3.1.0",
     "http-status": "^1.2.0",

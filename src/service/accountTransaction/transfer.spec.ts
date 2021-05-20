@@ -1,6 +1,6 @@
 // tslint:disable:no-implicit-dependencies
 /**
- * 出金取引サービステスト
+ * 転送取引サービステスト
  */
 import * as mongoose from 'mongoose';
 import * as assert from 'power-assert';
@@ -14,19 +14,21 @@ before(() => {
     sandbox = sinon.sandbox.create();
 });
 
-describe('出金取引を開始する', () => {
+describe('転送取引を開始する', () => {
     beforeEach(() => {
         sandbox.restore();
     });
 
     it('リポジトリーが正常であれば開始できるはず', async () => {
-        const account = {};
+        const fromAccount = { accountNumber: 'fromAccountNumber' };
+        const toAccount = { accountNumber: 'toAccountNumber' };
         const transaction = {
-            typeOf: pecorino.factory.account.transactionType.Withdraw,
+            typeOf: pecorino.factory.account.transactionType.Transfer,
             agent: {},
             recipient: {},
             object: {
-                fromLocation: {}
+                fromLocation: fromAccount,
+                toLocation: toAccount
             },
             expires: new Date(),
             status: pecorino.factory.transactionStatusType.Confirmed,
@@ -37,8 +39,11 @@ describe('出金取引を開始する', () => {
         const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(accountRepo)
             .expects('findByAccountNumber')
-            .once()
-            .resolves(account);
+            .twice()
+            .onFirstCall()
+            .resolves(fromAccount)
+            .onSecondCall()
+            .resolves(toAccount);
         sandbox.mock(transactionRepo)
             .expects('start')
             .once()
@@ -47,12 +52,16 @@ describe('出金取引を開始する', () => {
             .expects('authorizeAmount')
             .once()
             .resolves();
+        sandbox.mock(accountRepo)
+            .expects('startTransaction')
+            .once()
+            .resolves();
         sandbox.mock(actionRepo)
             .expects('startByIdentifier')
             .once()
             .resolves();
 
-        const result = await pecorino.service.transaction.withdraw.start(<any>{
+        const result = await pecorino.service.accountTransaction.transfer.start(<any>{
             transactionNumber: 'transactionNumber',
             project: {},
             agent: transaction.agent,
@@ -67,13 +76,15 @@ describe('出金取引を開始する', () => {
     });
 
     it('開始時リポジトリーに問題があれば、そのままエラーとなるはず', async () => {
-        const account = {};
+        const fromAccount = { accountNumber: 'fromAccountNumber' };
+        const toAccount = { accountNumber: 'toAccountNumber' };
         const transaction = {
-            typeOf: pecorino.factory.account.transactionType.Withdraw,
+            typeOf: pecorino.factory.account.transactionType.Transfer,
             agent: {},
             recipient: {},
             object: {
-                fromLocation: {}
+                fromLocation: fromAccount,
+                toLocation: toAccount
             },
             expires: new Date(),
             status: pecorino.factory.transactionStatusType.Confirmed,
@@ -85,8 +96,11 @@ describe('出金取引を開始する', () => {
         const transactionRepo = new pecorino.repository.AccountTransaction(mongoose.connection);
         sandbox.mock(accountRepo)
             .expects('findByAccountNumber')
-            .once()
-            .resolves(account);
+            .twice()
+            .onFirstCall()
+            .resolves(fromAccount)
+            .onSecondCall()
+            .resolves(toAccount);
         sandbox.mock(transactionRepo)
             .expects('start')
             .once()
@@ -94,8 +108,11 @@ describe('出金取引を開始する', () => {
         sandbox.mock(accountRepo)
             .expects('authorizeAmount')
             .never();
+        sandbox.mock(accountRepo)
+            .expects('startTransaction')
+            .never();
 
-        const result = await pecorino.service.transaction.withdraw.start(<any>{
+        const result = await pecorino.service.accountTransaction.transfer.start(<any>{
             project: {},
             agent: transaction.agent,
             object: transaction.object
