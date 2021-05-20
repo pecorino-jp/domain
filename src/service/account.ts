@@ -2,24 +2,11 @@
  * 口座サービス
  * 開設、閉鎖等、口座に対するアクションを定義します。
  */
-import * as chevre from '@chevre/api-nodejs-client';
 import * as factory from '../factory';
 
 import { MongoRepository as AccountRepo } from '../repo/account';
 import { MongoRepository as AccountActionRepo } from '../repo/accountAction';
 import { MongoRepository as AccountTransactionRepo } from '../repo/accountTransaction';
-
-import { credentials } from '../credentials';
-
-const USE_SYNC_CHEVRE = process.env.USE_SYNC_CHEVRE === '1';
-
-const chevreAuthClient = new chevre.auth.ClientCredentials({
-    domain: credentials.chevre.authorizeServerDomain,
-    clientId: credentials.chevre.clientId,
-    clientSecret: credentials.chevre.clientSecret,
-    scopes: [],
-    state: ''
-});
 
 export type IOpenOperation<T> = (repos: {
     account: AccountRepo;
@@ -54,7 +41,7 @@ export function open(params: {
     }) => {
         const openDate = new Date();
 
-        const accounts = await repos.account.open(params.map((p) => {
+        return repos.account.open(params.map((p) => {
             return {
                 project: { typeOf: p.project.typeOf, id: p.project.id },
                 typeOf: p.typeOf,
@@ -65,27 +52,6 @@ export function open(params: {
                 openDate: openDate
             };
         }));
-
-        // chevre連携
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore next */
-        if (USE_SYNC_CHEVRE) {
-            if (accounts.length > 0) {
-                const accountService = new chevre.service.Account({
-                    endpoint: credentials.chevre.endpoint,
-                    auth: chevreAuthClient,
-                    project: { id: accounts[0].project.id }
-                });
-                await Promise.all(accounts.map(async (account) => {
-                    await accountService.syncAccount({
-                        ...account,
-                        ...{ id: String((<any>account)._id) }
-                    });
-                }));
-            }
-        }
-
-        return accounts;
     };
 }
 
@@ -105,19 +71,6 @@ export function close(params: {
             accountNumber: params.accountNumber,
             closeDate: new Date()
         });
-
-        // chevre連携
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore next */
-        if (USE_SYNC_CHEVRE) {
-            const account = await repos.account.findByAccountNumber({ accountNumber: params.accountNumber });
-            const accountService = new chevre.service.Account({
-                endpoint: credentials.chevre.endpoint,
-                auth: chevreAuthClient,
-                project: { id: account.project.id }
-            });
-            await accountService.syncAccount(account);
-        }
     };
 }
 
@@ -134,21 +87,8 @@ export function transferMoney(
     }) => {
         let action = await repos.accountAction.startByIdentifier<factory.actionType.MoneyTransfer>(actionAttributes);
 
-        const accountService = new chevre.service.Account({
-            endpoint: credentials.chevre.endpoint,
-            auth: chevreAuthClient,
-            project: { id: action.project.id }
-        });
-
         // すでに完了していれば何もしない
         if (action.actionStatus === factory.actionStatusType.CompletedActionStatus) {
-            // chevre連携
-            // tslint:disable-next-line:no-single-line-block-comment
-            /* istanbul ignore next */
-            if (USE_SYNC_CHEVRE) {
-                await accountService.syncAccountAction(action);
-            }
-
             return;
         }
 
@@ -188,22 +128,6 @@ export function transferMoney(
         // アクション完了
         const actionResult: factory.account.action.moneyTransfer.IResult = {};
         action = await repos.accountAction.complete(action.typeOf, action.id, actionResult);
-
-        // chevre連携
-        // tslint:disable-next-line:no-single-line-block-comment
-        /* istanbul ignore next */
-        if (USE_SYNC_CHEVRE) {
-            if (typeof fromAccountNumber === 'string') {
-                const fromAccount = await repos.account.findByAccountNumber({ accountNumber: fromAccountNumber });
-                await accountService.syncAccount(fromAccount);
-            }
-            if (typeof toAccountNumber === 'string') {
-                const toAccount = await repos.account.findByAccountNumber({ accountNumber: toAccountNumber });
-                await accountService.syncAccount(toAccount);
-            }
-
-            await accountService.syncAccountAction(action);
-        }
     };
 }
 
